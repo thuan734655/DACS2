@@ -7,24 +7,24 @@ const LoginUI = () => {
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
-  const { formData, handleChange,handleSubmitLogin } = useFormData({
+  const { formData, handleChange, handleSubmitLogin } = useFormData({
     email: "",
     password: "",
   });
-  
+
   return (
-    <div className="flex justify-center items-center h-screen bg-pink-100">
+    <div className="flex flex-col lg:flex-row justify-center items-center min-h-screen bg-pink-100 p-4 sm:p-8">
       <div>
-        <div className="">
-          <img src={Title} alt="Descriptive Logo" className="w-96 h-auto" />
+        <div className=" flex flex-col items-center lg:items-start lg:mr-8 mb-8 lg:mb-0">
+          <img src={Title} alt="Descriptive Logo" className="w-64 h-auto sm:w-96" />
         </div>
-        <div className="text-center m-5">
-          <p className="text-gray-700 text-2xl">
+        <div className="text-center m-6 lg:text-left">
+          <p className="text-gray-700 text-lg sm:text-2xl">
             ITN helps you connect and share with the people in your life.
           </p>
         </div>
       </div>
-      <div className="bg-white p-10 rounded-lg shadow-lg w-96 space-y-6">
+      <div className="bg-white p-6 sm:p-10 rounded-lg w-full max-w-md shadow-lg  space-y-6">
         <div>
           <input
             name="email"
@@ -38,7 +38,7 @@ const LoginUI = () => {
 
         <div className="relative">
           <input
-            name="password" 
+            name="password"
             value={formData.password}
             onChange={handleChange}
             type={passwordVisible ? "text" : "password"}
@@ -54,7 +54,10 @@ const LoginUI = () => {
         </div>
 
         <div>
-          <button onClick={handleSubmitLogin} className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 w-full rounded-lg shadow-md">
+          <button
+            onClick={handleSubmitLogin}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 w-full rounded-lg shadow-md"
+          >
             Login
           </button>
         </div>
@@ -77,4 +80,3 @@ const LoginUI = () => {
 };
 
 export default LoginUI;
-
