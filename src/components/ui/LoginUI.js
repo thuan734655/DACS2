@@ -1,16 +1,21 @@
 import React, { useState } from "react";
 import Title from "../../assets/imgs/Title.png";
 import { Link } from "react-router-dom";
+import useFormData from "../../hooks/useFormData";
 const LoginUI = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
-
+  const { formData, handleChange,handleSubmitLogin } = useFormData({
+    email: "",
+    password: "",
+  });
+  
   return (
     <div className="flex justify-center items-center h-screen bg-pink-100">
       <div>
-        <div className="mb-">
+        <div className="">
           <img src={Title} alt="Descriptive Logo" className="w-96 h-auto" />
         </div>
         <div className="text-center m-5">
@@ -22,6 +27,9 @@ const LoginUI = () => {
       <div className="bg-white p-10 rounded-lg shadow-lg w-96 space-y-6">
         <div>
           <input
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
             type="email"
             className="bg-gray-100 p-3 rounded-lg w-full shadow-md"
             placeholder="Email address"
@@ -30,6 +38,9 @@ const LoginUI = () => {
 
         <div className="relative">
           <input
+            name="password" 
+            value={formData.password}
+            onChange={handleChange}
             type={passwordVisible ? "text" : "password"}
             className="w-full p-3 border border-gray-300 rounded-lg shadow-md focus:ring-2 focus:ring-blue-500"
             placeholder="Password"
@@ -43,7 +54,7 @@ const LoginUI = () => {
         </div>
 
         <div>
-          <button className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 w-full rounded-lg shadow-md">
+          <button onClick={handleSubmitLogin} className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 w-full rounded-lg shadow-md">
             Login
           </button>
         </div>
@@ -66,3 +77,4 @@ const LoginUI = () => {
 };
 
 export default LoginUI;
+
