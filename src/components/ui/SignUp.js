@@ -14,6 +14,10 @@ const SignUp = () => {
     year: "",
     gender: "",
   });
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
+  };
   // tach ham xu li ngay thang nam
   const { loadDateOfBirth, loadMonth, loadyear } = handleDataDate();
 
@@ -47,7 +51,6 @@ const SignUp = () => {
                 value={formData.firstname}
                 onChange={handleChange}
                 onBlur={(event) => checkValidData(event)}
-                
               />
             </div>
             {/* end body-container--box-fullName */}
@@ -60,15 +63,24 @@ const SignUp = () => {
               onChange={handleChange}
               onBlur={(event) => checkValidData(event)}
             />
-            <input
-              className="body-container--input-password"
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              onBlur={(event) => checkValidData(event)}
-            />
+            <div className="body-container--box-password">
+              <input
+                className="body-container--input-password"
+                type={passwordVisible ? "text" : "password"}
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+                onBlur={(event) => checkValidData(event)}
+              />
+              <span
+                className="absolute right-3 top-3 cursor-pointer"
+                onClick={togglePasswordVisibility}
+              >
+                {passwordVisible ? "🙈" : "👁️"}
+              </span>
+            </div>
+
             <div className="body-container--box-birth">
               <form onSubmit={handleSubmit}>
                 <label htmlFor="dob-day">Date of birth:</label>
@@ -102,19 +114,21 @@ const SignUp = () => {
                 </select>
               </form>
 
-             <div className="body-container--Gender">
-             <label htmlFor="gender">Gender:</label>
-              <select
-                id="gender"
-                name="gender"
-                value={formData.gender}
-                onChange={handleChange}
-              >
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-              </select>
-             </div>
-              <button onClick={handleSubmit} type="submit">Submit</button>
+              <div className="body-container--Gender">
+                <label htmlFor="gender">Gender:</label>
+                <select
+                  id="gender"
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                >
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+              </div>
+              <button onClick={handleSubmit} type="submit">
+                Submit
+              </button>
             </div>
             {/* end body-container--box-birth */}
           </div>

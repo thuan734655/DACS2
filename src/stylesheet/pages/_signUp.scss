@@ -1,6 +1,6 @@
 @use "../abstract/" as *;
 body {
-  background-color: rgb(252 231 243 );
+  background-color: rgb(252 231 243);
 }
 .signUp {
   &__container {
@@ -51,8 +51,18 @@ body {
         .body-container--input-username {
           @include set-size($w: 100%);
         }
-        .body-container--input-password {
-          @include set-size($w: 100%);
+        .body-container--box-password {
+          @include flex($justify: space-between);
+          position: relative;
+          .body-container--input-password {
+            @include set-size($w: 100%);
+          }
+
+          span {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+          }
         }
         .body-container--box-birth {
           @include flex($gap: pxToRem(20), $direction: column);
