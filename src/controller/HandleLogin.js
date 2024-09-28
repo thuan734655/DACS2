@@ -1,5 +1,5 @@
 import axios from "axios";
-const handleLogin = async (formData, nagivate) => {
+const handleLogin = async (formData,nagivate) => {
   const { email, password } = formData;
   console.log(formData);
   try {
@@ -9,7 +9,7 @@ const handleLogin = async (formData, nagivate) => {
       password: password, // giá trị mật khẩu từ input
     });
     console.log("Đăng nhập thành công:", response.data);
-    nagivate("/homepage");
+    nagivate("/homepage")
   } catch (error) {
     console.error(
       "Lỗi đăng nhập:",
