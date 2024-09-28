@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import a from '../controller/HandleLogin';
+import handleSignUp from '../controller/HandleSignUp';
 
 const useFormData = (dataInitForm={}) => {
   const [formData, setFormData] = useState(dataInitForm);
@@ -11,12 +11,11 @@ const useFormData = (dataInitForm={}) => {
     });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log(formData);
+  const handleSubmitSignUp = (formData) => {
+    handleSignUp(formData);
   };
 
-  return { formData, handleChange, handleSubmit };
+  return { formData, handleChange, handleSubmitSignUp };
 };
 
 export default useFormData;

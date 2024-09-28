@@ -4,15 +4,15 @@ import handleDataDate from "../../utils/loadDateSignUp";
 import checkValidData from "../../utils/validDataForm";
 
 const SignUp = () => {
-  const { formData, handleChange, handleSubmit } = useFormData({
+  const { formData, handleChange, handleSubmitSignUp } = useFormData({
     lastname: "",
     firstname: "",
     email: "",
     password: "",
-    day: "",
-    month: "",
-    year: "",
-    gender: "",
+    day: "1",
+    month: "1",
+    year: "1890",
+    gender: "Male",
   });
   const [passwordVisible, setPasswordVisible] = useState(false);
   const togglePasswordVisibility = () => {
@@ -82,7 +82,7 @@ const SignUp = () => {
             </div>
 
             <div className="body-container--box-birth">
-              <form onSubmit={handleSubmit}>
+              <form>
                 <label htmlFor="dob-day">Date of birth:</label>
                 <select
                   id="dob-day"
@@ -126,7 +126,10 @@ const SignUp = () => {
                   <option value="female">Female</option>
                 </select>
               </div>
-              <button onClick={handleSubmit} type="submit">
+              <button
+                onClick={() => handleSubmitSignUp(formData)}
+                type="submit"
+              >
                 Submit
               </button>
             </div>
