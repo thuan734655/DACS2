@@ -69,7 +69,7 @@ const LoginUI = () => {
           </button>
         </div>
         <div>
-          <Link to="/ForgottenUI" className="text-blue-500">
+          <Link to="/forgotten" className="text-blue-500">
             Forgotten password?
           </Link>
         </div>
