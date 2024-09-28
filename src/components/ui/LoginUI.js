@@ -2,12 +2,15 @@ import React, { useState } from "react";
 import Title from "../../assets/imgs/Title.png";
 import { Link } from "react-router-dom";
 import useFormData from "../../hooks/useFormData";
+import { useNavigate } from "react-router-dom";
+import handleLogin from "../../controller/HandleLogin";
 const LoginUI = () => {
+  const nagigate = useNavigate();
   const [passwordVisible, setPasswordVisible] = useState(false);
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
-  const { formData, handleChange, handleSubmitLogin } = useFormData({
+  const { formData, handleChange } = useFormData({
     email: "",
     password: "",
   });
@@ -16,7 +19,11 @@ const LoginUI = () => {
     <div className="flex flex-col lg:flex-row justify-center items-center min-h-screen bg-pink-100 p-4 sm:p-8">
       <div>
         <div className=" flex flex-col items-center lg:items-start lg:mr-8 mb-8 lg:mb-0">
-          <img src={Title} alt="Descriptive Logo" className="w-64 h-auto sm:w-96" />
+          <img
+            src={Title}
+            alt="Descriptive Logo"
+            className="w-64 h-auto sm:w-96"
+          />
         </div>
         <div className="text-center m-6 lg:text-left">
           <p className="text-gray-700 text-lg sm:text-2xl">
@@ -55,7 +62,7 @@ const LoginUI = () => {
 
         <div>
           <button
-            onClick={handleSubmitLogin}
+            onClick={() => handleLogin(formData, nagigate)}
             className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 w-full rounded-lg shadow-md"
           >
             Login
