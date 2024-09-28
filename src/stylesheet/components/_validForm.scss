@@ -1,0 +1,26 @@
+.err-form {
+  border: 1px solid red;
+}
+
+.err-form-animation {
+  animation: err-form-animation 1.5s ease 0s 1 normal forwards;
+}
+
+.valid-form {
+  border: unset;
+}
+
+@keyframes err-form-animation {
+  0% {
+    transform: translateX(0);
+  }
+  33% {
+    transform: translateX(2%);
+  }
+  66% {
+    transform: translateX(-2%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
