@@ -18,7 +18,7 @@ const useFormData = (dataInitForm = {}) => {
     handleLogin(formData);
   };
 
-  return { formData, handleChange, handleSubmit, handleSubmitLogin };
+  return { formData, handleChange, handleSubmitSignUp, handleSubmitLogin };
 };
 
 export default useFormData;
