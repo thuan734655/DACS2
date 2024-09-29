@@ -3,6 +3,7 @@ import "./App.scss";
 import ForgottenUI from "./components/ui/ForgottenUI";
 import HomePageUI from "./components/ui/HomePageUI";
 import LoginUI from "./components/ui/LoginUI";
+import SignUp from "./components/ui/SignUp"
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Route path="/login" element={<LoginUI />} />
           <Route path="/forgotten" element={<ForgottenUI />} />
           <Route path="/homepage" element={<HomePageUI />} />
+          <Route path="/Signup" element={<SignUp/>} />
         </Routes>
       </Router>
     </div>

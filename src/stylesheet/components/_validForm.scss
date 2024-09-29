@@ -1,0 +1,49 @@
+.err-form {
+  border: 1px solid red;
+}
+
+.err-form-animation {
+  animation: err-form-animation 1.5s ease 0s 1 normal forwards;
+}
+
+.err-span {
+  animation: err-span-animation 1.5s ease 0s 1 normal forwards; /* Thời gian ngắn hơn */
+}
+
+.valid-form {
+  border: unset;
+}
+
+@keyframes err-form-animation {
+  0% {
+    transform: translate(0);
+  }
+  33% {
+    transform: translateX(2%);
+  }
+  66% {
+    transform: translateX(-2%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes err-span-animation {
+  0% {
+    top: -10%;
+    transform: translate(0, 50%);
+  }
+  33% {
+    top: -10%;
+    transform: translate(15%, 50%);
+  }
+  66% {
+    top: -10%;
+    transform: translate(-15%, 50%);
+  }
+  100% {
+    top: -10%;
+    transform: translate(0, 50%);
+  }
+}

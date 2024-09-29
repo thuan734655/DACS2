@@ -1,3 +1,92 @@
+@use "../abstract/" as *;
 body {
-    background-color: red;
+  background-color: rgb(252 231 243);
+}
+.signUp {
+  &__container {
+    @include set-size($w: 400px, $h: 430px);
+    background-color: rgb(233, 205, 255);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    @include flex($direction: column, $gap: pxToRem(20));
+    padding: pxToRem(20);
+    border-radius: pxToRem(10);
+
+    &--head {
+      .head-container {
+        &--title {
+          @include font(
+            $font-size: pxToRem(32),
+            $font-weight: 600,
+            $line-height: 38px,
+            $color: #1c1e21
+          );
+        }
+      }
+    }
+    &--desc {
+      @include font(
+        $font-size: pxToRem(15),
+        $line-height: 24px,
+        $color: #606770
+      );
+    }
+    &--body {
+      .body-container {
+        select {
+          border-radius: pxToRem(5);
+        }
+        @include flex($direction: column, $gap: pxToRem(20));
+        input {
+          @include set-size($w: 80%, $h: 40px);
+          border-radius: 10px;
+          padding-left: 15px;
+          background-color: #ffffff;
+        }
+        &--box-fullName {
+          @include flex($gap: pxToRem(18));
+        }
+        .body-container--input-username {
+          @include set-size($w: 100%);
+        }
+        .body-container--box-password {
+          @include flex($justify: space-between);
+          position: relative;
+          .body-container--input-password {
+            @include set-size($w: 100%);
+          }
+
+          span {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+          }
+        }
+        .body-container--box-birth {
+          @include flex($gap: pxToRem(20), $direction: column);
+          form {
+            @include flex($gap: pxToRem(10));
+            flex-wrap: wrap;
+          }
+        }
+        .body-container--Gender {
+          @include flex($gap: pxToRem(48));
+        }
+        button {
+          @include font(
+            $font-size: pxToRem(18),
+            $font-weight: 500,
+            $color: #fff
+          );
+          @include set-size($w: 25%);
+          background-color: #4c077e;
+          border-radius: 6px;
+          padding: 5px;
+          margin: 0 auto;
+        }
+      }
+    }
+  }
 }
