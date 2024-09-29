@@ -1,7 +1,7 @@
+import handleLogin from "../controller/HandleLogin";
 import { useState } from 'react';
-import a from '../controller/HandleLogin';
 
-const useFormData = (dataInitForm={}) => {
+const useFormData = (dataInitForm = {}) => {
   const [formData, setFormData] = useState(dataInitForm);
 
   const handleChange = (e) => {
@@ -16,7 +16,11 @@ const useFormData = (dataInitForm={}) => {
     console.log(formData);
   };
 
-  return { formData, handleChange, handleSubmit };
+  const handleSubmitLogin = () => {
+    handleLogin(formData);
+  };
+
+  return { formData, handleChange, handleSubmit, handleSubmitLogin };
 };
 
 export default useFormData;
