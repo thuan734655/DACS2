@@ -2,10 +2,9 @@ import React, { useState } from "react";
 import useFormData from "../../hooks/useFormData";
 import handleDataDate from "../../utils/loadDateSignUp";
 import checkValidData from "../../utils/validDataForm";
-import handleSignUp from "../../controller/HandleSignUp";
-
-const SignUp = ({onSignUpSuccess}) => {
-  const { formData, handleChange } = useFormData({
+import x_icon from '../../assets/imgs/x-icon.png';
+const SignUp = () => {
+  const { formData, handleChange,handleSubmitSignUp } = useFormData({
     lastname: "",
     firstname: "",
     email: "",
@@ -31,6 +30,9 @@ const SignUp = ({onSignUpSuccess}) => {
             <h3 className="head-container--title">Sign Up</h3>
             <p className="head-container--desc">It's quick and easy.</p>
           </div>
+          <figure className="head-x-icon">
+              <img src={x_icon} alt="icon X"/>
+             </figure>
         </div>
         {/* end signUp__container--head */}
         <div className="signUp__container--body">
@@ -129,7 +131,7 @@ const SignUp = ({onSignUpSuccess}) => {
                 </select>
               </div>
               <button
-                onClick={() => handleSignUp(formData)}
+                onClick={() => handleSubmitSignUp(formData)}
                 type="submit"
               >
                 Submit
