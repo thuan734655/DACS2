@@ -81,10 +81,10 @@ const handleSignUp = async (formData) => {
     });
 
     console.log("Sign up successful:", res.data);
-    // Navigate to homepage if needed
-    // navigate("/homepage");
+    alert("Sign up successful:", res.data);
+    
   } catch (error) {
-    console.error(
+    alert.error(
       "Sign up error:",
       error.response ? error.response.data : error.message
     );

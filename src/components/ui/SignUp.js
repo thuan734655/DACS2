@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import useFormData from "../../hooks/useFormData";
 import handleDataDate from "../../utils/loadDateSignUp";
 import checkValidData from "../../utils/validDataForm";
+import handleSignUp from "../../controller/HandleSignUp";
 
-const SignUp = () => {
-  const { formData, handleChange, handleSubmitSignUp } = useFormData({
+const SignUp = ({onSignUpSuccess}) => {
+  const { formData, handleChange } = useFormData({
     lastname: "",
     firstname: "",
     email: "",
@@ -14,7 +15,16 @@ const SignUp = () => {
     year: "1890",
     gender: "Male",
   });
-  const [passwordVisible, setPasswordVisible] = useState(false);
+  const handleSubmit = async(e)=>{
+    e.preventDefault();
+    const success = await handleSignUp(formData);
+    if (success) {
+      onSignUpSuccess();
+    }else{
+      console.log("SignUp failed")
+    }
+  }
+  const [passwordVisible, setPasswordVisible] = useState(true);
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
@@ -127,7 +137,7 @@ const SignUp = () => {
                 </select>
               </div>
               <button
-                onClick={() => handleSubmitSignUp(formData)}
+                onClick={() => handleSignUp(formData)}
                 type="submit"
               >
                 Submit
