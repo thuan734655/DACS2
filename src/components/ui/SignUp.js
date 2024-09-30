@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import useFormData from "../../hooks/useFormData";
 import handleDataDate from "../../utils/loadDateSignUp";
 import checkValidData from "../../utils/validDataForm";
+import x_icon from '../../assets/imgs/x-icon.png';
 
 const SignUp = () => {
   const { formData, handleChange, handleSubmit } = useFormData({
@@ -29,6 +30,9 @@ const SignUp = () => {
             <h3 className="head-container--title">Sign Up</h3>
             <p className="head-container--desc">It's quick and easy.</p>
           </div>
+          <figure className="head-x-icon">
+              <img src={x_icon} alt="icon X"/>
+             </figure>
         </div>
         {/* end signUp__container--head */}
         <div className="signUp__container--body">
