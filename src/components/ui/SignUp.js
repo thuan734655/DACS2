@@ -5,7 +5,7 @@ import checkValidData from "../../utils/validDataForm";
 import x_icon from "../../assets/imgs/x-icon.png";
 
 const SignUp = () => {
-  const { formData, handleChange,handleSubmitSignUp } = useFormData({
+  const { formData, handleChange, handleSubmitSignUp } = useFormData({
     lastname: "",
     firstname: "",
     email: "",
@@ -32,7 +32,11 @@ const SignUp = () => {
             <p className="head-container--desc">It's quick and easy.</p>
           </div>
           <figure className="head-x-icon">
-            <img  src={x_icon} alt="icon X" />
+            <img
+              onClick={() => console.log(1241)}
+              src={x_icon}
+              alt="icon X"
+            />
           </figure>
         </div>
         {/* end signUp__container--head */}
@@ -131,7 +135,10 @@ const SignUp = () => {
                   <option value="female">Female</option>
                 </select>
               </div>
-              <button onClick={()=>handleSubmitSignUp(formData)} type="submit">
+              <button
+                onClick={() => handleSubmitSignUp(formData)}
+                type="submit"
+              >
                 Submit
               </button>
             </div>

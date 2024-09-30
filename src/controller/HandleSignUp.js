@@ -90,6 +90,10 @@ const handleSignUp = async (formData) => {
       error.response ? error.response.data : error.message
     );
   }
+
+  
+
+  return {}
 };
 
 export default handleSignUp;

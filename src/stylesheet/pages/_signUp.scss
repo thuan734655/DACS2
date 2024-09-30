@@ -28,8 +28,13 @@ body {
         }
       }
       .head-x-icon {
-        @include set-size($w: 30px);
+        cursor: pointer;
+        @include set-size($w: 30px,$h:30px);
       }
+      .head-x-icon:hover {
+        transform: scale(1.08);
+      }
+    
     }
     &--desc {
       @include font(
