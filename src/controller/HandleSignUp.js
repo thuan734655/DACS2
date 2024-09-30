@@ -83,6 +83,7 @@ const handleSignUp = async (formData) => {
     console.log("Sign up successful:", res.data);
     // Navigate to homepage if needed
     // navigate("/homepage");
+    document.querySelector(".box-signUp").style.display = "none";
   } catch (error) {
     console.error(
       "Sign up error:",

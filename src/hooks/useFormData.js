@@ -12,6 +12,7 @@ const useFormData = (dataInitForm = {}) => {
   };
 
   const handleSubmitSignUp = (formData) => {
+    console.log(formData);
     handleSignUp(formData);
   };
   const handleSubmitLogin = () => {

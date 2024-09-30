@@ -15,6 +15,7 @@ body {
     border-radius: pxToRem(10);
 
     &--head {
+      @include flex($justify: space-between);
       .head-container {
         &--title {
           @include font(
@@ -24,6 +25,9 @@ body {
             $color: #1c1e21
           );
         }
+      }
+      .head-x-icon {
+        @include set-size($w: 30px);
       }
     }
     &--desc {
