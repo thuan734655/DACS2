@@ -16,6 +16,7 @@ body {
 
     &--head {
       @include flex($justify: space-between);
+      @include flex($justify: space-between);
       .head-container {
         &--title {
           @include font(

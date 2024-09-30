@@ -5,7 +5,7 @@ import checkValidData from "../../utils/validDataForm";
 import x_icon from "../../assets/imgs/x-icon.png";
 
 const SignUp = () => {
-  const { formData, handleChange, handleSubmitSignUp } = useFormData({
+  const { formData, handleChange,handleSubmitSignUp } = useFormData({
     lastname: "",
     firstname: "",
     email: "",
@@ -15,7 +15,8 @@ const SignUp = () => {
     year: "1980",
     gender: "Male",
   });
-  const [passwordVisible, setPasswordVisible] = useState(false);
+
+  const [passwordVisible, setPasswordVisible] = useState(true);
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
