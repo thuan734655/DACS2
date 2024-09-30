@@ -14,6 +14,7 @@ const LoginUI = () => {
     email: "",
     password: "",
   });
+  
 
   return (
     <div className="flex flex-col lg:flex-row justify-center items-center min-h-screen bg-pink-100 p-4 sm:p-8">
@@ -81,6 +82,7 @@ const LoginUI = () => {
             Create New Account
           </button>
         </div>
+        <div className="box-signUp">{isVisible && <SignUp/>}</div>
       </div>
     </div>
   );
