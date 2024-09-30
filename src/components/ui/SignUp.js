@@ -2,10 +2,9 @@ import React, { useState } from "react";
 import useFormData from "../../hooks/useFormData";
 import handleDataDate from "../../utils/loadDateSignUp";
 import checkValidData from "../../utils/validDataForm";
-import handleSignUp from "../../controller/HandleSignUp";
 
-const SignUp = ({onSignUpSuccess}) => {
-  const { formData, handleChange } = useFormData({
+const SignUp = () => {
+  const { formData, handleChange, handleSubmitLogin } = useFormData({
     lastname: "",
     firstname: "",
     email: "",
@@ -128,10 +127,7 @@ const SignUp = ({onSignUpSuccess}) => {
                   <option value="female">Female</option>
                 </select>
               </div>
-              <button
-                onClick={() => handleSignUp(formData)}
-                type="submit"
-              >
+              <button onClick={() => handleSubmitLogin(formData)} type="submit">
                 Submit
               </button>
             </div>
