@@ -6,20 +6,15 @@ import { useNavigate } from "react-router-dom";
 import handleLogin from "../../controller/HandleLogin";
 import SignUp from "./SignUp";
 
-import SignUp from "./SignUp";
-
 const LoginUI = () => {
-  const navigate = useNavigate();
+
   const navigate = useNavigate();
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const handleButtonClickCreateNewAccount = () => {
     setIsVisible(true);
   };
-  const [isVisible, setIsVisible] = useState(false);
-  const handleButtonClickCreateNewAccount = () => {
-    setIsVisible(true);
-  };
+
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
@@ -76,7 +71,7 @@ const LoginUI = () => {
         <div>
           <button
             onClick={() => handleLogin(formData, navigate)}
-            onClick={() => handleLogin(formData, navigate)}
+            
             className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 w-full rounded-lg shadow-md"
           >
             Login
@@ -91,10 +86,7 @@ const LoginUI = () => {
         <hr className="my-6 border-gray-300" />
 
         <div>
-          <button
-            onClick={handleButtonClickCreateNewAccount}
-            className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 w-full rounded-lg shadow-md"
-          >
+          
           <button
             onClick={handleButtonClickCreateNewAccount}
             className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 w-full rounded-lg shadow-md"
