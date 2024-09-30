@@ -82,9 +82,9 @@ const handleSignUp = async (formData) => {
 
     console.log("Sign up successful:", res.data);
     alert("Sign up successful:", res.data);
-    
+    document.querySelector(".box-signUp").style.display = "none";
   } catch (error) {
-    alert.error(
+    console.error(
       "Sign up error:",
       error.response ? error.response.data : error.message
     );

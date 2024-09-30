@@ -15,15 +15,7 @@ const SignUp = ({onSignUpSuccess}) => {
     year: "1890",
     gender: "Male",
   });
-  const handleSubmit = async(e)=>{
-    e.preventDefault();
-    const success = await handleSignUp(formData);
-    if (success) {
-      onSignUpSuccess();
-    }else{
-      console.log("SignUp failed")
-    }
-  }
+
   const [passwordVisible, setPasswordVisible] = useState(true);
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
