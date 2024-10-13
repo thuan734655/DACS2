@@ -15,8 +15,10 @@ function App() {
           <Route path="/forgotten" element={<ForgottenUI />} />
           <Route path="/homepage" element={<HomePageUI />} />
           <Route path="/signup" element={<SignUp/>} />
+          
         </Routes>
       </Router>
+      
     </div>
   );
 }
