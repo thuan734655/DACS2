@@ -3,11 +3,10 @@ import Title from "../../assets/imgs/Title.png";
 import { Link } from "react-router-dom";
 import useFormData from "../../hooks/useFormData";
 import { useNavigate } from "react-router-dom";
-import handleLogin from "../../controller/HandleLogin";
+
 import SignUp from "./SignUp";
 
 const LoginUI = () => {
-
   const navigate = useNavigate();
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
@@ -18,11 +17,12 @@ const LoginUI = () => {
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
-  const { formData, handleChange } = useFormData({
+  const { formData, handleChange, handleSubmitLogin} = useFormData({
     email: "",
     password: "",
   });
- 
+  console.log(formData);
+
   return (
     <div className="flex flex-col lg:flex-row justify-center items-center min-h-screen bg-pink-100 p-4 sm:p-8">
       <div>
@@ -70,8 +70,7 @@ const LoginUI = () => {
 
         <div>
           <button
-            onClick={() => handleLogin(formData, navigate)}
-            
+            onClick={() => handleSubmitLogin({email:formData.email , password : formData.password}, navigate)}
             className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 w-full rounded-lg shadow-md"
           >
             Login
@@ -86,7 +85,6 @@ const LoginUI = () => {
         <hr className="my-6 border-gray-300" />
 
         <div>
-          
           <button
             onClick={handleButtonClickCreateNewAccount}
             className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 w-full rounded-lg shadow-md"
@@ -95,7 +93,7 @@ const LoginUI = () => {
           </button>
         </div>
         <div className="box-signUp">
-          {isVisible && <SignUp setFormVisible={setIsVisible}/>}
+          {isVisible && <SignUp setFormVisible={setIsVisible} />}
         </div>
       </div>
     </div>
