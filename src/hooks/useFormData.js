@@ -1,6 +1,6 @@
-import handleLogin from "../controller/HandleLogin";
+import HandleLoginController from "../controller/HandleLoginController";
 import { useState } from 'react';
-import handleSignUp from '../controller/HandleSignUp';
+import HandleSignUpController from '../controller/HandleSignUpController';
 const useFormData = (dataInitForm = {}) => {
   const [formData, setFormData] = useState(dataInitForm);
 
@@ -13,10 +13,10 @@ const useFormData = (dataInitForm = {}) => {
 
   const handleSubmitSignUp = (formData) => {
     console.log(formData);
-    handleSignUp(formData);
+    HandleSignUpController(formData);
   };
   const handleSubmitLogin = () => {
-    handleLogin(formData);
+    HandleLoginController(formData);
   };
 
   return { formData, handleChange, handleSubmitSignUp, handleSubmitLogin };

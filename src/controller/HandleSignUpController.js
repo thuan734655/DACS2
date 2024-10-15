@@ -1,8 +1,8 @@
-import axios from "axios";
 
-const handleSignUp = async (formData) => {
-  const { day, month, year, gender, firstname, lastname, email, password } =
-    formData;
+import { signUp } from "../services/loginService";
+
+const HandleSignUpController = async (formData) => {
+  const { day, month, year, gender, firstname, lastname, password } = formData;
 
   // Trim whitespace from fullName
   const fullName = `${firstname} ${lastname}`.trim();
@@ -16,7 +16,7 @@ const handleSignUp = async (formData) => {
   // Regular expression for validating an email address
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  if (!email || !emailRegex.test(email)) {
+  if (!formData.email || !emailRegex.test(formData.email)) {
     console.error("A valid email is required.");
     return;
   }
@@ -69,27 +69,25 @@ const handleSignUp = async (formData) => {
     return;
   }
 
-  try {
-    const res = await axios.post("http://localhost:7749/signup", {
-      email,
-      password,
-      day,
-      month,
-      year,
-      fullName,
-      gender,
-    });
+  // Prepare data for API call
+  const data = {
+    email: formData.email,
+    password,
+    day,
+    month,
+    year,
+    fullName,
+    gender,
+  };
 
-    console.log("Sign up successful:", res.data);
-    // Navigate to homepage if needed
-    // navigate("/homepage");
+  try {
+    const res = await signUp(data);
+    console.log("Sign up successful:", res);
+
     document.querySelector(".box-signUp").style.display = "none";
   } catch (error) {
-    console.error(
-      "Sign up error:",
-      error.response ? error.response.data : error.message
-    );
+    console.error("Sign up error:", error);
   }
 };
 
-export default handleSignUp;
+export default HandleSignUpController;
