@@ -1,8 +1,8 @@
-
 import { signUp } from "../services/loginService";
 
-const HandleSignUpController = async (formData) => {
-  const { day, month, year, gender, firstname, lastname, password } = formData;
+const HandleSignUpController = async (formData, setStep) => {
+  const { email, day, month, year, gender, firstname, lastname, password } =
+    formData;
 
   // Trim whitespace from fullName
   const fullName = `${firstname} ${lastname}`.trim();
@@ -16,7 +16,7 @@ const HandleSignUpController = async (formData) => {
   // Regular expression for validating an email address
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  if (!formData.email || !emailRegex.test(formData.email)) {
+  if (!email || !emailRegex.test(email)) {
     console.error("A valid email is required.");
     return;
   }
@@ -71,7 +71,7 @@ const HandleSignUpController = async (formData) => {
 
   // Prepare data for API call
   const data = {
-    email: formData.email,
+    email: email,
     password,
     day,
     month,
@@ -82,11 +82,18 @@ const HandleSignUpController = async (formData) => {
 
   try {
     const res = await signUp(data);
-    console.log("Sign up successful:", res);
+    console.log(res); // This will now log the status code
 
-    document.querySelector(".box-signUp").style.display = "none";
+    if (res.status === 200) {
+      setStep(2);
+    } else {
+      console.error("Sign up failed:", res.status);
+      alert("There was an error with your sign-up. Please try again.");
+    }
   } catch (error) {
-    console.error("Sign up error:", error);
+    console.error("Sign up error:", error.message);
+    // Optionally handle the error message returned from the server
+    alert(`Error: ${error.message}`);
   }
 };
 

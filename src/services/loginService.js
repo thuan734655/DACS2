@@ -3,7 +3,7 @@ import axios from "axios";
 const BASE_URL = "http://localhost:7749";
 
 export const requestOTP = async (email) => {
-  return await axios.post(`${BASE_URL}/forgotten`, { email });
+  return await axios.post(`${BASE_URL}/requestOTP`, { email });
 };
 
 export const verifyOTP = async (email, otp, infoDevice) => {
@@ -20,6 +20,16 @@ export const changePassword = async (email, otp, newPassword) => {
 export const signUp = async (formData) => {
   try {
     const response = await axios.post(`${BASE_URL}/signup`, formData);
+    console.log(response.data + "gsdgs");
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Sign up failed.");
+  }
+};
+
+export const checkMail = async (formData) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/checkmail`, formData);
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error("Sign up failed.");

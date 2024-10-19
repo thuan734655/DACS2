@@ -3,7 +3,6 @@ import Title from "../../assets/imgs/Title.png";
 import { Link, useNavigate } from "react-router-dom";
 import useFormData from "../../hooks/useFormData";
 import HandleLoginController from "../../controller/HandleLoginController";
-import SignUp from "./SignUp";
 import { HandleVerifyOtp } from "../../controller/VerifyOTPController";
 import VerifyOTP from "./VerifyOTP";
 import SuccessMessage from "./SuccessMessage";
@@ -12,7 +11,6 @@ const LoginUI = () => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
 
   const navigate = useNavigate();
   const { formData, handleChange } = useFormData({
@@ -21,10 +19,6 @@ const LoginUI = () => {
     otp: "",
   });
 
-  const handleButtonClickCreateNewAccount = () => {
-    setIsVisible(true);
-  };
-
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
@@ -32,7 +26,7 @@ const LoginUI = () => {
     <div className="flex flex-col justify-center items-center min-h-screen bg-pink-100 p-4 sm:p-8">
       <div className="max-w-7xl mx-auto">
         {step === 1 && (
-          <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center lg:justify-between lg:space-x-8 mb-8 w-full">
+          <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center lg:justify-between lg:space-x-8 mb-8 w-full signUp-box">
             <div className="flex flex-col items-center lg:items-start lg:mr-8 mb-8 lg:mb-0">
               <img
                 src={Title}
@@ -88,19 +82,11 @@ const LoginUI = () => {
               </div>
 
               <hr className="my-6 border-gray-300" />
-
-              <button
-                onClick={handleButtonClickCreateNewAccount}
-                className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 w-full rounded-lg shadow-md"
-              >
-                Create New Account
-              </button>
-
-              {isVisible && (
-                <div className="mt-4">
-                  <SignUp setFormVisible={setIsVisible} />
-                </div>
-              )}
+              <Link to="/signup" className="text-blue-500">
+                <button className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 w-full rounded-lg shadow-md">
+                  Create New Account
+                </button>
+              </Link>
             </div>
           </div>
         )}
@@ -130,6 +116,14 @@ const LoginUI = () => {
             textNav="Go to home"
             nextPage="/homepage"
             navigate={navigate}
+          />
+        )}
+         {step === 4 && (
+          <VerifyOTP
+            otp={formData.otp}
+            handleInputChange={handleChange}
+            handleVerifyOtp={(e) => HandleVerifyOtp(e, formData.email, formData.otp, setLoading, setStep)}
+            loading={loading}
           />
         )}
       </div>

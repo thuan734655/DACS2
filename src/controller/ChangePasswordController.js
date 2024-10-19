@@ -23,7 +23,7 @@ export const HandleChangePassword = async (
       alert(response.data.message);
       if (typeof setStep === "function") {
         setStep(4);
-      }
+      } 
     } catch (error) {
       alert(error.response?.data?.message || "Failed to change password");
     } finally {

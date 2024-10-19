@@ -12,7 +12,7 @@ const isValidPassword = (password) => {
   return passwordRegex.test(password);
 };
 
-const HandleLoginController = async (formData, navigate,setStep) => {
+const HandleLoginController = async (formData, navigate, setStep) => {
   const { email, password } = formData;
   console.log(formData);
   let visitorId;
@@ -32,22 +32,22 @@ const HandleLoginController = async (formData, navigate,setStep) => {
   }
 
   try {
-    // Khởi tạo thư viện FingerprintJS
+    // Initialize FingerprintJS library
     const fp = await FingerprintJS.load();
 
-    // Lấy thông tin fingerprint
+    // Get fingerprint information
     const result = await fp.get();
 
-    // Mã định danh duy nhất cho thiết bị
+    // Unique identifier for the device
     visitorId = result.visitorId;
 
-    // Gọi hàm login
+    // Call login function
     const response = await login(email, password, visitorId);
-    console.log(response.data.is2FA
-      
-    );
+    console.log(response.data.message);
     if (response.data.is2FA === true) {
-        setStep(2);
+      setStep(2);
+    } else if (response.data.message === "Account is not active") {
+      setStep(4);
     } else {
       console.log("Login successful!", response);
       alert("Login successful");

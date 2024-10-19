@@ -11,9 +11,8 @@ const useFormData = (dataInitForm = {}) => {
     });
   };
 
-  const handleSubmitSignUp = (formData) => {
-    console.log(formData);
-    HandleSignUpController(formData);
+  const handleSubmitSignUp = (formData,setStep) => {
+    HandleSignUpController(formData,setStep);
   };
   const handleSubmitLogin = () => {
     HandleLoginController(formData);
