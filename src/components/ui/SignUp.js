@@ -4,7 +4,7 @@ import handleDataDate from "../../utils/loadDateSignUp";
 import checkValidData from "../../utils/validDataForm";
 import x_icon from "../../assets/imgs/x-icon.png";
 
-const SignUp = () => {
+const SignUp = ({setFormVisible}) => {
   const { formData, handleChange,handleSubmitSignUp } = useFormData({
     lastname: "",
     firstname: "",
@@ -17,12 +17,13 @@ const SignUp = () => {
   });
 
   const [passwordVisible, setPasswordVisible] = useState(true);
+  const handleCloseForm = () => {
+    setFormVisible(false); // Ẩn form khi nhấn vào icon X
+  };
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
-  // tach ham xu li ngay thang nam
   const { loadDateOfBirth, loadMonth, loadyear } = handleDataDate();
-
   return (
     <div className="signUp">
       <div className="signUp__container">
@@ -31,7 +32,7 @@ const SignUp = () => {
             <h3 className="head-container--title">Sign Up</h3>
             <p className="head-container--desc">It's quick and easy.</p>
           </div>
-          <figure className="head-x-icon">
+          <figure className="head-x-icon" onClick={handleCloseForm}>
             <img  src={x_icon} alt="icon X" />
           </figure>
         </div>

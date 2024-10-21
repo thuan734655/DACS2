@@ -95,7 +95,7 @@ const LoginUI = () => {
           </button>
         </div>
         <div className="box-signUp">
-          {isVisible && <SignUp/>}
+          {isVisible && <SignUp setFormVisible={setIsVisible}/>}
         </div>
       </div>
     </div>
