@@ -1,7 +1,7 @@
-import axios from "axios";
+import { signUp } from "../services/loginService";
 
-const handleSignUp = async (formData) => {
-  const { day, month, year, gender, firstname, lastname, email, password } =
+const HandleSignUpController = async (formData, setStep) => {
+  const { email, day, month, year, gender, firstname, lastname, password } =
     formData;
 
   // Trim whitespace from fullName
@@ -69,27 +69,32 @@ const handleSignUp = async (formData) => {
     return;
   }
 
-  try {
-    const res = await axios.post("http://localhost:7749/signup", {
-      email,
-      password,
-      day,
-      month,
-      year,
-      fullName,
-      gender,
-    });
+  // Prepare data for API call
+  const data = {
+    email: email,
+    password,
+    day,
+    month,
+    year,
+    fullName,
+    gender,
+  };
 
-    console.log("Sign up successful:", res.data);
-    // Navigate to homepage if needed
-    // navigate("/homepage");
-    document.querySelector(".box-signUp").style.display = "none";
+  try {
+    const res = await signUp(data);
+    console.log(res); // This will now log the status code
+
+    if (res.status === 200) {
+      setStep(2);
+    } else {
+      console.error("Sign up failed:", res.status);
+      alert("There was an error with your sign-up. Please try again.");
+    }
   } catch (error) {
-    console.error(
-      "Sign up error:",
-      error.response ? error.response.data : error.message
-    );
+    console.error("Sign up error:", error.message);
+    // Optionally handle the error message returned from the server
+    alert(`Error: ${error.message}`);
   }
 };
 
-export default handleSignUp;
+export default HandleSignUpController;

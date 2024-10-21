@@ -4,7 +4,7 @@ body {
 }
 .signUp {
   &__container {
-    @include set-size($w: 400px, $h: 430px);
+    @include set-size($w: 400px, $h: 460px);
     background-color: rgb(233, 205, 255);
     position: absolute;
     left: 50%;
@@ -26,9 +26,6 @@ body {
             $color: #1c1e21
           );
         }
-      }
-      .head-x-icon {
-        @include set-size($w: 30px);
       }
     }
     &--desc {
@@ -92,6 +89,22 @@ body {
           margin: 0 auto;
         }
       }
+    }
+    &--footer {
+      p {
+        @include font(
+          $font-size: pxToRem(16),
+          $font-weight: 500,
+          $color: #0c90e2,
+          $font-style: italic
+        );
+        margin-top: pxToRem(-10);
+        text-align: center;
+        cursor: pointer;
+      }
+    }
+    p:hover {
+      transform: scale(1.03);
     }
   }
 }
