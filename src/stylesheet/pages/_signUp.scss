@@ -1,11 +1,11 @@
 @use "../abstract/" as *;
 body {
-  background-color: rgb(252 231 243);
+  background-color: rgb(245, 242, 244);
 }
 .signUp {
   &__container {
     @include set-size($w: 400px, $h: 430px);
-    background-color: rgb(233, 205, 255);
+    background-color: rgb(250, 248, 252);
     position: absolute;
     left: 50%;
     top: 50%;

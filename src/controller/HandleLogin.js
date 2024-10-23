@@ -17,7 +17,6 @@ const handleLogin = async (formData, nagivate) => {
       error.response ? error.response.data : error.message
     );
     alert("Login failed, please check your email and password again");
-
   }
 };
 

@@ -24,7 +24,7 @@ const LoginUI = () => {
   });
  
   return (
-    <div className="flex flex-col lg:flex-row justify-center items-center min-h-screen bg-pink-100 p-4 sm:p-8">
+    <div className="flex flex-col lg:flex-row justify-center items-center min-h-screen rgb(245, 242, 244) p-4 sm:p-8">
       <div>
         <div className=" flex flex-col items-center lg:items-start lg:mr-8 mb-8 lg:mb-0">
           <img
