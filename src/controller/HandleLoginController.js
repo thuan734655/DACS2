@@ -2,7 +2,7 @@ import FingerprintJS from "@fingerprintjs/fingerprintjs";
 import { login } from "../services/loginService";
 
 const isValidEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Simple email regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
   return emailRegex.test(email);
 };
 
