@@ -14,7 +14,6 @@ const ChangePassword = ({
     <input
       type="password"
       name="newPassword"
-      id="newPassword"
       value={newPassword}
       onChange={handleInputChange}
       placeholder="New Password"

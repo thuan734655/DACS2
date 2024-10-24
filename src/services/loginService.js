@@ -19,7 +19,7 @@ export const changePassword = async (email, otp, newPassword) => {
 };
 export const signUp = async (formData) => {
   try {
-    const response = await axios.post(`${BASE_URL}/signup`, formData);
+    const response = await axios.post(`${BASE_URL}/v1/auth/register`, formData);
     console.log(response.data + "gsdgs");
     return response.data;
   } catch (error) {
@@ -38,11 +38,12 @@ export const checkMail = async (formData) => {
 
 export const login = async (email, password, visitorId) => {
   try {
-    return await axios.post(`${BASE_URL}/login`, {
+   const responses =  await axios.post(`${BASE_URL}/v1/auth/login`, {
       email,
       password,
       ip: visitorId,
     });
+    return responses.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error("Login failed.");
   }
