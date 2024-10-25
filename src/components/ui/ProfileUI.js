@@ -1,5 +1,5 @@
 import { useState } from "react";
-import handleSetInfo from "../../controller/HandleSetInfo";
+
 import {
   Avatar,
   Box,
@@ -30,7 +30,7 @@ import {
 const ProfileUI = () => {
   const [postContent, setPostContent] = useState("");
   const [tabValue, setTabValue] = useState(0);
-  const [userData, setUserData] = useState({fullname:"",avatar:""});
+
   
   const posts = [
     {
@@ -49,6 +49,7 @@ const ProfileUI = () => {
       image: null,
     },
     {
+    
       id: 3,
       author: "Hoàng Phi",
       date: "7 Tháng 3, 2024",

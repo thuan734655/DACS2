@@ -7,11 +7,12 @@ import ProfileUI from "./components/ui/ProfileUI";
 import SignUp from "./components/ui/SignUp"
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 function App() {
+  
   return (
     <div>
       <Router>
         <Routes>
-          <Route path="/" element={<LoginUI />} />
+          <Route path="/" element={<LoginUI  />} />
           <Route path="/login" element={<LoginUI />} />
           <Route path="/forgotten" element={<ForgottenUI />} />
           <Route path="/homepage" element={<HomePageUI />} />
