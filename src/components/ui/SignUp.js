@@ -7,6 +7,29 @@ import { HandleVerifyOtp } from "../../controller/VerifyOTPController";
 import { Link, useNavigate } from "react-router-dom";
 import SuccessMessage from "./SuccessMessage.js";
 
+const InputField = ({ type, name, placeholder, value, onChange, onBlur }) => (
+  <input
+    className="border border-gray-300 rounded-lg p-2 w-full mb-4"
+    type={type}
+    name={name}
+    placeholder={placeholder}
+    value={value}
+    onChange={onChange}
+    onBlur={onBlur}
+  />
+);
+
+const SelectField = ({ name, value, onChange, options }) => (
+  <select
+    name={name}
+    value={value}
+    onChange={onChange}
+    className="border border-gray-300 rounded-lg p-2 w-full mb-4"
+  >
+    {options}
+  </select>
+);
+
 const SignUp = ({ setFormVisible }) => {
   const { formData, handleChange, handleSubmitSignUp } = useFormData({
     lastname: "",
@@ -24,135 +47,111 @@ const SignUp = ({ setFormVisible }) => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
+
   const { loadDateOfBirth, loadMonth, loadyear } = handleDataDate();
+
   return (
-    <div>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       {step === 1 && (
-        <div className="signUp">
-          <div className="signUp__container">
-            <div className="signUp__container--head">
-              <div className="head-container">
-                <h3 className="head-container--title">Sign Up</h3>
-                <p className="head-container--desc">It's quick and easy.</p>
-              </div>
-            </div>
-            {/* end signUp__container--head */}
-            <div className="signUp__container--body">
-              <div className="body-container">
-                <div className="body-container--box-fullName">
-                  <input
-                    className="box-fullName--surname"
-                    type="text"
-                    name="lastname"
-                    placeholder="Last Name"
-                    value={formData.lastname}
-                    onChange={handleChange}
-                    onBlur={(event) => checkValidData(event)}
-                  />
-                  <input
-                    className="box-fullName--lastname"
-                    type="text"
-                    name="firstname"
-                    placeholder="First Name"
-                    value={formData.firstname}
-                    onChange={handleChange}
-                    onBlur={(event) => checkValidData(event)}
-                  />
-                </div>
-                {/* end body-container--box-fullName */}
-                <input
-                  className="body-container--input-username"
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  onBlur={(event) => checkValidData(event)}
-                />
-                <div className="body-container--box-password">
-                  <input
-                    className="body-container--input-password"
-                    type={passwordVisible ? "text" : "password"}
-                    name="password"
-                    placeholder="Password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    onBlur={(event) => checkValidData(event)}
-                  />
-                  <span
-                    className="absolute right-3 top-3 cursor-pointer"
-                    onClick={togglePasswordVisibility}
-                  >
-                    {passwordVisible ? "🙈" : "👁️"}
-                  </span>
-                </div>
-
-                <div className="body-container--box-birth">
-                  <form>
-                    <label htmlFor="dob-day">Date of birth:</label>
-                    <select
-                      id="dob-day"
-                      name="day"
-                      value={formData.day}
-                      onChange={handleChange}
-                    >
-                      {loadDateOfBirth()}
-                    </select>
-
-                    <label htmlFor="dob-month">Month:</label>
-                    <select
-                      id="dob-month"
-                      name="month"
-                      value={formData.month}
-                      onChange={handleChange}
-                    >
-                      {loadMonth()}
-                    </select>
-
-                    <label htmlFor="dob-year">Year</label>
-                    <select
-                      id="dob-year"
-                      name="year"
-                      value={formData.year}
-                      onChange={handleChange}
-                    >
-                      {loadyear()}
-                    </select>
-                  </form>
-
-                  <div className="body-container--Gender">
-                    <label htmlFor="gender">Gender:</label>
-                    <select
-                      id="gender"
-                      name="gender"
-                      value={formData.gender}
-                      onChange={handleChange}
-                    >
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                    </select>
-                  </div>
-                  <button
-                    onClick={() => handleSubmitSignUp(formData, setStep)}
-                    type="submit"
-                  >
-                    Submit
-                  </button>
-                </div>
-                {/* end body-container--box-birth */}
-              </div>
-            </div>
-            {/* end signUp__container--body */}
-            <div className="signUp__container--footer">
-              <Link to="/login">
-                <p>Go to login</p>
-              </Link>
+        <div className="bg-white rounded-lg shadow-md p-6 w-full max-w-md">
+          <h3 className="text-xl font-bold text-center">Sign Up</h3>
+          <p className="text-gray-600 text-center">It's quick and easy.</p>
+          <div className="mt-4">
+            <div className="flex space-x-2 mb-4">
+              <InputField
+                type="text"
+                name="lastname"
+                placeholder="Last Name"
+                value={formData.lastname}
+                onChange={handleChange}
+                onBlur={(event) => checkValidData(event)}
+              />
+              <InputField
+                type="text"
+                name="firstname"
+                placeholder="First Name"
+                value={formData.firstname}
+                onChange={handleChange}
+                onBlur={(event) => checkValidData(event)}
+              />
             </div>
 
-            {/* end signUp__container--footer */}
+            <InputField
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={formData.email}
+              onChange={handleChange}
+              onBlur={(event) => checkValidData(event)}
+            />
+
+            <div className="relative mb-4">
+              <InputField
+                type={passwordVisible ? "text" : "password"}
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+                onBlur={(event) => checkValidData(event)}
+              />
+              <span
+                className="absolute right-3 top-3 cursor-pointer"
+                onClick={togglePasswordVisibility}
+              >
+                {passwordVisible ? "🙈" : "👁️"}
+              </span>
+            </div>
+
+            <label className="block text-gray-700">Date of birth:</label>
+            <div className="flex space-x-2 mb-4">
+              <SelectField
+                name="day"
+                value={formData.day}
+                onChange={handleChange}
+                options={loadDateOfBirth()}
+              />
+              <SelectField
+                name="month"
+                value={formData.month}
+                onChange={handleChange}
+                options={loadMonth()}
+              />
+              <SelectField
+                name="year"
+                value={formData.year}
+                onChange={handleChange}
+                options={loadyear()}
+              />
+            </div>
+
+            <label className="block text-gray-700">Gender:</label>
+            <SelectField
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+              options={[
+                <option key="male" value="male">Male</option>,
+                <option key="female" value="female">Female</option>
+              ]}
+            />
+
+            <button
+              onClick={() => handleSubmitSignUp(formData, setStep)}
+              className="w-full bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600"
+              type="button"
+            >
+              Submit
+            </button>
+          </div>
+
+          <div className="text-center mt-4">
+            <Link to="/login" className="text-blue-500 hover:underline">
+              Go to login
+            </Link>
           </div>
         </div>
       )}

@@ -1,5 +1,5 @@
-import "./App.css";
-import "./App.scss";
+// import "./App.css";
+// import "./App.scss";
 import ForgottenUI from "./components/ui/ForgottenUI";
 import HomePageUI from "./components/ui/HomePageUI";
 import LoginUI from "./components/ui/LoginUI";
