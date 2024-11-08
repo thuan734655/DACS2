@@ -3,10 +3,11 @@ import { FaHome, FaUsers, FaBell } from "react-icons/fa";
 import { IoApps } from "react-icons/io5";
 import { AiFillMessage } from "react-icons/ai";
 import Logo from "../../assets/imgs/Logo.png";
-
+import { useNavigate } from "react-router-dom";
 const HeaderUI = () => {
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
+
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -27,7 +28,7 @@ const HeaderUI = () => {
             viewBox="0 0 20 20"
             fill="currentColor"
           >
-            <path 
+            <path
               fillRule="evenodd"
               d="M12.9 14.32a7 7 0 111.42-1.42l4.77 4.77a1 1 0 11-1.42 1.42l-4.77-4.77zM9 14a5 5 0 100-10 5 5 0 000 10z"
               clipRule="evenodd"
@@ -44,9 +45,13 @@ const HeaderUI = () => {
       {/* Phần bên phải */}
       <div className="flex items-center space-x-8">
         <IoApps className="text-gray-600 hover:text-pink-300" size={28} />
-        <AiFillMessage className="text-gray-600 hover:text-pink-300" size={28} />
+        <AiFillMessage
+          className="text-gray-600 hover:text-pink-300"
+          size={28}
+          onClick={()=>navigate("/messages")}
+        />
         <FaBell className="text-gray-600 hover:text-pink-300" size={28} />
-        
+
         <div className="relative">
           <img
             src="https://via.placeholder.com/150"

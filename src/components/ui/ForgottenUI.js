@@ -26,7 +26,7 @@ const Forgotten = () => {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-pink-100">
+    <div className="flex items-center justify-center h-screen rgb(245, 242, 244)">
       <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
         {step === 1 && (
           <RequestOtp

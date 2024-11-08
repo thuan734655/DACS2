@@ -82,9 +82,8 @@ const HandleSignUpController = async (formData, setStep) => {
 
   try {
     const res = await signUp(data);
-    console.log(res); // This will now log the status code
 
-    if (res.status === 200) {
+    if (res.success === true) {
       setStep(2);
     } else {
       console.error("Sign up failed:", res.status);

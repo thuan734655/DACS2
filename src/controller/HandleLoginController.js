@@ -43,10 +43,10 @@ const HandleLoginController = async (formData, navigate, setStep) => {
 
     // Call login function
     const response = await login(email, password, visitorId);
-    console.log(response.data.message);
-    if (response.data.is2FA === true) {
+    const { requires2FA, active } = response.data;
+    if (requires2FA) {
       setStep(2);
-    } else if (response.data.message === "Account is not active") {
+    } else if (active) {
       setStep(4);
     } else {
       console.log("Login successful!", response);

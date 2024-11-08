@@ -12,7 +12,7 @@ const HomePageUI = () => {
       {/* Main Content */}
       <div className="grid grid-cols-12 gap-4 px-2 py-6 h-full">
         {/* Sidebar - Chiếm 3 cột */}
-        <div className="col-span-3 pt-10 overflow-y-auto">
+        <div className="col-span-3 pt-12 overflow-y-auto">
           <Sidebar />
         </div>
 

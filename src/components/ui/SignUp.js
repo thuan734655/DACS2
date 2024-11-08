@@ -7,6 +7,7 @@ import { HandleVerifyOtp } from "../../controller/VerifyOTPController";
 import { Link, useNavigate } from "react-router-dom";
 import SuccessMessage from "./SuccessMessage.js";
 
+
 const SignUp = ({ setFormVisible }) => {
   const { formData, handleChange, handleSubmitSignUp } = useFormData({
     lastname: "",
@@ -28,6 +29,8 @@ const SignUp = ({ setFormVisible }) => {
     setPasswordVisible(!passwordVisible);
   };
   const { loadDateOfBirth, loadMonth, loadyear } = handleDataDate();
+  
+  
   return (
     <div>
       {step === 1 && (

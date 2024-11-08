@@ -1,0 +1,9 @@
+/* Ẩn thanh cuộn */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Dùng cho Chrome, Safari, và Edge */
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* Dùng cho IE và Edge */
+    scrollbar-width: none;     /* Dùng cho Firefox */
+  }
