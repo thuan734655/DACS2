@@ -29,18 +29,20 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
 
   const handlePost = async () => {
     if (!postText.trim()) return;
-
+    const idUser = localStorage.getItem("idUser");
     setIsLoading(true);
     let formData = new FormData();
     formData.append("text", postText);
-    formData.append("userId", "user_id_example");
+    formData.append("idUser", idUser);
 
     selectedFiles.forEach((fileData, index) => {
-      formData.append(`media_${index}`, fileData.file);
+      formData.append("media", fileData.file);
     });
 
+    formData.forEach((data, key) => console.log(data, key));
+
     try {
-      await axios.post("http://localhost:5000/createPost", formData, {
+      await axios.post("http://localhost:5000/api/posts", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
