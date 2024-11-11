@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { X, Image, Users, ChevronDown } from "lucide-react";
-import axios from "axios";
+import { createPost } from "../../services/postService";
 
 const FromCreatePost = ({ setFormCreatePostVisible }) => {
   const [postText, setPostText] = useState("");
@@ -35,18 +35,16 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
     formData.append("text", postText);
     formData.append("idUser", idUser);
 
-    selectedFiles.forEach((fileData, index) => {
+    selectedFiles.forEach((fileData) => {
       formData.append("media", fileData.file);
     });
 
     formData.forEach((data, key) => console.log(data, key));
 
     try {
-      await axios.post("http://localhost:5000/api/posts", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      //call API
+      await createPost(formData);
+
       handleClose();
     } catch (error) {
       console.error("Error posting:", error);
