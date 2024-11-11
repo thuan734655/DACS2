@@ -6,7 +6,6 @@ import HandleLoginController from "../../controller/HandleLoginController";
 import { HandleVerifyOtp } from "../../controller/VerifyOTPController";
 import VerifyOTP from "./VerifyOTP";
 import SuccessMessage from "./SuccessMessage";
-
 const LoginUI = () => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -22,8 +21,9 @@ const LoginUI = () => {
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
+
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen bg-pink-100 p-4 sm:p-8">
+    <div className="flex flex-col justify-center items-center min-h-screen bg-gray-200 p-4 sm:p-8">
       <div className="max-w-7xl mx-auto">
         {step === 1 && (
           <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center lg:justify-between lg:space-x-8 mb-8 w-full signUp-box">
@@ -118,11 +118,19 @@ const LoginUI = () => {
             navigate={navigate}
           />
         )}
-         {step === 4 && (
+        {step === 4 && (
           <VerifyOTP
             otp={formData.otp}
             handleInputChange={handleChange}
-            handleVerifyOtp={(e) => HandleVerifyOtp(e, formData.email, formData.otp, setLoading, setStep)}
+            handleVerifyOtp={(e) =>
+              HandleVerifyOtp(
+                e,
+                formData.email,
+                formData.otp,
+                setLoading,
+                setStep
+              )
+            }
             loading={loading}
           />
         )}
