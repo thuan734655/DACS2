@@ -14,6 +14,7 @@ const HomePageUI = () => {
     const getListPostVisible = async () => {
       const response = await getPosts();
       setListPosts(response.data);
+      console.log(response.data);
     };
     getListPostVisible();
   }, []);
@@ -50,7 +51,12 @@ const HomePageUI = () => {
               <div>Chưa có bài viết nào.</div>
             ) : (
               listPosts.map((postData, index) => (
-                <SocialPost key={index} postId={postData.postId} post={postData.post} user={postData.user} />
+                <SocialPost
+                  key={index}
+                  postId={postData.postId}
+                  post={postData.post}
+                  user={postData.user}
+                />
               ))
             )}
           </div>

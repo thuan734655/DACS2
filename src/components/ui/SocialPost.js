@@ -23,12 +23,13 @@ function Avatar({ src, fallback, alt }) {
 // SocialPost Component
 function SocialPost({
   postId,
-  post, // Bao gồm các thuộc tính như createdAt, mediaUrls, shares, text
-  user, // Mảng chứa thông tin người dùng
+  post, // Includes attributes like createdAt, mediaUrls, shares, text
+  user, // Array containing user information
 }) {
-  const { createdAt, mediaUrls, shares, text } = post;
+  const { createdAt, mediaUrls, shares, text, backgroundColor, textColor } =
+    post;
   const { fullName = "Unknown User", avatar = "/placeholder.svg" } =
-    user[0] || {}; // Cập nhật người dùng
+    user[0] || {}; // User information
 
   const formatDate = (timestamp) => {
     const date = new Date(timestamp);
@@ -36,7 +37,9 @@ function SocialPost({
   };
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-4 mb-4">
+    <div
+      className="bg-white shadow-md rounded-lg p-4 mb-4"
+    >
       {/* Post Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
@@ -57,25 +60,25 @@ function SocialPost({
 
       {/* Post Content */}
       <div
-        className={`mt-3 rounded-lg ${
-          mediaUrls && mediaUrls.length > 0
-            ? "text-gray-800 text-lg font-15 p-1"
-            : "bg-pink-400 text-white text-center text-lg font-medium"
-        }`}
+        className="mt-3 rounded-lg p-4 "
+        style={{
+          backgroundColor: backgroundColor, // Only this part changes the background color of text box
+          color: textColor, // Apply the text color dynamically
+        }}
       >
         {text}
       </div>
 
       {/* Media URLs */}
-      <div className="mt-3">
+      <div className="mt-3 ">
         {mediaUrls && mediaUrls.length > 0 && (
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2 content-img">
             {mediaUrls.map((url, index) => (
-              <img
+              <img  
                 key={index}
                 src={"http://localhost:5000" + url}
                 alt={`Media ${index}`}
-                className="w-full h-auto rounded-lg"
+                className="w-full h-auto rounded-lg "
               />
             ))}
           </div>
@@ -87,7 +90,7 @@ function SocialPost({
         <div className="flex items-center gap-1">
           <span className="flex items-center">
             👍 😆
-            <span className="ml-1">179</span> {/* Tạm thời để static */}
+            <span className="ml-1">179</span> {/* Temporarily static */}
           </span>
         </div>
         <div className="flex items-center gap-3">

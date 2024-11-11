@@ -6,6 +6,8 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
   const [postText, setPostText] = useState("");
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [textColor, setTextColor] = useState("#000000"); 
+  const [backgroundColor, setBackgroundColor] = useState("#ffffff"); 
 
   const handleClose = () => {
     setFormCreatePostVisible(false);
@@ -34,17 +36,15 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
     let formData = new FormData();
     formData.append("text", postText);
     formData.append("idUser", idUser);
+    formData.append("textColor", textColor);
+    formData.append("backgroundColor", backgroundColor);
 
     selectedFiles.forEach((fileData) => {
       formData.append("media", fileData.file);
     });
 
-    formData.forEach((data, key) => console.log(data, key));
-
     try {
-      //call API
       await createPost(formData);
-
       handleClose();
     } catch (error) {
       console.error("Error posting:", error);
@@ -56,7 +56,6 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg w-full max-w-[500px] shadow-xl">
-        {/* Header */}
         <div className="relative border-b p-4">
           <h1 className="text-xl font-semibold text-center">Create Post</h1>
           <button
@@ -91,8 +90,29 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
             placeholder="What's on your mind?"
             value={postText}
             onChange={(e) => setPostText(e.target.value)}
+            style={{ color: textColor, backgroundColor }}
             className="w-full min-h-[150px] text-lg resize-none outline-none border rounded-md p-2"
           />
+        </div>
+
+        {/* Color Options */}
+        <div className="p-4 flex gap-4">
+          <div>
+            <label>Text Color: </label>
+            <input
+              type="color"
+              value={textColor}
+              onChange={(e) => setTextColor(e.target.value)}
+            />
+          </div>
+          <div>
+            <label>Background Color: </label>
+            <input
+              type="color"
+              value={backgroundColor}
+              onChange={(e) => setBackgroundColor(e.target.value)}
+            />
+          </div>
         </div>
 
         {/* Media Upload Area */}
@@ -100,16 +120,12 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
           <div className="text-center">
             <div className="font-semibold">Add Photo/Video</div>
             <div className="text-sm text-gray-500">or drag and drop</div>
-
-            {/* Icon image upload */}
             <label
               htmlFor="file-upload"
               className="inline-flex items-center justify-center w-10 h-10 bg-gray-100 rounded-full mb-2 cursor-pointer"
             >
               <Image className="h-6 w-6" />
             </label>
-
-            {/* Hidden file input */}
             <input
               type="file"
               multiple
@@ -138,7 +154,6 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
                       controls
                     />
                   )}
-                  {/* Remove file button */}
                   <button
                     onClick={() => handleRemoveFile(index)}
                     className="absolute top-1 right-1 bg-gray-700 text-white rounded-full p-1 hover:bg-gray-800"
@@ -150,22 +165,6 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
             </div>
           )}
         </div>
-
-        {/* Action Buttons
-        <div className="m-4 p-3 border rounded-lg flex items-center">
-          <div className="flex-1 font-medium text-sm">Add to your post</div>
-          <div className="flex gap-2">
-            {[Image, Users, Smile, MapPin, MoreHorizontal].map((Icon, index) => (
-              <button
-                key={index}
-                className="p-2 hover:bg-gray-100 rounded-full"
-                aria-label="Action"
-              >
-                <Icon className="h-6 w-6" />
-              </button>
-            ))}
-          </div>
-        </div> */}
 
         {/* Post Button */}
         <div className="p-4">
