@@ -1,9 +1,15 @@
-import React from "react";
-import CreatePost from "./CreatPostUI";
+import React, { useState } from "react";
 import Sidebar from "./SidebarUI";
 import HeaderUI from "./HeaderUI";
+import FromCreatePost from "./FormCreatePostUI";
+import SocialPost from "./SocialPost";
+import NavCreatePostUI from "./NavCreatePostUI";
 
 const HomePageUI = () => {
+  const [formCreatePostVisible, setFormCreatePostVisible] = useState(false);
+
+  const listPosts = ["1", "1", "1", "1", "1", "1", "1", "1"];
+
   return (
     <div className="h-screen overflow-hidden">
       {/* Header giữ nguyên */}
@@ -16,13 +22,28 @@ const HomePageUI = () => {
           <Sidebar />
         </div>
 
-        {/* Create Post - Chiếm 6 cột */}
-        <div className="col-span-6 pt-10 h-full overflow-y-auto ">
-          <CreatePost />
+        {/* Post - Chiếm 6 cột, dùng Grid cho các bài đăng */}
+        <div className="col-span-6 pt-10 h-full overflow-y-auto grid gap-4">
+          {/* Phần tạo bài viết */}
+          <div>
+            <NavCreatePostUI   setFormCreatePostVisible={setFormCreatePostVisible} />
+            {formCreatePostVisible && (
+              <FromCreatePost
+                setFormCreatePostVisible={setFormCreatePostVisible}
+              />
+            )}
+          </div>
+
+          {/* Sử dụng Grid để hiển thị các bài đăng */}
+          <div className="grid gap-4">
+            {listPosts.map((post, index) => (
+              <SocialPost key={index} />
+            ))}
+          </div>
         </div>
 
         {/* Phần Extra Content - Chiếm 2 cột */}
-        <div className="col-span-3 h-full overflow-y-auto pt-10 ">
+        <div className="col-span-3 h-full overflow-y-auto pt-10">
           <div className="bg-gray-100 p-3 rounded-lg shadow-lg">
             {/* Nội dung bên phải */}
             Phần nội dung bên phải
