@@ -8,7 +8,7 @@ const MessageUI = () => {
     <div className="flex justify-center items-center w-screen h-screen fixed">
       <div className="w-[90vw] h-[90vh] bg-custom-dark rounded-xl backdrop-blur-xl flex ">
         <div className="flex-1">
-          <ListUI></ListUI>
+          <ListUI></ListUI> 
         </div>
         <div className="flex-[2] border-l border-r h-full">
           <ChatUI></ChatUI>
@@ -22,6 +22,6 @@ const MessageUI = () => {
       </div>
     </div>
   );
-};
+}; 
 
 export default MessageUI;

@@ -1,12 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import Avatar from "../../../.././assets/imgs/avatar.png";
-import Phone from "../../../.././assets/imgs/phone.png";
 import Video from "../../../.././assets/imgs/video.png";
 import Info from "../../../.././assets/imgs/info.png";
-import Emoji from "../../../.././assets/imgs/emoji.png";
+import Emoji from "../../../.././assets/imgs/emoji.png"; 
 import Img from "../../../.././assets/imgs/img.png";
-import Camera from "../../../.././assets/imgs/camera.png";
-import Mic from "../../../.././assets/imgs/mic.png";
+import { camera, phone, mic } from "../../../../assets/imgs";
 import EmojiPicker from "emoji-picker-react";
 
 const ChatUI = () => {
@@ -36,7 +34,7 @@ const ChatUI = () => {
           </div>
         </div>
         <div className="flex gap-5">
-          <img className="h-8 w-8" src={Phone} alt="" />
+          <img className="h-8 w-8" src={phone} alt="" />
           <img className="h-8 w-8" src={Video} alt="" />
           <img className="h-8 w-8" src={Info} alt="" />
         </div>
@@ -84,8 +82,8 @@ const ChatUI = () => {
       <div className="p-5 flex items-center justify-between border-t gap-5">
         <div className="flex gap-5">
           <img className="w-5 h-5 cursor-pointer" src={Img} alt="" />
-          <img className="w-5 h-5 cursor-pointer" src={Camera} alt="" />
-          <img className="w-5 h-5 cursor-pointer" src={Mic} alt="" />
+          <img className="w-5 h-5 cursor-pointer" src={camera} alt="" />
+          <img className="w-5 h-5 cursor-pointer" src={mic} alt="" />
         </div>
         <input
           type="text"
