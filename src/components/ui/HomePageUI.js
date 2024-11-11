@@ -1,14 +1,22 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Sidebar from "./SidebarUI";
 import HeaderUI from "./HeaderUI";
 import FromCreatePost from "./FormCreatePostUI";
 import SocialPost from "./SocialPost";
 import NavCreatePostUI from "./NavCreatePostUI";
+import { getPosts } from "../../services/postService";
 
 const HomePageUI = () => {
   const [formCreatePostVisible, setFormCreatePostVisible] = useState(false);
+  const [listPosts, setListPosts] = useState([]);
 
-  const listPosts = ["1", "1", "1", "1", "1", "1", "1", "1"];
+  useEffect(() => {
+    const getListPostVisible = async () => {
+      const response = await getPosts();
+      setListPosts(response.data);
+    };
+    getListPostVisible();
+  }, []);
 
   return (
     <div className="h-screen overflow-hidden">
@@ -26,7 +34,9 @@ const HomePageUI = () => {
         <div className="col-span-6 pt-10 h-full overflow-y-auto grid gap-4">
           {/* Phần tạo bài viết */}
           <div>
-            <NavCreatePostUI   setFormCreatePostVisible={setFormCreatePostVisible} />
+            <NavCreatePostUI
+              setFormCreatePostVisible={setFormCreatePostVisible}
+            />
             {formCreatePostVisible && (
               <FromCreatePost
                 setFormCreatePostVisible={setFormCreatePostVisible}
@@ -34,11 +44,15 @@ const HomePageUI = () => {
             )}
           </div>
 
-          {/* Sử dụng Grid để hiển thị các bài đăng */}
+          {/* Hiển thị các bài đăng */}
           <div className="grid gap-4">
-            {listPosts.map((post, index) => (
-              <SocialPost key={index} />
-            ))}
+            {listPosts.length === 0 ? (
+              <div>Chưa có bài viết nào.</div>
+            ) : (
+              listPosts.map((postData, index) => (
+                <SocialPost key={index} postId={postData.postId} post={postData.post} user={postData.user} />
+              ))
+            )}
           </div>
         </div>
 
