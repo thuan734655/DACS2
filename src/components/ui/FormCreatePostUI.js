@@ -1,16 +1,17 @@
 import { useState } from "react";
-import { X, Image, Users, ChevronDown } from "lucide-react";
+import { X, Image } from "lucide-react";
 import { createPost } from "../../services/postService";
 
-const FromCreatePost = ({ setFormCreatePostVisible }) => {
+const FromCreatePost = ({ setFormCreatePostVisible, reloadPosts }) => {
   const [postText, setPostText] = useState("");
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [textColor, setTextColor] = useState("#000000"); 
-  const [backgroundColor, setBackgroundColor] = useState("#ffffff"); 
+  const [textColor, setTextColor] = useState("#000000");
+  const [backgroundColor, setBackgroundColor] = useState("#ffffff");
 
   const handleClose = () => {
     setFormCreatePostVisible(false);
+    reloadPosts();
     setPostText("");
     setSelectedFiles([]);
   };
@@ -76,11 +77,6 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
           />
           <div>
             <div className="font-semibold">Your Name</div>
-            <button className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-md text-sm">
-              <Users className="h-3 w-3" />
-              Friends
-              <ChevronDown className="h-3 w-3" />
-            </button>
           </div>
         </div>
 

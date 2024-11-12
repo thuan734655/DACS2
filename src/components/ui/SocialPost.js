@@ -37,9 +37,7 @@ function SocialPost({
   };
 
   return (
-    <div
-      className="bg-white shadow-md rounded-lg p-4 mb-4"
-    >
+    <div className="bg-white shadow-md rounded-lg p-4 mb-4">
       {/* Post Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
@@ -60,27 +58,36 @@ function SocialPost({
 
       {/* Post Content */}
       <div
-        className="mt-3 rounded-lg p-4 "
+        className="mt-3 rounded-lg p-4"
         style={{
-          backgroundColor: backgroundColor, // Only this part changes the background color of text box
-          color: textColor, // Apply the text color dynamically
+          backgroundColor: backgroundColor,
+          color: textColor,
         }}
       >
         {text}
       </div>
 
       {/* Media URLs */}
-      <div className="mt-3 ">
+      <div className="mt-3">
         {mediaUrls && mediaUrls.length > 0 && (
           <div className="grid grid-cols-2 gap-2 content-img">
-            {mediaUrls.map((url, index) => (
-              <img  
-                key={index}
-                src={"http://localhost:5000" + url}
-                alt={`Media ${index}`}
-                className="w-full h-auto rounded-lg "
-              />
-            ))}
+            {mediaUrls.map((url, index) =>
+              url.endsWith(".mp4") ? (
+                <video
+                  key={index}
+                  src={"http://localhost:5000" + url}
+                  controls
+                  className="w-full h-auto rounded-lg"
+                />
+              ) : (
+                <img
+                  key={index}
+                  src={"http://localhost:5000" + url}
+                  alt={`Media ${index}`}
+                  className="w-full h-auto rounded-lg"
+                />
+              )
+            )}
           </div>
         )}
       </div>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "./SidebarUI";
 import HeaderUI from "./HeaderUI";
-import FromCreatePost from "./FormCreatePostUI";
+import FormCreatePost from "./FormCreatePostUI"; // Sửa lỗi tên từ "FromCreatePost" thành "FormCreatePost"
 import SocialPost from "./SocialPost";
 import NavCreatePostUI from "./NavCreatePostUI";
 import { getPosts } from "../../services/postService";
@@ -10,13 +10,15 @@ const HomePageUI = () => {
   const [formCreatePostVisible, setFormCreatePostVisible] = useState(false);
   const [listPosts, setListPosts] = useState([]);
 
+  // Hàm tải lại danh sách bài viết
+  const loadPosts = async () => {
+    const response = await getPosts();
+    setListPosts(response.data);
+    console.log(response.data , "loadPosts");
+  };
+
   useEffect(() => {
-    const getListPostVisible = async () => {
-      const response = await getPosts();
-      setListPosts(response.data);
-      console.log(response.data);
-    };
-    getListPostVisible();
+    loadPosts();
   }, []);
 
   return (
@@ -39,8 +41,9 @@ const HomePageUI = () => {
               setFormCreatePostVisible={setFormCreatePostVisible}
             />
             {formCreatePostVisible && (
-              <FromCreatePost
+              <FormCreatePost
                 setFormCreatePostVisible={setFormCreatePostVisible}
+                reloadPosts={loadPosts} // Truyền hàm loadPosts để reload khi có bài viết mới
               />
             )}
           </div>
