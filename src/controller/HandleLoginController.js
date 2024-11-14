@@ -1,6 +1,7 @@
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
 import { login } from "../services/loginService";
-
+import { auth } from "../config/firebaseConfig";
+import { signInWithEmailAndPassword } from "firebase/auth";
 const isValidEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Simple email regex
   return emailRegex.test(email);
@@ -12,7 +13,7 @@ const isValidPassword = (password) => {
   return passwordRegex.test(password);
 };
 
-const HandleLoginController = async (formData, navigate, setStep) => {
+const HandleLoginController = async (formData, navigate, setStep,setLoading) => {
   const { email, password } = formData;
   console.log(formData);
   let visitorId;
@@ -32,6 +33,10 @@ const HandleLoginController = async (formData, navigate, setStep) => {
   }
 
   try {
+    setLoading(true);
+    const userCredential = await signInWithEmailAndPassword(auth,email,password);
+    console.log("Logged in as: ",userCredential.user);
+    
     // Initialize FingerprintJS library
     const fp = await FingerprintJS.load();
 
@@ -56,6 +61,8 @@ const HandleLoginController = async (formData, navigate, setStep) => {
   } catch (error) {
     console.error("Login failed:", error);
     alert("Login failed, please check your email and password again");
+  } finally{
+    setLoading(false);
   }
 };
 

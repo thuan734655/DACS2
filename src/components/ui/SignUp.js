@@ -30,7 +30,7 @@ const SelectField = ({ name, value, onChange, options }) => (
   </select>
 );
 
-const SignUp = ({ setFormVisible }) => {
+const SignUp = () => {
   const { formData, handleChange, handleSubmitSignUp } = useFormData({
     lastname: "",
     firstname: "",
@@ -47,7 +47,7 @@ const SignUp = ({ setFormVisible }) => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
+  
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
@@ -140,7 +140,7 @@ const SignUp = ({ setFormVisible }) => {
             />
 
             <button
-              onClick={() => handleSubmitSignUp(formData, setStep)}
+              onClick={() => handleSubmitSignUp(formData, setStep,setLoading)}
               className="w-full bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600"
               type="button"
             >
