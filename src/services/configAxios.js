@@ -9,7 +9,7 @@ const configAxios = {
 
 const axiosAPI = axios.create(configAxios);
 
-axiosAPI.interceptors.response.use(
+axiosAPI.interceptors.response.use( 
   (res) => res.data,
   (err) => Promise.reject(err)
 );

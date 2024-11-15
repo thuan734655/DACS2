@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   MoreHorizontal,
   ThumbsUp,
@@ -6,8 +6,10 @@ import {
   Send,
   Share2,
 } from "lucide-react";
+import io from "socket.io-client";
 
-// Avatar Component
+const socket = io("http://localhost:5000");
+
 function Avatar({ src, fallback, alt }) {
   return (
     <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
@@ -20,16 +22,116 @@ function Avatar({ src, fallback, alt }) {
   );
 }
 
-// SocialPost Component
-function SocialPost({
-  postId,
-  post, // Includes attributes like createdAt, mediaUrls, shares, text
-  user, // Array containing user information
-}) {
-  const { createdAt, mediaUrls, shares, text, backgroundColor, textColor } =
-    post;
+function SocialPost({ postId, post, user }) {
+  const {
+    createdAt,
+    shares,
+    text,
+    mediaUrls,
+    backgroundColor,
+    textColor,
+    comments,
+    likes,
+  } = post;
+  console.log(likes);
+
   const { fullName = "Unknown User", avatar = "/placeholder.svg" } =
-    user[0] || {}; // User information
+    user[0] || {};
+  const [likeCount, setLikesCount] = useState(likes ? likes.length : 0);
+  const [commentCount, setCommentCount] = useState(
+    comments && comments !== 0 ? comments.length : 0
+  );
+  const [newComment, setNewComment] = useState("");
+  const [commentsList, setCommentsList] = useState(comments || []);
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const [emojiCounts, setEmojiCounts] = useState(likes || {});
+  const [userSelection, setUserSelection] = useState(null);
+  const [listEmojiHtml, setListEmojiHtml] = useState([]);
+  console.log(emojiCounts);
+  useEffect(() => {
+    const closeReactionPicker = (e) => {
+      if (
+        !e.target.closest(".reaction-picker") &&
+        !e.target.closest("button")
+      ) {
+        setShowReactionPicker(false);
+      }
+    };
+    document.addEventListener("click", closeReactionPicker);
+    return () => document.removeEventListener("click", closeReactionPicker);
+  }, []);
+
+  useEffect(() => {
+    socket.on("receiveComment", (data) => {
+      if (data.postId === postId) {
+        setCommentsList((prevComments) => [...prevComments, data.comment]);
+        setCommentCount((prevCount) => prevCount + 1);
+      }
+    });
+
+    socket.on("receiveReaction", (data) => {
+      console.log(data);
+      if (data.postId === postId) {
+        setEmojiCounts((prevCounts) => ({
+          ...prevCounts,
+          [data.emoji]: (prevCounts[data.emoji] || 0) + 1,
+        }));
+        setLikesCount((prevCount) => prevCount + 1);
+      }
+    });
+
+    return () => {
+      socket.off("receiveComment");
+      socket.off("receiveReaction");
+    };
+  }, [postId]);
+
+  useEffect(() => {
+    const emojiArray = Object.entries(emojiCounts);
+    const listEmoji = emojiArray
+      .filter(([_, count]) => count >= 1)
+      .sort((a, b) => b[1] - a[1])
+      .map(([emoji, count]) => (
+        <span key={emoji} className="text-lg mr-2">
+          {emoji} {count}
+        </span>
+      ));
+    setListEmojiHtml(listEmoji);
+  }, [emojiCounts]);
+
+  const handleLike = (emoji) => {
+    const idUser = localStorage.getItem("idUser");
+
+    console.log(userSelection, emoji);
+    if (userSelection === emoji) {
+      // Nếu người dùng chọn lại cùng emoji đã chọn, hủy cảm xúc
+      setUserSelection(null); // Hủy cảm xúc đã chọn
+      setLikesCount((prevCount) => prevCount - 1); // Giảm số lượng like
+      socket.emit("removeReaction", { postId, emoji, idUser });
+    } else {
+      // Nếu người dùng chọn một emoji khác
+      if (userSelection) {
+        socket.emit("removeReaction", { postId, emoji: userSelection, idUser }); // Xóa cảm xúc cũ
+      }
+
+      // Thêm cảm xúc mới
+      setUserSelection(emoji); // Lưu cảm xúc mới
+      setLikesCount((prevCount) => prevCount + 1); // Tăng số lượng like cho cảm xúc mới
+      socket.emit("newReaction", { postId, emoji, idUser }); // Gửi thông tin cảm xúc mới
+    }
+
+    setShowReactionPicker(false); // Đóng picker khi người dùng đã chọn
+  };
+
+  const handleAddComment = () => {
+    if (newComment.trim()) {
+      const comment = { user: "Current User", text: newComment };
+      setCommentsList((prevComments) => [...prevComments, comment]);
+      setNewComment("");
+      setCommentCount((prevCount) => prevCount + 1);
+      socket.emit("newComment", { postId, comment });
+    }
+  };
 
   const formatDate = (timestamp) => {
     const date = new Date(timestamp);
@@ -37,8 +139,7 @@ function SocialPost({
   };
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-4 mb-4">
-      {/* Post Header */}
+    <div className="bg-white shadow-md rounded-lg p-4 mb-4" id={postId}>
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
           <Avatar src={avatar} alt={fullName} fallback="IT" />
@@ -56,18 +157,13 @@ function SocialPost({
         </button>
       </div>
 
-      {/* Post Content */}
       <div
         className="mt-3 rounded-lg p-4"
-        style={{
-          backgroundColor: backgroundColor,
-          color: textColor,
-        }}
+        style={{ backgroundColor, color: textColor }}
       >
         {text}
       </div>
 
-      {/* Media URLs */}
       <div className="mt-3">
         {mediaUrls && mediaUrls.length > 0 && (
           <div className="grid grid-cols-2 gap-2 content-img">
@@ -92,26 +188,47 @@ function SocialPost({
         )}
       </div>
 
-      {/* Engagement Stats */}
       <div className="mt-3 flex items-center justify-between text-sm text-gray-500">
         <div className="flex items-center gap-1">
-          <span className="flex items-center">
-            👍 😆
-            <span className="ml-1">179</span> {/* Temporarily static */}
-          </span>
+          <div className="mt-3">{listEmojiHtml}</div>
         </div>
         <div className="flex items-center gap-3">
-          <span>36 bình luận</span>
+          <span>{commentCount} bình luận</span>
           <span>{shares} lượt chia sẻ</span>
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="mt-3 pt-3 border-t grid grid-cols-4 gap-1">
-        <button className="flex items-center gap-2 text-gray-600 hover:text-gray-800">
-          <ThumbsUp className="h-5 w-5" />
-          <span>Thích</span>
-        </button>
+      <div className="mt-3 pt-3 border-t grid grid-cols-4 gap-1 relative">
+        <div className="relative">
+          <button
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+            onClick={() => setShowReactionPicker(!showReactionPicker)}
+          >
+            <ThumbsUp className="h-5 w-5" />
+            <span>Thích</span>
+          </button>
+
+          {showReactionPicker && (
+            <div
+              className="reaction-picker absolute top-full left-0 mt-2 flex gap-2 bg-white border p-2 rounded-lg shadow-lg"
+              onMouseEnter={() => setShowReactionPicker(true)}
+              onMouseLeave={() => setShowReactionPicker(false)}
+            >
+              {["👍", "❤️", "😂", "😢", "😡", "😲", "🥳"].map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => handleLike(emoji)}
+                  className={`text-2xl ${
+                    userSelection === emoji ? "border-2 border-blue-500" : ""
+                  }`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         <button className="flex items-center gap-2 text-gray-600 hover:text-gray-800">
           <MessageCircle className="h-5 w-5" />
           <span>Bình luận</span>
@@ -126,19 +243,35 @@ function SocialPost({
         </button>
       </div>
 
-      {/* Comments Section */}
       <div className="mt-3 pt-3 border-t">
-        <div className="flex items-start gap-2">
-          <Avatar
-            src="/placeholder.svg?height=32&width=32"
-            alt="Commenter"
-            fallback="U"
-          />
-          <div className="flex-1 bg-gray-100 rounded-lg p-2">
-            <p className="font-semibold text-sm">Tran Anh Tien</p>
-            <p className="text-sm">R lúc pv technical thì sao bạn?</p>
+        {commentsList.map((comment, index) => (
+          <div key={index} className="flex items-start gap-2">
+            <Avatar src={comment.avatar} alt={comment.user} />
+            <div>
+              <div className="flex items-center gap-1">
+                <span className="font-semibold">{comment.user}</span>
+              </div>
+              <p>{comment.text}</p>
+            </div>
           </div>
-        </div>
+        ))}
+      </div>
+
+      <div className="mt-4 flex gap-2">
+        <input
+          type="text"
+          a
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+          placeholder="Viết bình luận..."
+          className="w-full p-2 border rounded-lg"
+        />
+        <button
+          onClick={handleAddComment}
+          className="bg-blue-500 text-white p-2 rounded-lg"
+        >
+          Gửi
+        </button>
       </div>
     </div>
   );

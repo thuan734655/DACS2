@@ -19,7 +19,6 @@ export const changePassword = async (email, otp, newPassword) => {
 export const signUp = async (formData) => {
   try {
     const response = await axiosAPI.post(`/v1/auth/register`, formData);
-    console.log(response + " gsdgs"); // Loại bỏ .data vì interceptor trả về data trực tiếp
     return response;
   } catch (error) {
     throw error.response ? error.response.data : new Error("Sign up failed.");

@@ -39,12 +39,14 @@ const FromCreatePost = ({ setFormCreatePostVisible, reloadPosts }) => {
     formData.append("idUser", idUser);
     formData.append("textColor", textColor);
     formData.append("backgroundColor", backgroundColor);
+    formData.append("comments", []);
 
     selectedFiles.forEach((fileData) => {
       formData.append("media", fileData.file);
     });
 
     try {
+      formData.forEach((fileData) => console.log(fileData));
       await createPost(formData);
       handleClose();
     } catch (error) {
@@ -55,7 +57,7 @@ const FromCreatePost = ({ setFormCreatePostVisible, reloadPosts }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg w-full max-w-[500px] shadow-xl">
         <div className="relative border-b p-4">
           <h1 className="text-xl font-semibold text-center">Create Post</h1>

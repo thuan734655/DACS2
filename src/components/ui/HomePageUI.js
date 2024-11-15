@@ -13,8 +13,10 @@ const HomePageUI = () => {
   // Hàm tải lại danh sách bài viết
   const loadPosts = async () => {
     const response = await getPosts();
-    setListPosts(response.data);
-    console.log(response.data , "loadPosts");
+    if (response) {
+      setListPosts(response.data);
+      console.log(response.data, "loadPosts");
+    }
   };
 
   useEffect(() => {
