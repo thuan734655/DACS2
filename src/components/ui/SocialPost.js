@@ -93,9 +93,11 @@ function SocialPost({ postId, post, user }) {
     });
 
     socket.on("receiveReaction", (data) => {
+      console.log(data);
       if (data.postId === postId) {
         setEmojiCounts(data.grouped);
         setlikedByCount((prevCount) => prevCount + 1);
+        setEmojiChosse(null);
       }
     });
 
@@ -231,7 +233,7 @@ function SocialPost({ postId, post, user }) {
             className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
             onClick={() => setShowReactionPicker(!showReactionPicker)}
           >
-            <span>
+            <span className="flex gap-2 ">
               {emojiChosse ? (
                 emojiChosse
               ) : (
