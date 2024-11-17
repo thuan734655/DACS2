@@ -21,6 +21,7 @@ function Avatar({ src, fallback, alt }) {
     </div>
   );
 }
+
 const loadComments = (commentList) => {
   if (commentList !== 0 && Array.isArray(commentList)) {
     const html = commentList
@@ -41,6 +42,7 @@ const loadComments = (commentList) => {
 };
 
 function SocialPost({ postId, post, user }) {
+  const { groupedLikes } = post;
   const {
     createdAt,
     shares,
@@ -49,20 +51,25 @@ function SocialPost({ postId, post, user }) {
     backgroundColor,
     textColor,
     comments,
-    likes,
-  } = post;
+  } = post.post;
 
   const { fullName = "Unknown User", avatar = "/placeholder.svg" } =
     user[0] || {};
-  const [likeCount, setLikesCount] = useState(likes ? likes.length : 0);
+  const [likeCount, setlikedByCount] = useState(
+    groupedLikes ? groupedLikes.length : 0
+  );
   const [commentCount, setCommentCount] = useState(
     comments && comments !== 0 ? comments.length : 0
   );
   const [newComment, setNewComment] = useState("");
   const [commentsList, setCommentsList] = useState(comments || []);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const [emojiChosse, setEmojiChosse] = useState();
+  const [idUser, setIdUser] = useState(localStorage.getItem("idUser"));
 
-  const [emojiCounts, setEmojiCounts] = useState(likes ? likes : {});
+  const [emojiCounts, setEmojiCounts] = useState(
+    groupedLikes ? groupedLikes : {}
+  );
 
   useEffect(() => {
     const closeReactionPicker = (e) => {
@@ -86,10 +93,9 @@ function SocialPost({ postId, post, user }) {
     });
 
     socket.on("receiveReaction", (data) => {
-      console.log(data);
       if (data.postId === postId) {
-        setEmojiCounts(data.listLikes);
-        setLikesCount((prevCount) => prevCount + 1);
+        setEmojiCounts(data.grouped);
+        setlikedByCount((prevCount) => prevCount + 1);
       }
     });
 
@@ -100,11 +106,9 @@ function SocialPost({ postId, post, user }) {
   }, [postId]);
 
   const handleLike = (emoji) => {
-    const idUser = localStorage.getItem("idUser");
     const dataReq = { postId: postId, emoji: emoji, idUser: idUser };
     socket.emit("newReaction", dataReq);
     setShowReactionPicker(false);
-    // socket.close();
   };
 
   const handleAddComment = () => {
@@ -122,18 +126,41 @@ function SocialPost({ postId, post, user }) {
     return `${date.getHours()}:${date.getMinutes()} - ${date.toLocaleDateString()}`;
   };
 
+  // Render emoji and handle user selection without causing infinite re-renders
   const renderEmoji = () => {
-    return Object.entries(emojiCounts)
-      .filter(([emoji, count]) => count > 0) // Lọc các emoji có count > 0
-      .map(([emoji, count]) => (
-        <div
-          key={emoji}
-          className="flex items-center gap-1 text-sm text-gray-500"
-        >
-          <span>{emoji}</span>
-          <span>{count}</span>
-        </div>
-      ));
+    if (!emojiCounts) return null;
+
+    // Declare emoji to be set outside of map to avoid infinite re-renders
+    let selectedEmoji = emojiChosse;
+
+    const emojiElements = Object.entries(emojiCounts)
+      .filter(([emoji, count]) => count.length > 0)
+      .map(([emoji, count]) => {
+        if (count.length === 0) return null;
+
+        // Handle selecting emoji for the current user
+        if (count.includes(idUser)) {
+          selectedEmoji = emoji; // Set the selected emoji here
+        }
+
+        return (
+          <div
+            key={emoji}
+            className="flex items-center gap-1 text-sm text-gray-500"
+          >
+            <span>{emoji}</span>
+            <span>{count.length}</span>
+          </div>
+        );
+      });
+
+    // Update emojiChosse if a selected emoji is found (after render logic)
+    if (selectedEmoji !== emojiChosse) {
+      setEmojiChosse(selectedEmoji); // Update state if emoji changes
+      setShowReactionPicker(false); // Close picker if emoji selected
+    }
+
+    return emojiElements;
   };
 
   return (
@@ -204,8 +231,16 @@ function SocialPost({ postId, post, user }) {
             className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
             onClick={() => setShowReactionPicker(!showReactionPicker)}
           >
-            <ThumbsUp className="h-5 w-5" />
-            <span>Thích</span>
+            <span>
+              {emojiChosse ? (
+                emojiChosse
+              ) : (
+                <>
+                  <ThumbsUp className="h-5 w-5" />
+                  <span>Thích</span>
+                </>
+              )}
+            </span>
           </button>
 
           {showReactionPicker && (
@@ -225,37 +260,37 @@ function SocialPost({ postId, post, user }) {
 
         <button className="flex items-center gap-2 text-gray-600 hover:text-gray-800">
           <MessageCircle className="h-5 w-5" />
-          <span>Bình luận</span>
+          Bình luận
         </button>
+
         <button className="flex items-center gap-2 text-gray-600 hover:text-gray-800">
           <Send className="h-5 w-5" />
-          <span>Gửi</span>
+          Chia sẻ
         </button>
+
         <button className="flex items-center gap-2 text-gray-600 hover:text-gray-800">
           <Share2 className="h-5 w-5" />
-          <span>Chia sẻ</span>
+          Chia sẻ
         </button>
       </div>
 
-      <div className="mt-3 pt-3 border-t">
-        {loadComments(commentsList)}
-        <div className="flex items-start gap-2 mt-2">
-          <Avatar src="/placeholder.svg" alt="User" fallback="U" />
-          <input
-            type="text"
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Viết bình luận..."
-            className="flex-1 bg-gray-100 rounded-lg p-2"
-          />
-          <button
-            onClick={handleAddComment}
-            className="text-blue-500 font-semibold"
-          >
-            Gửi
-          </button>
-        </div>
+      <div className="mt-4">
+        <textarea
+          className="w-full p-2 border rounded-lg"
+          rows="3"
+          placeholder="Thêm bình luận..."
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+        />
+        <button
+          className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
+          onClick={handleAddComment}
+        >
+          Gửia
+        </button>
       </div>
+
+      <div className="mt-4">{loadComments(commentsList)}</div>
     </div>
   );
 }
