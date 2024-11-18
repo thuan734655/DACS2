@@ -5,8 +5,16 @@ import {
   MessageCircle,
   Send,
   Share2,
+  ImageIcon,
+  Smile,
+  Gift,
+  Sticker,
+  AtSign,
+  Camera,
+  X,
 } from "lucide-react";
 import io from "socket.io-client";
+import EmojiPicker from "emoji-picker-react";
 
 const socket = io("http://localhost:5000");
 
@@ -66,10 +74,25 @@ function SocialPost({ postId, post, user }) {
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [emojiChosse, setEmojiChosse] = useState();
   const [idUser, setIdUser] = useState(localStorage.getItem("idUser"));
-
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [emojiCounts, setEmojiCounts] = useState(
     groupedLikes ? groupedLikes : {}
   );
+  const [emojiPicker, setEmojiPicker] = useState(false);
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    const filesWithPreview = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setSelectedFiles((prevFiles) => [...prevFiles, ...filesWithPreview]);
+  };
+
+  const handleRemoveFile = (index) => {
+    const updatedFiles = selectedFiles.filter((_, i) => i !== index);
+    setSelectedFiles(updatedFiles);
+  };
 
   useEffect(() => {
     const closeReactionPicker = (e) => {
@@ -82,6 +105,19 @@ function SocialPost({ postId, post, user }) {
     };
     document.addEventListener("click", closeReactionPicker);
     return () => document.removeEventListener("click", closeReactionPicker);
+  }, []);
+
+  useEffect(() => {
+    const closeEmojiPicker = (e) => {
+      if (
+        !e.target.closest(".emoji-picker-react") &&
+        !e.target.closest("button")
+      ) {
+        setEmojiPicker(false);
+      }
+    };
+    document.addEventListener("click", closeEmojiPicker);
+    return () => document.removeEventListener("click", closeEmojiPicker);
   }, []);
 
   useLayoutEffect(() => {
@@ -128,11 +164,9 @@ function SocialPost({ postId, post, user }) {
     return `${date.getHours()}:${date.getMinutes()} - ${date.toLocaleDateString()}`;
   };
 
-  // Render emoji and handle user selection without causing infinite re-renders
   const renderEmoji = () => {
     if (!emojiCounts) return null;
 
-    // Declare emoji to be set outside of map to avoid infinite re-renders
     let selectedEmoji = emojiChosse;
 
     const emojiElements = Object.entries(emojiCounts)
@@ -140,9 +174,8 @@ function SocialPost({ postId, post, user }) {
       .map(([emoji, count]) => {
         if (count.length === 0) return null;
 
-        // Handle selecting emoji for the current user
         if (count.includes(idUser)) {
-          selectedEmoji = emoji; // Set the selected emoji here
+          selectedEmoji = emoji;
         }
 
         return (
@@ -156,13 +189,21 @@ function SocialPost({ postId, post, user }) {
         );
       });
 
-    // Update emojiChosse if a selected emoji is found (after render logic)
     if (selectedEmoji !== emojiChosse) {
-      setEmojiChosse(selectedEmoji); // Update state if emoji changes
-      setShowReactionPicker(false); // Close picker if emoji selected
+      setEmojiChosse(selectedEmoji);
+      setShowReactionPicker(false);
     }
 
     return emojiElements;
+  };
+
+  const handleEmojiClick = () => {
+    setEmojiPicker((prev) => !prev);
+  };
+
+  const handleEmojiSelect = (emojiObject) => {
+    setNewComment((prev) => prev + emojiObject.emoji);
+    setEmojiPicker(false);
   };
 
   return (
@@ -191,7 +232,6 @@ function SocialPost({ postId, post, user }) {
         {text}
       </div>
 
-      {/* Media URLs */}
       <div className="mt-3">
         {mediaUrls && mediaUrls.length > 0 && (
           <div className="grid grid-cols-2 gap-2 content-img">
@@ -276,20 +316,114 @@ function SocialPost({ postId, post, user }) {
         </button>
       </div>
 
-      <div className="mt-4">
-        <textarea
-          className="w-full p-2 border rounded-lg"
-          rows="3"
-          placeholder="Thêm bình luận..."
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-        />
-        <button
-          className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
-          onClick={handleAddComment}
-        >
-          Gửia
-        </button>
+      <div className="mt-3 pt-3 border-t">
+        {commentsList.map((comment, index) => (
+          <div key={index} className="flex items-start gap-2 mb-2">
+            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+              <img
+                src="/placeholder.svg"
+                alt="Commenter"
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="flex-1 bg-gray-100 rounded-lg p-2">
+              <p className="font-semibold text-sm">{comment.user}</p>
+              <p className="text-sm">{comment.text}</p>
+              {comment.fileUrl &&
+                (comment.fileUrl.endsWith(".mp4") ? (
+                  <video
+                    controls
+                    className="w-full rounded-lg mt-2"
+                    src={`http://localhost:5000/${comment.fileUrl}`}
+                  />
+                ) : (
+                  <img
+                    className="w-full rounded-lg mt-2"
+                    src={`http://localhost:5000/${comment.fileUrl}`}
+                    alt="Comment media"
+                  />
+                ))}
+            </div>
+          </div>
+        ))}
+
+        <div className="flex items-start gap-2 mt-4">
+          <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+            <img
+              src="/placeholder.svg"
+              alt="User"
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <div className="flex-1">
+            <div className="relative">
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Viết câu trả lời..."
+                className="min-h-[40px] w-full rounded-lg bg-gray-100 px-4 py-2 text-sm resize-none focus:outline-none"
+              />
+              <div className="absolute right-2 top-2">
+                <button
+                  onClick={handleAddComment}
+                  className="text-blue-500 hover:text-blue-600"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-2 flex items-center gap-2 px-2 relative">
+              <button onClick={handleEmojiClick}>
+                <Smile />
+              </button>
+              {emojiPicker && (
+                <div className="absolute bottom-full left-0 mb-2">
+                  <EmojiPicker onEmojiClick={handleEmojiSelect} />
+                </div>
+              )}
+
+              <label htmlFor="file-upload" className="cursor-pointer">
+                <ImageIcon className="h-5 w-5" />
+                <input
+                  id="file-upload"
+                  type="file"
+                  className="hidden"
+                  onChange={handleFileChange}
+                  multiple
+                />
+              </label>
+            </div>
+
+            {selectedFiles.length > 0 && (
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                {selectedFiles.map((fileData, index) => (
+                  <div key={index} className="relative">
+                    {fileData.file.type.startsWith("image/") ? (
+                      <img
+                        src={fileData.preview}
+                        alt="Preview"
+                        className="object-cover w-full h-20 rounded-md"
+                      />
+                    ) : (
+                      <video
+                        src={fileData.preview}
+                        className="object-cover w-full h-20 rounded-md"
+                        controls
+                      />
+                    )}
+                    <button
+                      onClick={() => handleRemoveFile(index)}
+                      className="absolute top-1 right-1 bg-gray-700 text-white rounded-full p-1 hover:bg-gray-800"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="mt-4">{loadComments(commentsList)}</div>
