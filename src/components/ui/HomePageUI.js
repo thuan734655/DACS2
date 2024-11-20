@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "./SidebarUI";
 import HeaderUI from "./HeaderUI";
-import FormCreatePost from "./FormCreatePostUI"; // Sửa lỗi tên từ "FromCreatePost" thành "FormCreatePost"
-import SocialPost from "./SocialPost";
+import FormCreatePost from "./FormCreatePostUI.js";
+import SocialPost from "./SocialPost.js";
 import NavCreatePostUI from "./NavCreatePostUI";
 import { getPosts } from "../../services/postService";
 

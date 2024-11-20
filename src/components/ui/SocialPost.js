@@ -7,10 +7,6 @@ import {
   Share2,
   ImageIcon,
   Smile,
-  Gift,
-  Sticker,
-  AtSign,
-  Camera,
   X,
 } from "lucide-react";
 import io from "socket.io-client";
@@ -29,25 +25,6 @@ function Avatar({ src, fallback, alt }) {
     </div>
   );
 }
-
-const loadComments = (commentList) => {
-  if (commentList !== 0 && Array.isArray(commentList)) {
-    const html = commentList
-      .map((comment, index) => (
-        <div key={index} className="flex items-start gap-2 mb-2">
-          <Avatar src="/placeholder.svg" alt="Commenter" fallback="U" />
-          <div className="flex-1 bg-gray-100 rounded-lg p-2">
-            <p className="font-semibold text-sm">{comment.user}</p>
-            <p className="text-sm">{comment.text}</p>
-          </div>
-        </div>
-      ))
-      .join("");
-    return html;
-  } else {
-    return <p>Không có bình luận</p>;
-  }
-};
 
 function SocialPost({ postId, post, user }) {
   const { groupedLikes } = post;
@@ -70,7 +47,11 @@ function SocialPost({ postId, post, user }) {
     comments && comments !== 0 ? comments.length : 0
   );
   const [newComment, setNewComment] = useState("");
-  const [commentsList, setCommentsList] = useState(comments || []);
+  const [commentsList, setCommentsList] = useState(
+    comments
+      ? Object.entries(comments).map(([id, comment]) => ({ id, ...comment }))
+      : []
+  );
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [emojiChosse, setEmojiChosse] = useState();
   const [idUser, setIdUser] = useState(localStorage.getItem("idUser"));
@@ -122,14 +103,14 @@ function SocialPost({ postId, post, user }) {
 
   useLayoutEffect(() => {
     socket.on("receiveComment", (data) => {
-      if (data.postId === postId) {
+      if (data.comment.postId === postId) {
         setCommentsList((prevComments) => [...prevComments, data.comment]);
         setCommentCount((prevCount) => prevCount + 1);
+        console.log("fasfs");
       }
     });
 
     socket.on("receiveReaction", (data) => {
-      console.log(data);
       if (data.postId === postId) {
         setEmojiCounts(data.grouped);
         setlikedByCount((prevCount) => prevCount + 1);
@@ -149,13 +130,35 @@ function SocialPost({ postId, post, user }) {
     setShowReactionPicker(false);
   };
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (newComment.trim()) {
-      const comment = { user: "Current User", text: newComment };
-      setCommentsList((prevComments) => [...prevComments, comment]);
+      const comment = {
+        postId: postId,
+        user: idUser,
+        text: newComment,
+      };
+
+      // Chuyển file sang Base64
+      const base64Files = await Promise.all(
+        selectedFiles.map(({ file }) => {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () =>
+              resolve({
+                name: file.name,
+                type: file.type,
+                data: reader.result,
+              });
+            reader.onerror = (error) => reject(error);
+            reader.readAsDataURL(file);
+          });
+        })
+      );
+
+      comment.listFileUrl = base64Files;
+      socket.emit("newComment", { comment: comment });
       setNewComment("");
-      setCommentCount((prevCount) => prevCount + 1);
-      socket.emit("newComment", { postId, comment });
+      setSelectedFiles([]);
     }
   };
 
@@ -318,31 +321,46 @@ function SocialPost({ postId, post, user }) {
 
       <div className="mt-3 pt-3 border-t">
         {commentsList.map((comment, index) => (
-          <div key={index} className="flex items-start gap-2 mb-2">
-            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-              <img
-                src="/placeholder.svg"
-                alt="Commenter"
-                className="h-full w-full object-cover"
-              />
+          <div className="flex flex-col" key={comment.id || index}>
+            <div className="flex items-start gap-2 mb-2">
+              <Avatar src="/placeholder.svg" alt="Commenter" fallback="U" />
+              <div className="flex-1 bg-gray-100 rounded-lg p-2">
+                <p className="font-semibold text-sm">{comment.user}</p>
+                <p className="text-sm">{comment.text}</p>
+                {comment.fileUrls &&
+                  comment.fileUrls.map((fileUrl, fileIndex) =>
+                    fileUrl.endsWith(".mp4") ? (
+                      <video
+                        key={fileIndex}
+                        controls
+                        className="w-full rounded-lg mt-2"
+                        src={`http://localhost:5000${fileUrl}`}
+                      />
+                    ) : (
+                      <img
+                        key={fileIndex}
+                        className="w-full rounded-lg mt-2"
+                        src={`http://localhost:5000${fileUrl}`}
+                        alt="Comment media"
+                      />
+                    )
+                  )}
+              </div>
             </div>
-            <div className="flex-1 bg-gray-100 rounded-lg p-2">
-              <p className="font-semibold text-sm">{comment.user}</p>
-              <p className="text-sm">{comment.text}</p>
-              {comment.fileUrl &&
-                (comment.fileUrl.endsWith(".mp4") ? (
-                  <video
-                    controls
-                    className="w-full rounded-lg mt-2"
-                    src={`http://localhost:5000/${comment.fileUrl}`}
-                  />
+            <div className="flex gap-8 ml-12 ">
+              <span className="flex gap-2 ">
+                {emojiChosse ? (
+                  emojiChosse
                 ) : (
-                  <img
-                    className="w-full rounded-lg mt-2"
-                    src={`http://localhost:5000/${comment.fileUrl}`}
-                    alt="Comment media"
-                  />
-                ))}
+                  <>
+                    <ThumbsUp className="h-5 w-5" />
+                    <span>Thích</span>
+                  </>
+                )}
+              </span>
+
+              <span>Trả lời</span>
+              <span>Báo cáo</span>
             </div>
           </div>
         ))}
@@ -425,8 +443,6 @@ function SocialPost({ postId, post, user }) {
           </div>
         </div>
       </div>
-
-      <div className="mt-4">{loadComments(commentsList)}</div>
     </div>
   );
 }
