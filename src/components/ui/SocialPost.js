@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import io from "socket.io-client";
 import EmojiPicker from "emoji-picker-react";
+import formatDate from "../../utils/dateFormatter";
 
 const socket = io("http://localhost:5000");
 
@@ -36,7 +37,7 @@ function SocialPost({ postId, post, user }) {
     backgroundColor,
     textColor,
     comments,
-  } = post.post;
+  } = post;
 
   const { fullName = "Unknown User", avatar = "/placeholder.svg" } =
     user[0] || {};
@@ -160,11 +161,6 @@ function SocialPost({ postId, post, user }) {
       setNewComment("");
       setSelectedFiles([]);
     }
-  };
-
-  const formatDate = (timestamp) => {
-    const date = new Date(timestamp);
-    return `${date.getHours()}:${date.getMinutes()} - ${date.toLocaleDateString()}`;
   };
 
   const renderEmoji = () => {
