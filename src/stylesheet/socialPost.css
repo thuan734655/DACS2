@@ -1,0 +1,13 @@
+.sub-post {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 50%;
+    height: 80%;
+    transform: translate(-50%, -50%);
+    overflow: auto;
+    background-color: rgb(245, 239, 239);
+    border-radius: 10px;
+    padding: 10px;
+    z-index: 100;
+}
