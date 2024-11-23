@@ -1,20 +1,110 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Send, ImageIcon, Smile, X } from "lucide-react";
 import EmojiPicker from "emoji-picker-react";
+import io from "socket.io-client";
+const socket = io("http://localhost:5000");
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const SUPPORTED_FORMATS = ["image/jpeg", "image/png", "video/mp4"]; // Allowed formats
 
 function CommentInput({
-  newComment,
-  setNewComment,
-  handleAddComment,
-  handleFileChange,
-  selectedFiles,
-  handleRemoveFile,
+  postId,
+  user,
+  post,
+  setShowSubPost,
+  commentsList,
+  setCommentsList,
+  setCommentCount,
 }) {
+  const [newComment, setNewComment] = useState("");
+  const [idUser, setIdUser] = useState(
+    JSON.parse(localStorage.getItem("user")).idUser
+  );
   const [emojiPicker, setEmojiPicker] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+
+    const validFiles = files.filter((file) => {
+      if (!SUPPORTED_FORMATS.includes(file.type)) {
+        alert("Chỉ cho phép ảnh (png, jpeg) và video: " + file.name);
+        return false;
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        alert("Dung lượng file quá lớn: " + file.name);
+        return false;
+      }
+      return true; // Only return valid files
+    });
+
+    // Add valid files to the list with previews
+    const filesWithPreview = validFiles.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setSelectedFiles((prevFiles) => [...prevFiles, ...filesWithPreview]);
+  };
+
+  const handleRemoveFile = (index) => {
+    const updatedFiles = selectedFiles.filter((_, i) => i !== index);
+    setSelectedFiles(updatedFiles);
+  };
 
   const handleEmojiSelect = (emojiObject) => {
     setNewComment((prev) => prev + emojiObject.emoji);
     setEmojiPicker(false);
+  };
+  useEffect(() => {
+    socket.on("receiveComment", (data) => {
+      const commentId = Object.entries(data.newComment)[0][0]; // Get the commentId from newComment
+      if (data.newComment[commentId].postId === postId) {
+        setCommentsList((prevComments) => [
+          ...prevComments,
+          Object.entries(data.newComment)[0], // Append new comment
+        ]);
+        setCommentCount((prevCount) => prevCount + 1);
+      }
+    });
+
+    return () => {
+      socket.off("receiveComment");
+    };
+  }, [postId]);
+
+  const handleAddComment = async () => {
+    if (newComment.trim()) {
+      const comment = {
+        postId: postId,
+        user: idUser,
+        text: newComment,
+      };
+
+      // Convert files to Base64
+      const base64Files = await Promise.all(
+        selectedFiles.map(({ file }) => {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () =>
+              resolve({
+                name: file.name,
+                type: file.type,
+                data: reader.result,
+              });
+            reader.onerror = (error) => reject(error);
+            reader.readAsDataURL(file);
+          });
+        })
+      );
+
+      comment.listFileUrl = base64Files;
+      socket.emit("newComment", { comment: comment });
+      console.log(comment);
+
+      // Reset state after adding the comment
+      setNewComment("");
+      setSelectedFiles([]);
+    }
   };
   return (
     <>
