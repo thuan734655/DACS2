@@ -75,6 +75,7 @@ const HomePageUI = () => {
                   <SocialPost
                     key={postId}
                     postId={postId}
+                    groupedLikes = {postData.groupedLikes}
                     post={postData.post}
                     user={postData.infoUserList[postData.post.idUser]}
                   />

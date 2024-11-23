@@ -5,30 +5,21 @@ import {
   MessageCircle,
   Send,
   Share2,
-  ImageIcon,
-  Smile,
-  X,
 } from "lucide-react";
+import Avatar from "./postComponents/Avatar";
+
 import io from "socket.io-client";
-import EmojiPicker from "emoji-picker-react";
+
 import formatDate from "../../utils/dateFormatter";
+
+import CommentList from "./postComponents/CommentList";
+import EmojiPickerComponent from "./postComponents/EmojiPickerComponent";
+import MediaPreview from "./postComponents/MediaPreview";
+import CommentInput from "./postComponents/CommentInput";
 
 const socket = io("http://localhost:5000");
 
-function Avatar({ src, fallback, alt }) {
-  return (
-    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-      {src ? (
-        <img src={src} alt={alt} className="h-full w-full object-cover" />
-      ) : (
-        fallback
-      )}
-    </div>
-  );
-}
-
-function SocialPost({ postId, post, user }) {
-  const { groupedLikes } = post;
+function SocialPost({ postId, post, user, groupedLikes }) {
   const {
     createdAt,
     shares,
@@ -54,14 +45,15 @@ function SocialPost({ postId, post, user }) {
       : []
   );
   const [showReactionPicker, setShowReactionPicker] = useState(false);
-  const [emojiChosse, setEmojiChosse] = useState();
-  const [idUser, setIdUser] = useState(localStorage.getItem("idUser"));
+  const [emojiChoose, setEmojiChoose] = useState();
+  const [idUser, setIdUser] = useState(
+    JSON.parse(localStorage.getItem("user")).idUser
+  );
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [emojiCounts, setEmojiCounts] = useState(
     groupedLikes ? groupedLikes : {}
   );
   const [emojiPicker, setEmojiPicker] = useState(false);
-
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     const filesWithPreview = files.map((file) => ({
@@ -75,7 +67,6 @@ function SocialPost({ postId, post, user }) {
     const updatedFiles = selectedFiles.filter((_, i) => i !== index);
     setSelectedFiles(updatedFiles);
   };
-
   useEffect(() => {
     const closeReactionPicker = (e) => {
       if (
@@ -107,7 +98,6 @@ function SocialPost({ postId, post, user }) {
       if (data.comment.postId === postId) {
         setCommentsList((prevComments) => [...prevComments, data.comment]);
         setCommentCount((prevCount) => prevCount + 1);
-        console.log("fasfs");
       }
     });
 
@@ -115,7 +105,7 @@ function SocialPost({ postId, post, user }) {
       if (data.postId === postId) {
         setEmojiCounts(data.grouped);
         setlikedByCount((prevCount) => prevCount + 1);
-        setEmojiChosse(null);
+        setEmojiChoose(null);
       }
     });
 
@@ -166,7 +156,7 @@ function SocialPost({ postId, post, user }) {
   const renderEmoji = () => {
     if (!emojiCounts) return null;
 
-    let selectedEmoji = emojiChosse;
+    let selectedEmoji = emojiChoose;
 
     const emojiElements = Object.entries(emojiCounts)
       .filter(([emoji, count]) => count.length > 0)
@@ -183,13 +173,12 @@ function SocialPost({ postId, post, user }) {
             className="flex items-center gap-1 text-sm text-gray-500"
           >
             <span>{emoji}</span>
-            <span>{count.length}</span>
           </div>
         );
       });
 
-    if (selectedEmoji !== emojiChosse) {
-      setEmojiChosse(selectedEmoji);
+    if (selectedEmoji !== emojiChoose) {
+      setEmojiChoose(selectedEmoji);
       setShowReactionPicker(false);
     }
 
@@ -197,13 +186,15 @@ function SocialPost({ postId, post, user }) {
   };
 
   const handleEmojiClick = () => {
-    setEmojiPicker((prev) => !prev);
+    console.log("handleEmojiClick");
   };
 
   const handleEmojiSelect = (emojiObject) => {
     setNewComment((prev) => prev + emojiObject.emoji);
     setEmojiPicker(false);
   };
+
+  const handleReply = (reply) => {};
 
   return (
     <div className="bg-white shadow-md rounded-lg p-4 mb-4" id={postId}>
@@ -232,34 +223,11 @@ function SocialPost({ postId, post, user }) {
       </div>
 
       <div className="mt-3">
-        {mediaUrls && mediaUrls.length > 0 && (
-          <div className="grid grid-cols-2 gap-2 content-img">
-            {mediaUrls.map((url, index) =>
-              url.endsWith(".mp4") ? (
-                <video
-                  key={index}
-                  src={"http://localhost:5000" + url}
-                  controls
-                  className="w-full h-auto rounded-lg"
-                />
-              ) : (
-                <img
-                  key={index}
-                  src={"http://localhost:5000" + url}
-                  alt={`Media ${index}`}
-                  className="w-full h-auto rounded-lg"
-                />
-              )
-            )}
-          </div>
-        )}
+        <MediaPreview mediaUrls={mediaUrls} />
       </div>
 
       <div className="mt-3 flex items-center justify-between text-sm text-gray-500">
-        <div className="flex items-center gap-1">
-          {renderEmoji()}
-          {likeCount > 0 && <span className="ml-1">{likeCount}</span>}
-        </div>
+        <div className="flex items-center gap-1">{renderEmoji()}</div>
         <div className="flex items-center gap-3">
           <span>{commentCount} bình luận</span>
           <span>{shares} lượt chia sẻ</span>
@@ -273,8 +241,8 @@ function SocialPost({ postId, post, user }) {
             onClick={() => setShowReactionPicker(!showReactionPicker)}
           >
             <span className="flex gap-2 ">
-              {emojiChosse ? (
-                emojiChosse
+              {emojiChoose ? (
+                emojiChoose
               ) : (
                 <>
                   <ThumbsUp className="h-5 w-5" />
@@ -285,17 +253,10 @@ function SocialPost({ postId, post, user }) {
           </button>
 
           {showReactionPicker && (
-            <div
-              className="reaction-picker absolute top-full left-0 mt-2 flex gap-2 bg-white border p-2 rounded-lg shadow-lg"
-              onMouseEnter={() => setShowReactionPicker(true)}
-              onMouseLeave={() => setShowReactionPicker(false)}
-            >
-              {["👍", "❤️", "😂", "😢", "😡", "😲", "🥳"].map((emoji) => (
-                <button key={emoji} onClick={() => handleLike(emoji)}>
-                  {emoji}
-                </button>
-              ))}
-            </div>
+            <EmojiPickerComponent
+              setShowReactionPicker={setShowReactionPicker}
+              handleLike={handleLike}
+            />
           )}
         </div>
 
@@ -316,128 +277,22 @@ function SocialPost({ postId, post, user }) {
       </div>
 
       <div className="mt-3 pt-3 border-t">
-        {commentsList.map((comment, index) => (
-          <div className="flex flex-col" key={comment.id || index}>
-            <div className="flex items-start gap-2 mb-2">
-              <Avatar src="/placeholder.svg" alt="Commenter" fallback="U" />
-              <div className="flex-1 bg-gray-100 rounded-lg p-2">
-                <p className="font-semibold text-sm">{comment.user}</p>
-                <p className="text-sm">{comment.text}</p>
-                {comment.fileUrls &&
-                  comment.fileUrls.map((fileUrl, fileIndex) =>
-                    fileUrl.endsWith(".mp4") ? (
-                      <video
-                        key={fileIndex}
-                        controls
-                        className="w-full rounded-lg mt-2"
-                        src={`http://localhost:5000${fileUrl}`}
-                      />
-                    ) : (
-                      <img
-                        key={fileIndex}
-                        className="w-full rounded-lg mt-2"
-                        src={`http://localhost:5000${fileUrl}`}
-                        alt="Comment media"
-                      />
-                    )
-                  )}
-              </div>
-            </div>
-            <div className="flex gap-8 ml-12 ">
-              <span className="flex gap-2 ">
-                {emojiChosse ? (
-                  emojiChosse
-                ) : (
-                  <>
-                    <ThumbsUp className="h-5 w-5" />
-                    <span>Thích</span>
-                  </>
-                )}
-              </span>
-
-              <span>Trả lời</span>
-              <span>Báo cáo</span>
-            </div>
-          </div>
-        ))}
-
-        <div className="flex items-start gap-2 mt-4">
-          <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-            <img
-              src="/placeholder.svg"
-              alt="User"
-              className="h-full w-full object-cover"
-            />
-          </div>
-          <div className="flex-1">
-            <div className="relative">
-              <textarea
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Viết câu trả lời..."
-                className="min-h-[40px] w-full rounded-lg bg-gray-100 px-4 py-2 text-sm resize-none focus:outline-none"
-              />
-              <div className="absolute right-2 top-2">
-                <button
-                  onClick={handleAddComment}
-                  className="text-blue-500 hover:text-blue-600"
-                >
-                  <Send className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-2 flex items-center gap-2 px-2 relative">
-              <button onClick={handleEmojiClick}>
-                <Smile />
-              </button>
-              {emojiPicker && (
-                <div className="absolute bottom-full left-0 mb-2">
-                  <EmojiPicker onEmojiClick={handleEmojiSelect} />
-                </div>
-              )}
-
-              <label htmlFor="file-upload" className="cursor-pointer">
-                <ImageIcon className="h-5 w-5" />
-                <input
-                  id="file-upload"
-                  type="file"
-                  className="hidden"
-                  onChange={handleFileChange}
-                  multiple
-                />
-              </label>
-            </div>
-
-            {selectedFiles.length > 0 && (
-              <div className="mt-4 grid grid-cols-3 gap-2">
-                {selectedFiles.map((fileData, index) => (
-                  <div key={index} className="relative">
-                    {fileData.file.type.startsWith("image/") ? (
-                      <img
-                        src={fileData.preview}
-                        alt="Preview"
-                        className="object-cover w-full h-20 rounded-md"
-                      />
-                    ) : (
-                      <video
-                        src={fileData.preview}
-                        className="object-cover w-full h-20 rounded-md"
-                        controls
-                      />
-                    )}
-                    <button
-                      onClick={() => handleRemoveFile(index)}
-                      className="absolute top-1 right-1 bg-gray-700 text-white rounded-full p-1 hover:bg-gray-800"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+        <CommentList
+          commentsList={commentsList}
+          emojiChoose={emojiChoose}
+          handleReply={handleReply}
+        />
+        <CommentInput
+          newComment={newComment}
+          setNewComment={setNewComment}
+          handleAddComment={handleAddComment}
+          handleFileChange={handleFileChange}
+          selectedFiles={selectedFiles}
+          handleRemoveFile={handleRemoveFile}
+          emojiPicker={emojiPicker}
+          handleEmojiClick={() => setEmojiPicker(!emojiPicker)}
+          handleEmojiSelect={handleEmojiSelect}
+        />
       </div>
     </div>
   );

@@ -32,7 +32,10 @@ const FromCreatePost = ({ setFormCreatePostVisible, reloadPosts }) => {
 
   const handlePost = async () => {
     if (!postText.trim()) return;
-    const idUser = localStorage.getItem("idUser");
+    const infoUser = localStorage.getItem("user");
+    const parsedInfoUser = JSON.parse(infoUser);
+    const idUser = parsedInfoUser.idUser;
+    
     setIsLoading(true);
     let formData = new FormData();
     formData.append("text", postText);
