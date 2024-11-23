@@ -49,6 +49,8 @@ const HandleLoginController = async (formData, navigate, setStep,setLoading) => 
     // Call login function
     const response = await login(email, password, visitorId);
     const { requires2FA, active } = response.data;
+    console.log(response);
+    
     if (requires2FA) {
       setStep(2);
     } else if (active) {

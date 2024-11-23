@@ -1,9 +1,173 @@
-/* Ẩn thanh cuộn */
-.scrollbar-hide::-webkit-scrollbar {
-    display: none; /* Dùng cho Chrome, Safari, và Edge */
+@charset "UTF-8";
+body {
+  background-color: rgb(245, 242, 244);
+}
+
+.signUp__container {
+  width: 400px;
+  height: 460px;
+  background-color: rgb(233, 205, 255);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  border-radius: 0.625rem;
+}
+
+.signUp__container--head {
+  display: flex;
+  justify-content: space-between;
+  display: flex;
+  justify-content: space-between;
+}
+
+.signUp__container--head .head-container--title {
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 38px;
+  color: #1c1e21;
+}
+
+.signUp__container--desc {
+  font-size: 0.9375rem;
+  line-height: 24px;
+  color: #606770;
+}
+
+.signUp__container--body .body-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.signUp__container--body .body-container select {
+  border-radius: 0.3125rem;
+}
+
+.signUp__container--body .body-container input {
+  width: 80%;
+  height: 40px;
+  border-radius: 10px;
+  padding-left: 15px;
+  background-color: #ffffff;
+}
+
+.signUp__container--body .body-container--box-fullName {
+  display: flex;
+  gap: 1.125rem;
+}
+
+.signUp__container--body .body-container .body-container--input-username {
+  width: 100%;
+}
+
+.signUp__container--body .body-container .body-container--box-password {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+}
+
+.signUp__container--body .body-container .body-container--box-password .body-container--input-password {
+  width: 100%;
+}
+
+.signUp__container--body .body-container .body-container--box-password span {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.signUp__container--body .body-container .body-container--box-birth {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.signUp__container--body .body-container .body-container--box-birth form {
+  display: flex;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+}
+
+.signUp__container--body .body-container .body-container--Gender {
+  display: flex;
+  gap: 3rem;
+}
+
+.signUp__container--body .body-container button {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #fff;
+  width: 25%;
+  background-color: #4c077e;
+  border-radius: 6px;
+  padding: 5px;
+  margin: 0 auto;
+}
+
+.signUp__container--footer p {
+  font-size: 1rem;
+  font-weight: 500;
+  font-style: italic;
+  color: #0c90e2;
+  margin-top: -0.625rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.signUp__container p:hover {
+  transform: scale(1.03);
+}
+
+.err-form {
+  border: 1px solid red;
+}
+
+.err-form-animation {
+  animation: err-form-animation 1.5s ease 0s 1 normal forwards;
+}
+
+.err-span {
+  animation: err-span-animation 1.5s ease 0s 1 normal forwards; /* Thời gian ngắn hơn */
+}
+
+.valid-form {
+  border: unset;
+}
+
+@keyframes err-form-animation {
+  0% {
+    transform: translate(0);
   }
-  
-  .scrollbar-hide {
-    -ms-overflow-style: none;  /* Dùng cho IE và Edge */
-    scrollbar-width: none;     /* Dùng cho Firefox */
+  33% {
+    transform: translateX(2%);
   }
+  66% {
+    transform: translateX(-2%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+@keyframes err-span-animation {
+  0% {
+    top: -10%;
+    transform: translate(0, 50%);
+  }
+  33% {
+    top: -10%;
+    transform: translate(15%, 50%);
+  }
+  66% {
+    top: -10%;
+    transform: translate(-15%, 50%);
+  }
+  100% {
+    top: -10%;
+    transform: translate(0, 50%);
+  }
+}/*# sourceMappingURL=App.css.map */
