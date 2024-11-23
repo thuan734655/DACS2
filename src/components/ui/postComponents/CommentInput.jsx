@@ -9,10 +9,6 @@ const SUPPORTED_FORMATS = ["image/jpeg", "image/png", "video/mp4"]; // Allowed f
 
 function CommentInput({
   postId,
-  user,
-  post,
-  setShowSubPost,
-  commentsList,
   setCommentsList,
   setCommentCount,
 }) {

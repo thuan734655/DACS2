@@ -12,9 +12,7 @@ const SubPost = ({
   setCommentsList,
   setCommentCount,
 }) => {
-  const handleReply = (reply) => {
-    // Implement reply functionality if needed
-  };
+  const handleReply = (reply) => {};
 
   return (
     <div className="sub-post">
@@ -26,7 +24,13 @@ const SubPost = ({
       />
       <div className="mt-3 pt-3 border-t">
         <p className="pb-3 font-semibold">Bình luận: </p>
-        <CommentList commentsList={commentsList} handleReply={handleReply} />
+        <CommentList
+          commentsList={commentsList}
+          handleReply={handleReply}
+          postId={postId}
+          setCommentsList={setCommentsList}
+          setCommentCount={setCommentCount}
+        />
         <CommentInput
           postId={postId}
           post={post}
