@@ -102,8 +102,6 @@ function CommentInput({
       if (isReply) {
         const replyContent = {
           replyData: comment,
-          postId: postId,
-          replyId: replyId,
           commentId: commentId,
         };
         socket.emit("replyComment", replyContent);
@@ -200,4 +198,4 @@ function CommentInput({
   );
 }
 
-export default CommentInput
+export default CommentInput;

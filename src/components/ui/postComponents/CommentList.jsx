@@ -16,22 +16,23 @@ function CommentList({
   const handleToggleCommentInput = (commentId) => {
     setVisibleCommentInput((prev) => (prev === commentId ? null : commentId));
   };
+  console.log(commentsList);
 
   return (
     <>
-      {commentsList.map((data) => (
+      {commentsList.map((data, index) => (
         <div
           className={`flex flex-col ${depth > 0 ? "ml-5" : ""}`}
-          id={data[0]}
-          key={data[0]}
+          id={data.commentId}
+          key={`${data.commentId}-${index}`} // Kết hợp commentId với index để đảm bảo key duy nhất
         >
           <div className="flex items-start gap-2 mb-2">
             <Avatar src="/placeholder.svg" alt="Commenter" fallback="U" />
             <div className="flex-1 bg-gray-100 rounded-lg p-2">
-              <p className="font-semibold text-sm">{data[1].user}</p>
-              <p className="text-sm">{data[1].text}</p>
-              {data[1].fileUrls &&
-                data[1].fileUrls.map((fileUrl, fileIndex) =>
+              <p className="font-semibold text-sm">{data.user}</p>
+              <p className="text-sm">{data.text}</p>
+              {data.fileUrls &&
+                data.fileUrls.map((fileUrl, fileIndex) =>
                   fileUrl.endsWith(".mp4") ? (
                     <video
                       key={fileIndex}
@@ -64,33 +65,37 @@ function CommentList({
 
             <span
               className="cursor-pointer"
-              onClick={() => handleToggleCommentInput(data[0])}
+              onClick={() => handleToggleCommentInput(data.commentId)}
             >
               Trả lời
             </span>
             <span>Báo cáo</span>
           </div>
 
-          {visibleCommentInput === data[0] && (
+          {visibleCommentInput === data.commentId && (
             <CommentInput
               postId={postId}
-              parentCommentId={data[0]}
               setCommentsList={setCommentsList}
               setCommentCount={setCommentCount}
+              commentId={data.commentId}
+              isReply={true}
               depth={depth + 1}
             />
           )}
 
-          {data[1].replies && (
-            <CommentList
-              commentsList={Object.entries(data[1].replies)}
-              emojiChoose={emojiChoose}
-              postId={postId}
-              setCommentsList={setCommentsList}
-              setCommentCount={setCommentCount}
-              depth={depth + 1}
-            />
-          )}
+          {/* Kiểm tra nếu có replies và chuyển đổi chúng thành mảng */}
+          {data.replies &&
+            Array.isArray(data.replies) &&
+            data.replies.length > 0 && (
+              <CommentList
+                commentsList={data.replies} // Truyền trực tiếp mảng replies
+                emojiChoose={emojiChoose}
+                postId={postId}
+                setCommentsList={setCommentsList}
+                setCommentCount={setCommentCount}
+                depth={depth + 1}
+              />
+            )}
         </div>
       ))}
     </>

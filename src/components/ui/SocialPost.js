@@ -8,14 +8,14 @@ import SubPost from "./postComponents/SubPost";
 
 const socket = io("http://localhost:5000");
 
-function SocialPost({ postId, post, user, groupedLikes }) {
-  const { shares, comments } = post;
-
+function SocialPost({ postId, post, user, groupedLikes, comments }) {
+  const { shares } = post;
+  console.log(comments);
   const [likeCount, setLikeCount] = useState(
     groupedLikes ? Object.values(groupedLikes).flat().length : 0
   );
   const [commentsList, setCommentsList] = useState(
-    comments ? Object.entries(comments) : []
+    comments ? comments : []
   );
   const [commentCount, setCommentCount] = useState(
     commentsList ? commentsList.length : 0
