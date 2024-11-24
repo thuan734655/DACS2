@@ -6,8 +6,9 @@
     height: 80%;
     transform: translate(-50%, -50%);
     overflow: auto;
-    background-color: rgb(245, 239, 239);
+    background-color: rgb(255, 255, 255);
     border-radius: 10px;
+    border: 1px solid rgb(86, 86, 83);
     padding: 10px;
     z-index: 100;
 }

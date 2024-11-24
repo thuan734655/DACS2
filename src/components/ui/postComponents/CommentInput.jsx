@@ -28,14 +28,14 @@ function CommentInput({
 
     const validFiles = files.filter((file) => {
       if (!SUPPORTED_FORMATS.includes(file.type)) {
-        alert("Chỉ cho phép ảnh (png, jpeg) và video: " + file.name);
+        alert("Chỉ cho phép ảnh (png, jpeg) và video (mp4): " + file.name);
         return false;
       }
       if (file.size > MAX_FILE_SIZE) {
         alert("Dung lượng file quá lớn: " + file.name);
         return false;
       }
-      return true; // Only return valid files
+      return true;
     });
 
     // Add valid files to the list with previews
@@ -99,6 +99,7 @@ function CommentInput({
       );
 
       comment.listFileUrl = base64Files;
+
       if (isReply) {
         const replyContent = {
           replyData: comment,
@@ -108,13 +109,13 @@ function CommentInput({
       } else {
         socket.emit("newComment", { comment: comment });
       }
-      console.log(comment);
 
       // Reset state after adding the comment
       setNewComment("");
       setSelectedFiles([]);
     }
   };
+
   return (
     <>
       <div className="flex items-start gap-2 mt-4">
