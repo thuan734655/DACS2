@@ -2,20 +2,16 @@ import React, { useState } from "react";
 import Avatar from "./Avatar";
 import { ThumbsUp } from "lucide-react";
 import CommentInput from "./CommentInput";
-/**
- *
- * @param {Array} commentsList - [[0]: commentId , [1]: comment content ]
- * @returns
- */
+
 function CommentList({
   commentsList,
   emojiChoose,
-  handleReply,
   postId,
   setCommentsList,
   setCommentCount,
+  depth = 0,
 }) {
-  const [visibleCommentInput, setVisibleCommentInput] = useState(null); // Track the visible comment input
+  const [visibleCommentInput, setVisibleCommentInput] = useState(null);
 
   const handleToggleCommentInput = (commentId) => {
     setVisibleCommentInput((prev) => (prev === commentId ? null : commentId));
@@ -24,7 +20,11 @@ function CommentList({
   return (
     <>
       {commentsList.map((data) => (
-        <div className="flex flex-col" id={data[0]} key={data[0]}>
+        <div
+          className={`flex flex-col ${depth > 0 ? "ml-5" : ""}`}
+          id={data[0]}
+          key={data[0]}
+        >
           <div className="flex items-start gap-2 mb-2">
             <Avatar src="/placeholder.svg" alt="Commenter" fallback="U" />
             <div className="flex-1 bg-gray-100 rounded-lg p-2">
@@ -50,8 +50,8 @@ function CommentList({
                 )}
             </div>
           </div>
-          <div className="flex gap-8 ml-12 ">
-            <span className="flex gap-2 ">
+          <div className="flex gap-8 ml-12">
+            <span className="flex gap-2">
               {emojiChoose ? (
                 emojiChoose
               ) : (
@@ -71,12 +71,24 @@ function CommentList({
             <span>Báo cáo</span>
           </div>
 
-          {/* Conditionally render the comment input based on the visible state */}
           {visibleCommentInput === data[0] && (
             <CommentInput
               postId={postId}
+              parentCommentId={data[0]}
               setCommentsList={setCommentsList}
               setCommentCount={setCommentCount}
+              depth={depth + 1}
+            />
+          )}
+
+          {data[1].replies && (
+            <CommentList
+              commentsList={Object.entries(data[1].replies)}
+              emojiChoose={emojiChoose}
+              postId={postId}
+              setCommentsList={setCommentsList}
+              setCommentCount={setCommentCount}
+              depth={depth + 1}
             />
           )}
         </div>

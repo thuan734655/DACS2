@@ -1,0 +1,54 @@
+{
+    "posts": {
+        "postId1": {
+            "postId": "postId1",
+            "userId": "user1",
+            "text": "This is a post",
+            "comments": [
+                "commentId1",
+                "commentId2"
+            ]
+        }
+    },
+    "comments": {
+        "commentId1": {
+            "userId": "user2",
+            "postId": "postId1",
+            "text": "This is a comment",
+            "timestamp": 1636612819,
+            "replies": [
+                "replyId1",
+                "replyId2"
+            ]
+        },
+        "commentId2": {
+            "userId": "user3",
+            "postId": "postId1",
+            "text": "This is another comment",
+            "timestamp": 1636612819,
+            "replies": [
+                "replyId3"
+            ]
+        }
+    },
+    "replies": {
+        "replyId1": {
+            "userId": "user4",
+            "commentId": "commentId1",
+            "text": "This is a reply",
+            "timestamp": 1636612819
+        },
+        "replyId2": {
+            "userId": "user5",
+            "commentId": "commentId1",
+            "text": "This is another reply",
+            "timestamp": 1636612819
+        },
+        "replyId3": {
+            "userId": "user6",
+            "commentId": "commentId2",
+            "text": "This is a reply to another comment",
+            "timestamp": 1636612819
+        }
+    }
+}

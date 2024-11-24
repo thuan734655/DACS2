@@ -11,8 +11,12 @@ function CommentInput({
   postId,
   setCommentsList,
   setCommentCount,
+  isReply,
+  replyName,
+  replyId,
+  commentId,
 }) {
-  const [newComment, setNewComment] = useState("");
+  const [newComment, setNewComment] = useState(isReply ? replyName + ": " : "");
   const [idUser, setIdUser] = useState(
     JSON.parse(localStorage.getItem("user")).idUser
   );
@@ -51,6 +55,7 @@ function CommentInput({
     setNewComment((prev) => prev + emojiObject.emoji);
     setEmojiPicker(false);
   };
+
   useEffect(() => {
     socket.on("receiveComment", (data) => {
       const commentId = Object.entries(data.newComment)[0][0]; // Get the commentId from newComment
@@ -94,7 +99,17 @@ function CommentInput({
       );
 
       comment.listFileUrl = base64Files;
-      socket.emit("newComment", { comment: comment });
+      if (isReply) {
+        const replyContent = {
+          replyData: comment,
+          postId: postId,
+          replyId: replyId,
+          commentId: commentId,
+        };
+        socket.emit("replyComment", replyContent);
+      } else {
+        socket.emit("newComment", { comment: comment });
+      }
       console.log(comment);
 
       // Reset state after adding the comment
@@ -185,4 +200,4 @@ function CommentInput({
   );
 }
 
-export default CommentInput;
+export default CommentInput

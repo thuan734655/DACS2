@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ThumbsUp, MessageCircle, Send, Share2 } from "lucide-react";
 import io from "socket.io-client";
 
@@ -11,68 +11,63 @@ const socket = io("http://localhost:5000");
 function SocialPost({ postId, post, user, groupedLikes }) {
   const { shares, comments } = post;
 
-  const [likeCount, setlikedByCount] = useState(
-    groupedLikes ? groupedLikes.length : 0
+  const [likeCount, setLikeCount] = useState(
+    groupedLikes ? Object.values(groupedLikes).flat().length : 0
   );
   const [commentsList, setCommentsList] = useState(
     comments ? Object.entries(comments) : []
   );
   const [commentCount, setCommentCount] = useState(
-    commentsList && commentsList !== 0 ? Object.entries(commentsList).length : 0
+    commentsList ? commentsList.length : 0
   );
 
   const [showReactionPicker, setShowReactionPicker] = useState(false);
-  const [emojiChoose, setEmojiChoose] = useState();
+  const [emojiChoose, setEmojiChoose] = useState(null);
   const [idUser, setIdUser] = useState(
-    JSON.parse(localStorage.getItem("user")).idUser
+    JSON.parse(localStorage.getItem("user"))?.idUser || ""
   );
-  const [emojiCounts, setEmojiCounts] = useState(
-    groupedLikes ? groupedLikes : {}
-  );
-  const [emojiPicker, setEmojiPicker] = useState(false);
-  const [subPost, setShowSubPost] = useState(false);
-  useEffect(() => {
-    const closeReactionPicker = (e) => {
-      if (
-        !e.target.closest(".reaction-picker") &&
-        !e.target.closest("button")
-      ) {
-        setShowReactionPicker(false);
-      }
-    };
-    document.addEventListener("click", closeReactionPicker);
-    return () => document.removeEventListener("click", closeReactionPicker);
-  }, []);
-  console.log(commentsList);
-  useEffect(() => {
-    const closeEmojiPicker = (e) => {
-      if (
-        !e.target.closest(".emoji-picker-react") &&
-        !e.target.closest("button")
-      ) {
-        setEmojiPicker(false);
-      }
-    };
-    document.addEventListener("click", closeEmojiPicker);
-    return () => document.removeEventListener("click", closeEmojiPicker);
+  const [emojiCounts, setEmojiCounts] = useState(groupedLikes || {});
+  const [showSubPost, setShowSubPost] = useState(false);
+
+  const handleOutsideClick = useCallback((e) => {
+    if (!e.target.closest(".reaction-picker") && !e.target.closest("button")) {
+      setShowReactionPicker(false);
+    }
+    if (
+      !e.target.closest(".emoji-picker-react") &&
+      !e.target.closest("button")
+    ) {
+      setShowReactionPicker(false);
+    }
   }, []);
 
-  useLayoutEffect(() => {
-    socket.on("receiveReaction", (data) => {
+  useEffect(() => {
+    document.addEventListener("click", handleOutsideClick);
+    return () => document.removeEventListener("click", handleOutsideClick);
+  }, [handleOutsideClick]);
+
+  useEffect(() => {
+    const handleReceiveReaction = (data) => {
       if (data.postId === postId) {
         setEmojiCounts(data.grouped);
-        setlikedByCount((prevCount) => prevCount + 1);
+        setLikeCount(Object.values(data.grouped).flat().length);
         setEmojiChoose(null);
       }
-    });
+    };
+
+    socket.on("receiveReaction", handleReceiveReaction);
 
     return () => {
-      socket.off("receiveReaction");
+      socket.off("receiveReaction", handleReceiveReaction);
     };
   }, [postId]);
 
   const handleLike = (emoji) => {
-    const dataReq = { postId: postId, emoji: emoji, idUser: idUser };
+    if (!idUser) {
+      console.error("User ID not found");
+      return;
+    }
+    const dataReq = { postId, emoji, idUser };
     socket.emit("newReaction", dataReq);
     setShowReactionPicker(false);
   };
@@ -83,11 +78,9 @@ function SocialPost({ postId, post, user, groupedLikes }) {
     let selectedEmoji = emojiChoose;
 
     const emojiElements = Object.entries(emojiCounts)
-      .filter(([emoji, count]) => count.length > 0)
-      .map(([emoji, count]) => {
-        if (count.length === 0) return null;
-
-        if (count.includes(idUser)) {
+      .filter(([emoji, users]) => users.length > 0)
+      .map(([emoji, users]) => {
+        if (users.includes(idUser)) {
           selectedEmoji = emoji;
         }
 
@@ -97,13 +90,13 @@ function SocialPost({ postId, post, user, groupedLikes }) {
             className="flex items-center gap-1 text-sm text-gray-500"
           >
             <span>{emoji}</span>
+            <span>{users.length}</span>
           </div>
         );
       });
 
     if (selectedEmoji !== emojiChoose) {
       setEmojiChoose(selectedEmoji);
-      setShowReactionPicker(false);
     }
 
     return emojiElements;
@@ -156,7 +149,7 @@ function SocialPost({ postId, post, user, groupedLikes }) {
 
         <button className="flex items-center gap-2 text-gray-600 hover:text-gray-800">
           <Send className="h-5 w-5" />
-          Chia sẻ
+          Gửi
         </button>
 
         <button className="flex items-center gap-2 text-gray-600 hover:text-gray-800">
@@ -164,7 +157,7 @@ function SocialPost({ postId, post, user, groupedLikes }) {
           Chia sẻ
         </button>
       </div>
-      {subPost && (
+      {showSubPost && (
         <SubPost
           postId={postId}
           post={post}
