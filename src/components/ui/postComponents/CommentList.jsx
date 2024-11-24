@@ -86,8 +86,9 @@ function CommentList({
                     setCommentsList={setCommentsList}
                     setCommentCount={setCommentCount}
                     commentId={commentId}
-                    isReply={false}
+                    isReply={true}
                     depth={depth + 1}
+                    commentInputId={`comment-input-${commentId}`} // Tạo ID duy nhất
                   />
                 </div>
               )}
@@ -145,6 +146,7 @@ function CommentList({
                           commentId={reply.replyId}
                           isReply={true}
                           depth={depth + 1}
+                          commentInputId={`comment-input-reply-${reply.replyId}`} // Tạo ID duy nhất cho reply
                         />
                       </div>
                     )}
