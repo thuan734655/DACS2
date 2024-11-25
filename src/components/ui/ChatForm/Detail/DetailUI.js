@@ -48,7 +48,7 @@ const DetailUI = () => {
             <div className="photoItems flex items-center justify-between">
               <div className="photodetail flex items-center gap-3">
                 <img
-                  src="https://scontent.fdad2-1.fna.fbcdn.net/v/t39.30808-6/431660495_939206387782393_657506016628201315_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=HdJENbKGj6sQ7kNvgGqiHy7&_nc_zt=23&_nc_ht=scontent.fdad2-1.fna&_nc_gid=AKSdeGd2uF14eYggHKloXtn&oh=00_AYBwVXW5_e02LXKvkaFwU6KBHaKZ11iyLEhPZkXAxngk2w&oe=67301125"
+                  src=""
                   alt=""
                   className="w-16 h-16 rounded-md object-cover"
                 />

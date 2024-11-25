@@ -1,6 +1,6 @@
 import HandleLoginController from "../controller/HandleLoginController";
-import { useState } from 'react';
-import HandleSignUpController from '../controller/HandleSignUpController';
+import { useState } from "react";
+import HandleSignUpController from "../controller/HandleSignUpController";
 const useFormData = (dataInitForm = {}) => {
   const [formData, setFormData] = useState(dataInitForm);
 
@@ -11,8 +11,8 @@ const useFormData = (dataInitForm = {}) => {
     });
   };
 
-  const handleSubmitSignUp = (formData,setStep) => {
-    HandleSignUpController(formData,setStep);
+  const handleSubmitSignUp = (formData, setStep, setLoading) => {
+    HandleSignUpController(formData, setStep, setLoading);
   };
   const handleSubmitLogin = () => {
     HandleLoginController(formData);

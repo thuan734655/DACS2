@@ -30,7 +30,7 @@ const SelectField = ({ name, value, onChange, options }) => (
   </select>
 );
 
-const SignUp = ({ setFormVisible }) => {
+const SignUp = () => {
   const { formData, handleChange, handleSubmitSignUp } = useFormData({
     lastname: "",
     firstname: "",
@@ -134,13 +134,17 @@ const SignUp = ({ setFormVisible }) => {
               value={formData.gender}
               onChange={handleChange}
               options={[
-                <option key="male" value="male">Male</option>,
-                <option key="female" value="female">Female</option>
+                <option key="male" value="male">
+                  Male
+                </option>,
+                <option key="female" value="female">
+                  Female
+                </option>,
               ]}
             />
 
             <button
-              onClick={() => handleSubmitSignUp(formData, setStep)}
+              onClick={() => handleSubmitSignUp(formData, setStep, setLoading)}
               className="w-full bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600"
               type="button"
             >

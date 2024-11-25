@@ -6,6 +6,7 @@ import HandleLoginController from "../../controller/HandleLoginController";
 import { HandleVerifyOtp } from "../../controller/VerifyOTPController";
 import VerifyOTP from "./VerifyOTP";
 import SuccessMessage from "./SuccessMessage";
+
 const LoginUI = () => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -68,7 +69,7 @@ const LoginUI = () => {
 
               <button
                 onClick={() =>
-                  HandleLoginController(formData, navigate, setStep)
+                  HandleLoginController(formData, navigate, setStep, setLoading)
                 }
                 className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 w-full rounded-lg shadow-md"
               >
