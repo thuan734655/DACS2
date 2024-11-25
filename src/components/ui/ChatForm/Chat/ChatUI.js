@@ -7,7 +7,7 @@ import Img from "../../../.././assets/imgs/img.png";
 import { camera, phone, mic } from "../../../../assets/imgs";
 import EmojiPicker from "emoji-picker-react";
 
-const ChatUI = () => {
+const ChatUI = ({user1,user2}) => {
   const [openEmoji, setOpenEmoji] = useState(false);
   const [text, setText] = useState("");
 
@@ -29,7 +29,8 @@ const ChatUI = () => {
             alt=""
           />
           <div className="flex flex-col gap-1">
-            <span className="text-xl font-bold">Hoang Phi</span>
+            <span className="text-xl font-bold">{user1}</span>
+            <span className="text-xl font-bold">{user2}</span>
             <p className="text-[14px] font-light text-gray-600">Online</p>
           </div>
         </div>
@@ -64,7 +65,7 @@ const ChatUI = () => {
         <div className="flex flex-col items-end self-end max-w-[70%] gap-2">
           <img
             className="w-full h-full rounded-lg object-cover"
-            src="https://scontent.fdad2-1.fna.fbcdn.net/v/t39.30808-6/431660495_939206387782393_657506016628201315_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=HdJENbKGj6sQ7kNvgGqiHy7&_nc_zt=23&_nc_ht=scontent.fdad2-1.fna&_nc_gid=AKSdeGd2uF14eYggHKloXtn&oh=00_AYBwVXW5_e02LXKvkaFwU6KBHaKZ11iyLEhPZkXAxngk2w&oe=67301125"
+            src=""
             alt=""
           />
           <div className="Texts bg-blue-100 p-3 rounded-lg flex-1">
