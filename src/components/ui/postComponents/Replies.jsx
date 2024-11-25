@@ -40,13 +40,15 @@ const Replies = ({
           <div className="flex items-start gap-2 mb-2">
             <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
               <img
-                src="/placeholder.svg"
+                src={`${reply.user[0].avatar || "anonymous"}`}
                 alt="User avatar"
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="flex-1 bg-gray-100 rounded-lg p-2">
-              <p className="font-semibold text-sm">{reply.user}</p>
+              <p className="font-semibold text-sm">
+                {reply.user[0].fullName || "anonymous"}
+              </p>
               <p className="text-sm">{reply.text}</p>
             </div>
           </div>
@@ -98,12 +100,12 @@ const Replies = ({
                 {openReplies[reply.replyId] ? (
                   <>
                     <ChevronDown className="h-4 w-4" />
-                    <span>Hide Replies</span>
+                    <span>Ẩn bớt</span>
                   </>
                 ) : (
                   <>
                     <ChevronRight className="h-4 w-4" />
-                    <span>Show Replies</span>
+                    <span>Xem thêm</span>
                   </>
                 )}
               </button>
@@ -119,6 +121,7 @@ const Replies = ({
                 setCommentCount={setCommentCount}
                 commentId={reply.replyId}
                 replyId={reply.replyId}
+                replyName={reply.user[0].fullName}
                 commentInputId={`comment-input-reply-${reply.replyId}`}
               />
             </div>

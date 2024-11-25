@@ -16,7 +16,7 @@ function CommentInput({
   replyName,
   replyId,
   commentId,
-  commentInputId, 
+  commentInputId,
 }) {
   const [newComment, setNewComment] = useState(
     isReply || replyId ? replyName + ": " : ""
@@ -62,13 +62,11 @@ function CommentInput({
 
   // Listen for new comments from the server
   useEffect(() => {
-    socket.on("receiveComment", (data) => {
-      const commentId = Object.entries(data.newComment)[0][0];
-      if (data.newComment[commentId].postId === postId) {
-        setCommentsList((prevComments) => [
-          ...prevComments,
-          Object.entries(data.newComment)[0], // Append new comment
-        ]);
+    socket.on("receiveComment", ({ newComment }) => {
+      console.log(newComment);
+      newComment.user = [newComment.user];
+      if (newComment.postId === postId) {
+        setCommentsList((prevComments) => [...prevComments, newComment]);
         setCommentCount((prevCount) => prevCount + 1);
       }
     });
@@ -80,13 +78,14 @@ function CommentInput({
 
   // Handle comment submission
   const handleAddComment = useCallback(async () => {
+    const userInfo = localStorage.getItem("user");
     if (newComment.trim()) {
       const comment = {
         postId,
         idUser: idUser,
         text: newComment,
+        user: JSON.parse(userInfo),
       };
-
       // Convert files to Base64
       const base64Files = await Promise.all(
         selectedFiles.map(({ file }) => {
@@ -109,6 +108,7 @@ function CommentInput({
       // Emit comment or reply to the server
       if (isReply) {
         const replyContent = { replyData: comment, commentId };
+        console.log(commentId);
         socket.emit("replyComment", replyContent);
       } else if (replyId) {
         console.log(replyId, 123);

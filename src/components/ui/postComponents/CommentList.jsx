@@ -15,23 +15,25 @@ function CommentList({
   const handleToggleCommentInput = (id) => {
     setActiveId((current) => (current === id ? null : id)); // Toggle active ID
   };
-
+  console.log(commentsList);
   return (
     <div className="space-y-4">
       {commentsList.map(
-        ({ idUser,replyId, commentId, user, text, fileUrls, replies }) => (
+        ({ idUser, replyId, commentId, user, text, fileUrls, replies }) => (
           <div key={replyId || commentId} className="comment-thread">
             {/* Hiển thị comment chính */}
             <div className="flex items-start gap-2 mb-2">
               <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
                 <img
-                  src={`${user[0].avatar}`}
+                  src={user[0].avatar || "aonymous"}
                   alt="User avatar"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="flex-1 bg-gray-100 rounded-lg p-2">
-                <p className="font-semibold text-sm">{user[0].fullName || "Anonymous"}</p>
+                <p className="font-semibold text-sm">
+                  {user[0].fullName || "Anonymous"}
+                </p>
                 <p className="text-sm">{text || "No content available"}</p>
                 {fileUrls?.map((fileUrl, index) =>
                   fileUrl.endsWith(".mp4") ? (
@@ -85,6 +87,7 @@ function CommentList({
                   setCommentCount={setCommentCount}
                   commentId={commentId}
                   isReply={true}
+                  replyName={user[0].fullName}
                   commentInputId={`comment-input-${commentId}`}
                 />
               </div>
@@ -98,6 +101,7 @@ function CommentList({
                 postId={postId}
                 setCommentsList={setCommentsList}
                 setCommentCount={setCommentCount}
+                user={user}
                 handleToggleCommentInput={handleToggleCommentInput}
                 activeId={activeId}
                 maxDepth={3} // Giới hạn cấp độ tối đa

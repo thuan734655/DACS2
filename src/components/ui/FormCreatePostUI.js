@@ -35,7 +35,7 @@ const FromCreatePost = ({ setFormCreatePostVisible, reloadPosts }) => {
     const infoUser = localStorage.getItem("user");
     const parsedInfoUser = JSON.parse(infoUser);
     const idUser = parsedInfoUser.idUser;
-    
+
     setIsLoading(true);
     let formData = new FormData();
     formData.append("text", postText);
@@ -60,10 +60,10 @@ const FromCreatePost = ({ setFormCreatePostVisible, reloadPosts }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-white rounded-lg w-full max-w-[500px] shadow-xl">
         <div className="relative border-b p-4">
-          <h1 className="text-xl font-semibold text-center">Create Post</h1>
+          <h1 className="text-xl font-semibold text-center">Tạo Post</h1>
           <button
             onClick={handleClose}
             className="absolute right-4 top-4 p-1 hover:bg-gray-100 rounded-full"
