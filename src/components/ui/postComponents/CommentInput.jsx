@@ -16,9 +16,11 @@ function CommentInput({
   replyName,
   replyId,
   commentId,
-  commentInputId, // ID duy nhất để quản lý riêng biệt từng CommentInput
+  commentInputId, 
 }) {
-  const [newComment, setNewComment] = useState(isReply ? replyName + ": " : "");
+  const [newComment, setNewComment] = useState(
+    isReply || replyId ? replyName + ": " : ""
+  );
   const [emojiPicker, setEmojiPicker] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
 
@@ -108,6 +110,10 @@ function CommentInput({
       if (isReply) {
         const replyContent = { replyData: comment, commentId };
         socket.emit("replyComment", replyContent);
+      } else if (replyId) {
+        console.log(replyId, 123);
+        const replyContent = { replyData: comment, replyId: replyId };
+        socket.emit("replyToReply", replyContent);
       } else {
         socket.emit("newComment", { comment });
       }
