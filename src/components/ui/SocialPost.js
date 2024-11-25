@@ -8,17 +8,13 @@ import SubPost from "./postComponents/SubPost";
 
 const socket = io("http://localhost:5000");
 
-function SocialPost({ postId, post, user, groupedLikes, comments }) {
+function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
   const { shares } = post;
-  console.log(comments);
   const [likeCount, setLikeCount] = useState(
     groupedLikes ? Object.values(groupedLikes).flat().length : 0
   );
-  const [commentsList, setCommentsList] = useState(
-    comments ? comments : []
-  );
   const [commentCount, setCommentCount] = useState(
-    commentsList ? commentsList.length : 0
+    commentCountDefault ? commentCountDefault : 0
   );
 
   const [showReactionPicker, setShowReactionPicker] = useState(false);
@@ -48,9 +44,10 @@ function SocialPost({ postId, post, user, groupedLikes, comments }) {
 
   useEffect(() => {
     const handleReceiveReaction = (data) => {
+      console.log(data);
       if (data.postId === postId) {
-        setEmojiCounts(data.grouped);
-        setLikeCount(Object.values(data.grouped).flat().length);
+        setEmojiCounts(data.groupedLikes);
+        setLikeCount(Object.values(data.groupedLikes).flat().length);
         setEmojiChoose(null);
       }
     };
@@ -161,8 +158,6 @@ function SocialPost({ postId, post, user, groupedLikes, comments }) {
         <SubPost
           postId={postId}
           post={post}
-          commentsList={commentsList}
-          setCommentsList={setCommentsList}
           user={user}
           setShowSubPost={setShowSubPost}
           setCommentCount={setCommentCount}

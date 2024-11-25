@@ -75,7 +75,7 @@ const HomePageUI = () => {
                     key={postId}
                     postId={postId}
                     groupedLikes={postData.groupedLikes}
-                    comments={postData.comments}
+                    commentCountDefault={postData.commentCount}
                     post={postData.post}
                     user={postData.infoUserList[postData.post.idUser]}
                   />
