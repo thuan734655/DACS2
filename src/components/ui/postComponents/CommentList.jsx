@@ -19,19 +19,19 @@ function CommentList({
   return (
     <div className="space-y-4">
       {commentsList.map(
-        ({ replyId, commentId, user, text, fileUrls, replies }) => (
+        ({ idUser,replyId, commentId, user, text, fileUrls, replies }) => (
           <div key={replyId || commentId} className="comment-thread">
             {/* Hiển thị comment chính */}
             <div className="flex items-start gap-2 mb-2">
               <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
                 <img
-                  src="/placeholder.svg"
+                  src={`${user[0].avatar}`}
                   alt="User avatar"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="flex-1 bg-gray-100 rounded-lg p-2">
-                <p className="font-semibold text-sm">{user || "Anonymous"}</p>
+                <p className="font-semibold text-sm">{user[0].fullName || "Anonymous"}</p>
                 <p className="text-sm">{text || "No content available"}</p>
                 {fileUrls?.map((fileUrl, index) =>
                   fileUrl.endsWith(".mp4") ? (
@@ -59,7 +59,7 @@ function CommentList({
                 {emojiChoose || (
                   <>
                     <ThumbsUp className="h-4 w-4" />
-                    <span>Like</span>
+                    <span>Thích</span>
                   </>
                 )}
               </button>
@@ -68,11 +68,11 @@ function CommentList({
                 onClick={() => handleToggleCommentInput(commentId)}
               >
                 <MessageCircle className="h-4 w-4" />
-                <span>Reply</span>
+                <span>Trả lời</span>
               </button>
               <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900">
                 <Flag className="h-4 w-4" />
-                <span>Report</span>
+                <span>Báo cáo</span>
               </button>
             </div>
 

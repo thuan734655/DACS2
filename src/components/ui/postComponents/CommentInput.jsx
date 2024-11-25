@@ -83,7 +83,7 @@ function CommentInput({
     if (newComment.trim()) {
       const comment = {
         postId,
-        user: idUser,
+        idUser: idUser,
         text: newComment,
       };
 

@@ -5,12 +5,15 @@ import MediaPreview from "./MediaPreview";
 
 function PostContent({ user, post, iconX, setShowSubPost }) {
   const { createdAt, text, backgroundColor, textColor, mediaUrls } = post;
-  const { fullName = "Unknown User", avatar = "/placeholder.svg" } = user || {};
+  const {
+    fullName = "Người dùng không xác định",
+    avatar = "/placeholder.svg",
+  } = user || {};
 
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toLocaleString("en-US", {
+    return date.toLocaleString("vi-VN", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -28,8 +31,7 @@ function PostContent({ user, post, iconX, setShowSubPost }) {
             <h2 className="font-semibold text-sm">{fullName}</h2>
             <div className="flex items-center gap-1 text-sm text-gray-500">
               <span>{formatDate(createdAt)}</span>
-              <span>•</span>
-              <span>🌍</span>
+        
             </div>
           </div>
         </div>

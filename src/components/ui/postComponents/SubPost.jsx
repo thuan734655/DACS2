@@ -16,8 +16,8 @@ const SubPost = ({ postId, user, post, setShowSubPost, setCommentCount }) => {
 
     // Listen for the comments list from the server
     socket.on("receiveCommentsList", (data) => {
+      console.log(data);
       if (data) {
-        console.log("receiveCommentsList", data);
         setCommentsList(data);
         setLoading(false); // Set loading to false once data is received
       }

@@ -73,7 +73,7 @@ const Replies = ({
               {emojiChoose || (
                 <>
                   <ThumbsUp className="h-4 w-4" />
-                  <span>Like</span>
+                  <span>Thích</span>
                 </>
               )}
             </button>
@@ -82,11 +82,11 @@ const Replies = ({
               onClick={() => handleToggleCommentInput(reply.replyId)} // Mở/đóng khung nhập comment
             >
               <MessageCircle className="h-4 w-4" />
-              <span>Reply</span>
+              <span>Trả lời</span>
             </button>
             <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900">
               <Flag className="h-4 w-4" />
-              <span>Report</span>
+              <span>Báo cáo</span>
             </button>
 
             {/* Hiển thị nút để mở/thu gọn các replies con */}
