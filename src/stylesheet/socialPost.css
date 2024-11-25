@@ -11,4 +11,9 @@
     border: 1px solid rgb(86, 86, 83);
     padding: 10px;
     z-index: 100;
+    /* Custom scrollbar styling */
+}
+
+.reset-ml {
+    margin-left: -0.8rem;
 }
