@@ -10,7 +10,7 @@ import EmojiPicker from "emoji-picker-react";
 const ChatUI = ({user1,user2}) => {
   const [openEmoji, setOpenEmoji] = useState(false);
   const [text, setText] = useState("");
-
+  
   const handleEmoji = (e) => {
     setText((prev) => prev + e.emoji);
     setOpenEmoji(false);

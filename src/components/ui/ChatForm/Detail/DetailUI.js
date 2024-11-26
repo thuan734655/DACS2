@@ -1,10 +1,23 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Avatar from "../../../.././assets/imgs/avatar.png";
 import ArrowUp from "../../../.././assets/imgs/arrowUp.png";
 import ArrowDown from "../../../.././assets/imgs/arrowDown.png";
 import Download from "../../../.././assets/imgs/download.png";
 
 const DetailUI = () => {
+  const [user, setUser] = useState(null);
+  useEffect(() => {
+    // Lấy dữ liệu từ localStorage
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      setUser(JSON.parse(userData)); // Cập nhật state
+    }
+  }, []);
+
+  // Render giao diện
+  if (!user) {
+    return <p>No user data found.</p>;
+  }
   return (
     <div className="p-5 rounded-lg max-w-md mx-auto">
       <div className="user flex items-center justify-center gap-5 p-[30px] flex-col border-b">
@@ -14,7 +27,7 @@ const DetailUI = () => {
           className="w-12 h-12 rounded-full"
         />
         <div className="text-center">
-          <h2 className="text-xl font-semibold">Hoang Phi</h2>
+          <h2 className="text-xl font-semibold">{user.fullName}</h2>
           <p className="text-sm text-gray-500">Lorem ipsum dolor.</p>
         </div>
       </div>

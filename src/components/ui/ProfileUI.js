@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Avatar,
@@ -30,8 +30,19 @@ import {
 const ProfileUI = () => {
   const [postContent, setPostContent] = useState("");
   const [tabValue, setTabValue] = useState(0);
+  const [user, setUser] = useState(null);
+  useEffect(() => {
+    // Lấy dữ liệu từ localStorage
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      setUser(JSON.parse(userData)); // Cập nhật state
+    }
+  }, []);
 
-  
+  // Render giao diện
+  if (!user) {
+    return <p>No user data found.</p>;
+  }
   const posts = [
     {
       id: 1,
@@ -49,7 +60,6 @@ const ProfileUI = () => {
       image: null,
     },
     {
-    
       id: 3,
       author: "Hoàng Phi",
       date: "7 Tháng 3, 2024",
@@ -62,7 +72,7 @@ const ProfileUI = () => {
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
-   
+
   return (
     <Container maxWidth="md">
       <Box position="relative">
@@ -97,13 +107,13 @@ const ProfileUI = () => {
       >
         <Grid item>
           <Avatar
-            src="/placeholder.svg?height=128&width=128"
+            src={user.avatar}
             alt="Hoàng Phi"
             sx={{ width: 128, height: 128, border: "4px solid white" }}
           />
         </Grid>
         <Grid item xs>
-          <Typography variant="h5">Hoàng Phi</Typography>
+          <Typography variant="h5">{user.fullName}</Typography>
           <Typography color="textSecondary">2,3K người bạn</Typography>
         </Grid>
         <Grid item>

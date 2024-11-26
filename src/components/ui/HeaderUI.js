@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaHome, FaUsers, FaBell } from "react-icons/fa";
 import { IoApps } from "react-icons/io5";
 import { AiFillMessage } from "react-icons/ai";
@@ -7,7 +7,19 @@ import { useNavigate } from "react-router-dom";
 const HeaderUI = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  useEffect(() => {
+    // Lấy dữ liệu từ localStorage
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      setUser(JSON.parse(userData)); // Cập nhật state
+    }
+  }, []);
 
+  // Render giao diện
+  if (!user) {
+    return <p>No user data found.</p>;
+  }
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -54,10 +66,11 @@ const HeaderUI = () => {
 
         <div className="relative">
           <img
-            src="https://via.placeholder.com/150"
+            src={user.avatar}
             alt="Profile"
             className="rounded-full w-10 h-10 cursor-pointer"
             onClick={toggleMenu}
+            
           />
 
           {/* Menu đổ xuống */}
