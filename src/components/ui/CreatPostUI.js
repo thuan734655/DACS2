@@ -1,8 +1,21 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaVideo, FaPhotoVideo, FaSmile } from 'react-icons/fa';
 import FormCreatePostUI from './FormCreatePostUI';
 const CreatePost = () => {
   const [showForm , setShowFrom] = useState(false);
+  const [user, setUser] = useState(null);
+  useEffect(() => {
+    // Lấy dữ liệu từ localStorage
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      setUser(JSON.parse(userData)); // Cập nhật state
+    }
+  }, []);
+
+  // Render giao diện
+  if (!user) {
+    return <p>No user data found.</p>;
+  }
   const handleOpenForm = () =>{
     setShowFrom(true);
   }
@@ -14,13 +27,14 @@ const CreatePost = () => {
       {/* Input section */}
       <div className="flex items-center space-x-4 mb-4">
         <img
-          src="https://via.placeholder.com/150"
+          src={user.avatar}
           alt="Profile"
           className="rounded-full w-10 h-10"
+         
         />
         <input
           type="text"
-          placeholder="Phi ơi, bạn đang nghĩ gì thế?"
+          placeholder= " ơi, bạn đang nghĩ gì thế?"
           className="bg-gray-100 rounded-full w-full py-2 px-4 focus:outline-none"
         />
       </div>

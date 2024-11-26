@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   FaUserFriends,
   FaUsers,
@@ -11,6 +11,19 @@ import {
 import { useNavigate } from "react-router-dom";
 const Sidebar = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  useEffect(() => {
+    // Lấy dữ liệu từ localStorage
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      setUser(JSON.parse(userData)); // Cập nhật state
+    }
+  }, []);
+
+  // Render giao diện
+  if (!user) {
+    return <p>No user data found.</p>;
+  }
   return (
     <div className="w-70 h-0 ">
       {/* Profile Section */}
@@ -19,11 +32,11 @@ const Sidebar = () => {
         onClick={() => navigate("/profile")}
       >
         <img
-          src="https://via.placeholder.com/150"
+          src={user.avatar}
           alt="Profile"
           className="rounded-full w-10 h-10"
         />
-        <span className="font-semibold text-gray-700">Hoàng Phi</span>
+        <span className="font-semibold text-gray-700">{user.fullName}</span>
       </div>
 
       {/* Menu Items */}
