@@ -1,103 +1,120 @@
-import React from 'react';
-import { FaHeart, FaComment, FaUserPlus, FaShare, FaTimes } from 'react-icons/fa';
+import React, { useState } from 'react';
+import { FaThumbsUp, FaComment, FaUserPlus, FaShare } from 'react-icons/fa';
+import NotificationDetailUI from './NotificationDetailUI';
 
-const NotificationsUI = ({ onClose }) => {
+const NotificationsUI = () => {
+  const [selectedNotification, setSelectedNotification] = useState(null);
+
   // Mock notifications data
   const notifications = [
     {
       id: 1,
-      type: 'like',
-      user: 'Nguyễn Văn A',
-      content: 'đã thích bài viết của bạn',
-      time: '5 phút trước',
-      avatar: 'https://api.dicebear.com/6.x/avataaars/svg?seed=user1',
-      isRead: false
+      type: 'POST_LIKE',
+      title: 'Lượt thích mới',
+      content: 'Nguyễn Văn A đã thích bài viết của bạn',
+      createdAt: '2024-01-20T08:00:00Z',
+      isRead: false,
+      relatedId: 'post123'
     },
     {
       id: 2,
-      type: 'comment',
-      user: 'Trần Thị B',
-      content: 'đã bình luận về bài viết của bạn',
-      time: '10 phút trước',
-      avatar: 'https://api.dicebear.com/6.x/avataaars/svg?seed=user2',
-      isRead: true
+      type: 'POST_COMMENT',
+      title: 'Bình luận mới',
+      content: 'Trần Thị B đã bình luận về bài viết của bạn',
+      createdAt: '2024-01-20T07:30:00Z',
+      isRead: true,
+      relatedId: 'post456'
     },
     {
       id: 3,
-      type: 'friend',
-      user: 'Lê Văn C',
-      content: 'đã gửi lời mời kết bạn',
-      time: '1 giờ trước',
-      avatar: 'https://api.dicebear.com/6.x/avataaars/svg?seed=user3',
-      isRead: false
+      type: 'FRIEND_REQUEST',
+      title: 'Lời mời kết bạn',
+      content: 'Lê Văn C muốn kết bạn với bạn',
+      createdAt: '2024-01-19T15:45:00Z',
+      isRead: false,
+      relatedId: 'user789'
     },
     {
       id: 4,
-      type: 'share',
-      user: 'Phạm Thị D',
-      content: 'đã chia sẻ bài viết của bạn',
-      time: '2 giờ trước',
-      avatar: 'https://api.dicebear.com/6.x/avataaars/svg?seed=user4',
-      isRead: true
+      type: 'POST_SHARE',
+      title: 'Chia sẻ bài viết',
+      content: 'Phạm Thị D đã chia sẻ bài viết của bạn',
+      createdAt: '2024-01-19T14:20:00Z',
+      isRead: true,
+      relatedId: 'post789'
+    },
+    {
+      id: 5,
+      type: 'FRIEND_ACCEPT',
+      title: 'Chấp nhận kết bạn',
+      content: 'Hoàng Văn E đã chấp nhận lời mời kết bạn của bạn',
+      createdAt: '2024-01-19T10:15:00Z',
+      isRead: false,
+      relatedId: 'user101'
     }
   ];
 
   const getNotificationIcon = (type) => {
     switch (type) {
-      case 'like':
-        return <FaHeart className="text-red-500" />;
-      case 'comment':
-        return <FaComment className="text-blue-500" />;
-      case 'friend':
-        return <FaUserPlus className="text-green-500" />;
-      case 'share':
+      case 'POST_LIKE':
+        return <FaThumbsUp className="text-blue-500" />;
+      case 'POST_COMMENT':
+        return <FaComment className="text-green-500" />;
+      case 'POST_SHARE':
         return <FaShare className="text-purple-500" />;
+      case 'FRIEND_REQUEST':
+      case 'FRIEND_ACCEPT':
+        return <FaUserPlus className="text-blue-500" />;
       default:
         return null;
     }
   };
 
+  const handleNotificationClick = (notification) => {
+    setSelectedNotification(notification);
+  };
+
+  if (selectedNotification) {
+    return (
+      <NotificationDetailUI
+        notification={selectedNotification}
+        onBack={() => setSelectedNotification(null)}
+      />
+    );
+  }
+
   return (
-    <div className="bg-white rounded-lg shadow-lg h-full">
-      <div className="p-4 border-b sticky top-0 bg-white z-10">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold">Thông báo</h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <FaTimes className="text-gray-500" />
-          </button>
-        </div>
-      </div>
-      <div className="overflow-y-auto">
-        {notifications.map((notification) => (
-          <div
-            key={notification.id}
-            className={`p-4 hover:bg-gray-50 cursor-pointer flex items-start space-x-3 ${
-              !notification.isRead ? 'bg-blue-50' : ''
-            }`}
-          >
-            <div className="flex-shrink-0">
-              <img
-                src={notification.avatar}
-                alt={notification.user}
-                className="w-10 h-10 rounded-full"
-              />
-            </div>
-            <div className="flex-grow">
-              <div className="flex items-center space-x-2">
-                <span className="font-medium">{notification.user}</span>
-                {getNotificationIcon(notification.type)}
+    <div className="bg-gray-50 min-h-full">
+      <div className="container mx-auto px-4 py-6">
+        <h2 className="text-2xl font-semibold mb-6">Thông báo</h2>
+        <div className="space-y-4">
+          {notifications.map(notification => (
+            <div
+              key={notification.id}
+              className={`bg-white rounded-lg p-4 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors ${
+                !notification.isRead ? 'border-l-4 border-blue-500' : ''
+              }`}
+              onClick={() => handleNotificationClick(notification)}
+            >
+              <div className="flex items-start space-x-4">
+                <div className="p-3 bg-gray-100 rounded-full">
+                  {getNotificationIcon(notification.type)}
+                </div>
+                <div className="flex-grow">
+                  <h3 className={`font-semibold ${!notification.isRead ? 'text-black' : 'text-gray-600'}`}>
+                    {notification.title}
+                  </h3>
+                  <p className={`${!notification.isRead ? 'text-gray-800' : 'text-gray-500'}`}>
+                    {notification.content}
+                  </p>
+                  <p className="text-gray-400 text-sm mt-2">
+                    {new Date(notification.createdAt).toLocaleString('vi-VN')}
+                  </p>
+                </div>
               </div>
-              <p className="text-gray-600">{notification.content}</p>
-              <span className="text-gray-400 text-sm">{notification.time}</span>
             </div>
-            {!notification.isRead && (
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
