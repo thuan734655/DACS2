@@ -6,9 +6,11 @@ import NavCreatePostUI from "./NavCreatePostUI";
 import NotificationsUI from "./NotificationsUI";
 import MessagesUI from "./MessagesUI";
 import ChatUI from "./ChatUI";
+import FriendsUI from "./FriendsUI";
+import UserSearchUI from "./UserSearchUI";
 import { getPosts } from "../../services/postService";
 import { getUserProfile, getOnlineFriends, getFriendRequests, respondToFriendRequest } from "../../services/userService";
-import { FaBell, FaEnvelope, FaUserFriends } from 'react-icons/fa';
+import { FaBell, FaEnvelope, FaUserFriends, FaHome } from 'react-icons/fa';
 
 const HomePageUI = () => {
   const [formCreatePostVisible, setFormCreatePostVisible] = useState(false);
@@ -74,57 +76,104 @@ const HomePageUI = () => {
     loadUserData();
   }, []);
 
+  const renderLeftPanel = () => {
+    return (
+      <>
+        {/* Profile Section */}
+        <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
+          <div className="flex items-center space-x-4 mb-4">
+            <img
+              src={profile?.avatar || `https://api.dicebear.com/6.x/avataaars/svg?seed=${profile?.username}`}
+              alt={profile?.fullName}
+              className="w-16 h-16 rounded-full"
+            />
+            <div>
+              <h2 className="font-semibold text-lg">{profile?.fullName || "Đang tải..."}</h2>
+              <p className="text-gray-500">@{profile?.username || "..."}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <div className="font-semibold">{profile?.friends || 0}</div>
+              <div className="text-gray-500 text-sm">Bạn bè</div>
+            </div>
+            <div>
+              <div className="font-semibold">{profile?.photos || 0}</div>
+              <div className="text-gray-500 text-sm">Ảnh</div>
+            </div>
+            <div>
+              <div className="font-semibold">{profile?.likes || 0}</div>
+              <div className="text-gray-500 text-sm">Thích</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Menu */}
+        <div className="bg-white rounded-lg shadow-lg p-4">
+          <nav className="space-y-4">
+            <button
+              onClick={() => setActiveTab('home')}
+              className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
+                activeTab === 'home' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'
+              }`}
+            >
+              <FaHome className="text-blue-500 text-xl" />
+              <span className="font-medium">Trang chủ</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('notifications')}
+              className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
+                activeTab === 'notifications' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'
+              }`}
+            >
+              <FaBell className="text-blue-500 text-xl" />
+              <span className="font-medium">Thông báo</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('messages')}
+              className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
+                activeTab === 'messages' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'
+              }`}
+            >
+              <FaEnvelope className="text-blue-500 text-xl" />
+              <span className="font-medium">Tin nhắn</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('friends')}
+              className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
+                activeTab === 'friends' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'
+              }`}
+            >
+              <FaUserFriends className="text-blue-500 text-xl" />
+              <span className="font-medium">Kết bạn</span>
+            </button>
+          </nav>
+        </div>
+      </>
+    );
+  };
+
   const renderMainContent = () => {
     switch (activeTab) {
-      case 'notifications':
-        return (
-          <div className="h-full">
-            <NotificationsUI onClose={() => setActiveTab('home')} />
-          </div>
-        );
-      case 'messages':
-        return (
-          <div className="h-full">
-            {selectedChat ? (
-              <ChatUI
-                chat={selectedChat}
-                onClose={() => setSelectedChat(null)}
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full bg-white rounded-lg shadow-lg">
-                <div className="text-center text-gray-500">
-                  <FaEnvelope className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                  <h3 className="text-xl font-semibold mb-2">Tin nhắn của bạn</h3>
-                  <p>Chọn một cuộc trò chuyện để bắt đầu</p>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      default:
+      case 'home':
         return (
           <>
-            <div>
-              <NavCreatePostUI setFormCreatePostVisible={setFormCreatePostVisible} />
-              {formCreatePostVisible && (
-                <FormCreatePost
-                  setFormCreatePostVisible={setFormCreatePostVisible}
-                  reloadPosts={loadPosts}
-                />
-              )}
-            </div>
-            <div className="grid gap-4">
-              {isLoading ? (
-                <div className="text-center py-4">Đang tải bài viết...</div>
-              ) : error ? (
-                <div className="text-red-500 text-center py-4">{error}</div>
-              ) : Object.keys(listPosts).length === 0 ? (
-                <div className="text-center py-4">Chưa có bài viết nào.</div>
-              ) : (
-                Object.entries(listPosts).map(([postId, postData]) => {
-                  if (!postData || !postData.post) {
-                    return null;
-                  }
+            <NavCreatePostUI onCreatePost={() => setFormCreatePostVisible(true)} />
+            {formCreatePostVisible && (
+              <FormCreatePost onClose={() => setFormCreatePostVisible(false)} />
+            )}
+            {isLoading ? (
+              <div className="text-center py-4">Đang tải bài viết...</div>
+            ) : error ? (
+              <div className="text-center py-4 text-red-500">
+                Có lỗi xảy ra: {error}
+              </div>
+            ) : Object.keys(listPosts).length === 0 ? (
+              <div className="text-center py-4">Chưa có bài viết nào</div>
+            ) : (
+              <div className="space-y-4">
+                {Object.entries(listPosts).map(([postId, postData]) => {
+                  if (!postData || !postData.post) return null;
                   return (
                     <SocialPost
                       key={postId}
@@ -135,11 +184,28 @@ const HomePageUI = () => {
                       user={postData.infoUserList[postData.post.idUser]}
                     />
                   );
-                })
-              )}
-            </div>
+                })}
+              </div>
+            )}
           </>
         );
+      case 'notifications':
+        return <NotificationsUI />;
+      case 'messages':
+        return selectedChat ? (
+          <ChatUI chat={selectedChat} onBack={() => setSelectedChat(null)} />
+        ) : (
+          <div className="h-full flex items-center justify-center text-gray-500">
+            <div className="text-center">
+              <FaEnvelope className="mx-auto text-4xl mb-2" />
+              <p>Chọn một cuộc trò chuyện để bắt đầu</p>
+            </div>
+          </div>
+        );
+      case 'friends':
+        return <FriendsUI />;
+      default:
+        return null;
     }
   };
 
@@ -149,67 +215,7 @@ const HomePageUI = () => {
       <div className="grid grid-cols-12 gap-4 px-2 py-6 h-full">
         {/* Left Sidebar */}
         <div className="col-span-12 md:col-span-3 pt-10 overflow-y-auto">
-          {/* Profile Section */}
-          <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
-            <div className="flex items-center space-x-4 mb-4">
-              <img
-                src={profile?.avatar || `https://api.dicebear.com/6.x/avataaars/svg?seed=${profile?.username}`}
-                alt={profile?.fullName}
-                className="w-16 h-16 rounded-full"
-              />
-              <div>
-                <h2 className="font-semibold text-lg">{profile?.fullName || "Đang tải..."}</h2>
-                <p className="text-gray-500">@{profile?.username || "..."}</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <div className="font-semibold">{profile?.friends || 0}</div>
-                <div className="text-gray-500 text-sm">Bạn bè</div>
-              </div>
-              <div>
-                <div className="font-semibold">{profile?.photos || 0}</div>
-                <div className="text-gray-500 text-sm">Ảnh</div>
-              </div>
-              <div>
-                <div className="font-semibold">{profile?.likes || 0}</div>
-                <div className="text-gray-500 text-sm">Thích</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Navigation Menu */}
-          <div className="bg-white rounded-lg shadow-lg p-4">
-            <nav className="space-y-4">
-              <button
-                onClick={() => setActiveTab('notifications')}
-                className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                  activeTab === 'notifications' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'
-                }`}
-              >
-                <FaBell className="text-blue-500 text-xl" />
-                <span className="font-medium">Thông báo</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('messages')}
-                className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                  activeTab === 'messages' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'
-                }`}
-              >
-                <FaEnvelope className="text-blue-500 text-xl" />
-                <span className="font-medium">Tin nhắn</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('friends')}
-                className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                  activeTab === 'friends' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'
-                }`}
-              >
-                <FaUserFriends className="text-blue-500 text-xl" />
-                <span className="font-medium">Danh sách bạn bè</span>
-              </button>
-            </nav>
-          </div>
+          {renderLeftPanel()}
         </div>
 
         {/* Main Content */}
@@ -225,6 +231,8 @@ const HomePageUI = () => {
               onChatSelect={handleChatSelect}
               selectedChatId={selectedChat?.id}
             />
+          ) : activeTab === 'friends' ? (
+            <UserSearchUI />
           ) : (
             <>
               {/* Online Friends */}
