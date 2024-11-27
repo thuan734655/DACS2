@@ -126,10 +126,10 @@ function CommentInput({
 
   return (
     <div
-      className="flex items-start gap-2 mt-4"
+      className="flex items-start gap-3 p-4 bg-white rounded-lg shadow-sm border border-gray-100 hover:border-gray-200 transition-all duration-200"
       id={`comment-${commentInputId}`}
     >
-      <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+      <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 hover:opacity-90 transition-all duration-200 shadow-sm">
         <img
           src="/placeholder.svg"
           alt="User"
@@ -142,63 +142,62 @@ function CommentInput({
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Viết câu trả lời..."
-            className="min-h-[40px] w-full rounded-lg bg-gray-100 px-4 py-2 text-sm resize-none focus:outline-none"
+            className="min-h-[45px] w-full rounded-lg bg-gray-50 px-4 py-3 text-[0.95rem] resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white border border-gray-200 hover:border-gray-300 transition-all duration-200"
           />
-          <div className="absolute right-2 top-2">
+          <div className="absolute right-3 top-2.5">
             <button
               onClick={handleAddComment}
-              className="text-blue-500 hover:text-blue-600"
+              className="text-blue-500 hover:text-blue-600 transition-colors duration-200 p-1.5 rounded-full hover:bg-blue-50"
             >
-              <Send className="h-4 w-4" />
+              <Send className="h-5 w-5" />
             </button>
           </div>
         </div>
 
-        <div className="mt-2 flex items-center gap-2 px-2 relative">
-          <button onClick={() => setEmojiPicker(!emojiPicker)}>
-            <Smile />
-          </button>
-          {emojiPicker && (
-            <div className="absolute bottom-full left-0 mb-2">
-              <EmojiPicker onEmojiClick={handleEmojiSelect} />
-            </div>
-          )}
-
-          <label
-            htmlFor={`file-upload-${commentInputId}`}
-            className="cursor-pointer"
+        <div className="mt-2.5 flex items-center gap-2 px-1 relative">
+          <button
+            onClick={() => setEmojiPicker(!emojiPicker)}
+            className="p-2 hover:bg-gray-100 rounded-full transition-all duration-200"
           >
-            <ImageIcon className="h-5 w-5" />
+            <Smile className="h-5 w-5 text-gray-500 hover:text-gray-700" />
+          </button>
+          <label className="p-2 hover:bg-gray-100 rounded-full transition-all duration-200 cursor-pointer">
             <input
-              id={`file-upload-${commentInputId}`}
               type="file"
               className="hidden"
               onChange={handleFileChange}
               multiple
+              accept={SUPPORTED_FORMATS.join(",")}
             />
+            <ImageIcon className="h-5 w-5 text-gray-500 hover:text-gray-700" />
           </label>
+          {emojiPicker && (
+            <div className="absolute bottom-full left-0 mb-2 z-50 shadow-lg rounded-lg border border-gray-200 animate-fadeIn">
+              <EmojiPicker onEmojiClick={handleEmojiSelect} />
+            </div>
+          )}
         </div>
 
         {selectedFiles.length > 0 && (
-          <div className="mt-4 grid grid-cols-3 gap-2">
-            {selectedFiles.map((fileData, index) => (
-              <div key={index} className="relative">
-                {fileData.file.type.startsWith("image/") ? (
-                  <img
-                    src={fileData.preview}
-                    alt="Preview"
-                    className="object-cover w-full h-20 rounded-md"
+          <div className="mt-3 grid grid-cols-3 gap-2.5 animate-fadeIn">
+            {selectedFiles.map(({ preview, file }, index) => (
+              <div key={index} className="relative group animate-slideIn">
+                {file.type.startsWith("video/") ? (
+                  <video
+                    src={preview}
+                    className="w-full h-28 object-cover rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200 shadow-sm"
+                    controls
                   />
                 ) : (
-                  <video
-                    src={fileData.preview}
-                    className="object-cover w-full h-20 rounded-md"
-                    controls
+                  <img
+                    src={preview}
+                    alt="Preview"
+                    className="w-full h-28 object-cover rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200 shadow-sm"
                   />
                 )}
                 <button
                   onClick={() => handleRemoveFile(index)}
-                  className="absolute top-1 right-1 bg-gray-700 text-white rounded-full p-1 hover:bg-gray-800"
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-600 shadow-sm"
                 >
                   <X className="h-4 w-4" />
                 </button>

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import HeaderUI from "./HeaderUI";
 import FormCreatePost from "./FormCreatePostUI";
 import SocialPost from "./SocialPost";
-import NavCreatePostUI from "./NavCreatePostUI";
 import NotificationsUI from "./NotificationsUI";
 import MessagesUI from "./MessagesUI";
 import ChatUI from "./ChatUI";
@@ -10,7 +9,7 @@ import FriendsUI from "./FriendsUI";
 import UserSearchUI from "./UserSearchUI";
 import { getPosts } from "../../services/postService";
 import { getUserProfile, getOnlineFriends, getFriendRequests, respondToFriendRequest } from "../../services/userService";
-import { FaBell, FaEnvelope, FaUserFriends, FaHome } from 'react-icons/fa';
+import { FaBell, FaEnvelope, FaUserFriends, FaHome, FaPen } from 'react-icons/fa';
 
 const HomePageUI = () => {
   const [formCreatePostVisible, setFormCreatePostVisible] = useState(false);
@@ -108,6 +107,17 @@ const HomePageUI = () => {
           </div>
         </div>
 
+        {/* Create Post Button */}
+        <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
+          <button
+            onClick={() => setFormCreatePostVisible(true)}
+            className="w-full flex items-center space-x-3 p-3 rounded-lg transition-colors hover:bg-gray-100"
+          >
+            <FaPen className="text-blue-500 text-xl" />
+            <span className="font-medium">Tạo bài viết mới</span>
+          </button>
+        </div>
+
         {/* Navigation Menu */}
         <div className="bg-white rounded-lg shadow-lg p-4">
           <nav className="space-y-4">
@@ -158,9 +168,11 @@ const HomePageUI = () => {
       case 'home':
         return (
           <>
-            <NavCreatePostUI onCreatePost={() => setFormCreatePostVisible(true)} />
             {formCreatePostVisible && (
-              <FormCreatePost onClose={() => setFormCreatePostVisible(false)} />
+              <FormCreatePost 
+                onClose={() => setFormCreatePostVisible(false)}
+                reloadPosts={loadPosts}
+              />
             )}
             {isLoading ? (
               <div className="text-center py-4">Đang tải bài viết...</div>

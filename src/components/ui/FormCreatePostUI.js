@@ -1,33 +1,17 @@
 import { useState } from "react";
-import { X, Image } from "lucide-react";
+import { X } from "lucide-react";
 import { createPost } from "../../services/postService";
 
-const FromCreatePost = ({ setFormCreatePostVisible, reloadPosts }) => {
+const FromCreatePost = ({ onClose, reloadPosts }) => {
   const [postText, setPostText] = useState("");
-  const [selectedFiles, setSelectedFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [textColor, setTextColor] = useState("#000000");
   const [backgroundColor, setBackgroundColor] = useState("#ffffff");
 
   const handleClose = () => {
-    setFormCreatePostVisible(false);
-    reloadPosts();
+    if (onClose) onClose();
+    if (reloadPosts) reloadPosts();
     setPostText("");
-    setSelectedFiles([]);
-  };
-
-  const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    const filesWithPreview = files.map((file) => ({
-      file,
-      preview: URL.createObjectURL(file),
-    }));
-    setSelectedFiles((prevFiles) => [...prevFiles, ...filesWithPreview]);
-  };
-
-  const handleRemoveFile = (index) => {
-    const updatedFiles = selectedFiles.filter((_, i) => i !== index);
-    setSelectedFiles(updatedFiles);
   };
 
   const handlePost = async () => {
@@ -44,12 +28,7 @@ const FromCreatePost = ({ setFormCreatePostVisible, reloadPosts }) => {
     formData.append("backgroundColor", backgroundColor);
     formData.append("comments", []);
 
-    selectedFiles.forEach((fileData) => {
-      formData.append("media", fileData.file);
-    });
-
     try {
-      formData.forEach((fileData) => console.log(fileData));
       await createPost(formData);
       handleClose();
     } catch (error) {
@@ -60,144 +39,81 @@ const FromCreatePost = ({ setFormCreatePostVisible, reloadPosts }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-white rounded-lg w-full max-w-[500px] shadow-xl">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto backdrop-blur-sm">
+      <div className="bg-white rounded-xl w-full max-w-[500px] shadow-2xl transform transition-all">
         <div className="relative border-b p-4">
-          <h1 className="text-xl font-semibold text-center">Tạo Post</h1>
+          <h1 className="text-xl font-semibold text-center">Tạo bài viết</h1>
           <button
             onClick={handleClose}
-            className="absolute right-4 top-4 p-1 hover:bg-gray-100 rounded-full"
+            className="absolute right-4 top-4 p-1.5 hover:bg-gray-100 rounded-full transition-all duration-200"
             aria-label="Close"
           >
-            <X className="h-6 w-6" />
+            <X className="h-5 w-5 text-gray-500 hover:text-gray-700" />
           </button>
         </div>
 
         {/* User Info */}
-        <div className="p-4 flex items-center gap-2">
-          <img
-            src="/placeholder.svg?height=40&width=40"
-            alt="User avatar"
-            className="w-10 h-10 rounded-full"
-          />
+        <div className="p-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
+            <img
+              src="/placeholder.svg"
+              alt="User avatar"
+              className="w-full h-full object-cover"
+            />
+          </div>
           <div>
-            <div className="font-semibold">Your Name</div>
+            <div className="font-semibold text-[0.95rem]">
+              {JSON.parse(localStorage.getItem("user"))?.fullName || "Your Name"}
+            </div>
           </div>
         </div>
 
         {/* Post Input */}
-        <div className="p-4">
+        <div className="px-4 pb-3">
           <textarea
-            placeholder="What's on your mind?"
+            placeholder="Bạn đang nghĩ gì?"
             value={postText}
             onChange={(e) => setPostText(e.target.value)}
             style={{ color: textColor, backgroundColor }}
-            className="w-full min-h-[150px] text-lg resize-none outline-none border rounded-md p-2"
+            className="w-full min-h-[150px] text-[0.95rem] resize-none outline-none rounded-lg p-3 border border-gray-200 hover:border-gray-300 focus:border-blue-500 transition-all duration-200"
           />
         </div>
 
         {/* Color Options */}
-        <div className="p-4 flex gap-4">
-          <div>
-            <label>Text Color: </label>
+        <div className="px-4 pb-4 flex gap-4 items-center">
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600">Màu chữ:</label>
             <input
               type="color"
               value={textColor}
               onChange={(e) => setTextColor(e.target.value)}
+              className="w-8 h-8 rounded cursor-pointer"
             />
           </div>
-          <div>
-            <label>Background Color: </label>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600">Màu nền:</label>
             <input
               type="color"
               value={backgroundColor}
               onChange={(e) => setBackgroundColor(e.target.value)}
+              className="w-8 h-8 rounded cursor-pointer"
             />
           </div>
         </div>
 
-        {/* Media Upload Area */}
-        <div className="mx-4 border rounded-lg p-4">
-          <div className="text-center">
-            <div className="font-semibold">Add Photo/Video</div>
-            <div className="text-sm text-gray-500">or drag and drop</div>
-            <label
-              htmlFor="file-upload"
-              className="inline-flex items-center justify-center w-10 h-10 bg-gray-100 rounded-full mb-2 cursor-pointer"
-            >
-              <Image className="h-6 w-6" />
-            </label>
-            <input
-              type="file"
-              multiple
-              accept="image/*,video/*"
-              onChange={handleFileChange}
-              className="hidden"
-              id="file-upload"
-            />
-          </div>
-
-          {/* Preview selected files */}
-          {selectedFiles.length > 0 && (
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              {selectedFiles.map((fileData, index) => (
-                <div key={index} className="relative">
-                  {fileData.file.type.startsWith("image/") ? (
-                    <img
-                      src={fileData.preview}
-                      alt="Preview"
-                      className="object-cover w-full h-20 rounded-md"
-                    />
-                  ) : (
-                    <video
-                      src={fileData.preview}
-                      className="object-cover w-full h-20 rounded-md"
-                      controls
-                    />
-                  )}
-                  <button
-                    onClick={() => handleRemoveFile(index)}
-                    className="absolute top-1 right-1 bg-gray-700 text-white rounded-full p-1 hover:bg-gray-800"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Post Button */}
-        <div className="p-4">
+        {/* Action Buttons */}
+        <div className="p-4 border-t">
           <button
             onClick={handlePost}
             disabled={!postText.trim() || isLoading}
-            className="w-full py-2 px-4 bg-blue-500 text-white rounded-md font-semibold
-                       disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition duration-200"
+            className={`w-full py-2.5 px-4 rounded-lg font-medium text-white transition-all duration-200 
+              ${
+                !postText.trim() || isLoading
+                  ? "bg-blue-400 cursor-not-allowed"
+                  : "bg-blue-500 hover:bg-blue-600"
+              }`}
           >
-            {isLoading ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="white"
-                    d="M4 12c0 4.418 3.582 8 8 8s8-3.582 8-8H4z"
-                  />
-                </svg>
-                Posting...
-              </span>
-            ) : (
-              "Post"
-            )}
+            {isLoading ? "Đang đăng..." : "Đăng"}
           </button>
         </div>
       </div>
