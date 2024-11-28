@@ -74,42 +74,62 @@ const ProfileUI = () => {
   };
 
   return (
-    <Container maxWidth="md">
-      <Box position="relative">
+    <Container maxWidth="lg" sx={{ mt: 2 }}>
+      {/* Cover Image Section */}
+      <Box sx={{ 
+        position: "relative", 
+        borderRadius: "16px", 
+        overflow: "hidden",
+        height: 300,
+        mb: 4,
+        boxShadow: "0 2px 12px rgba(0,0,0,0.1)"
+      }}>
         <img
           src="/placeholder.svg?height=300&width=800"
           alt="Set background"
-          style={{ width: "100%", height: 200, objectFit: "cover" }}
+          style={{ 
+            width: "100%", 
+            height: "100%", 
+            objectFit: "cover"
+          }}
         />
         <Button
-          variant="outlined"
+          variant="contained"
           startIcon={<CameraAlt />}
-          style={{
+          sx={{
             position: "absolute",
-            top: 16,
+            bottom: 16,
             right: 16,
-            backgroundColor: "rgba(255, 255, 255, 0.8)",
+            backgroundColor: "rgba(255, 255, 255, 0.9)",
+            color: "primary.main",
+            "&:hover": {
+              backgroundColor: "white",
+            },
+            backdropFilter: "blur(4px)",
           }}
         >
           Chỉnh sửa ảnh bìa
         </Button>
       </Box>
 
-      <Grid
-        container
-        spacing={2}
-        alignItems="center"
-        style={{
-          marginTop: "-50px",
-          paddingLeft: "16px",
-          paddingRight: "16px",
-        }}
-      >
-        <Grid item>
+      {/* Profile Info Section */}
+      <Box sx={{ 
+        px: 4, 
+        mb: 4,
+        display: "flex",
+        alignItems: "flex-end",
+        gap: 3
+      }}>
+        <Box sx={{ position: "relative", mt: -8 }}>
           <Avatar
             src={user.avatar}
             alt="Hoàng Phi"
-            sx={{ width: 128, height: 128, border: "4px solid white" }}
+            sx={{
+              width: 168,
+              height: 168,
+              border: "4px solid white",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
+            }}
           />
         </Grid>
         <Grid item xs>
@@ -142,40 +162,125 @@ const ProfileUI = () => {
         <Tab label="Reels" />
       </Tabs>
 
+      {/* Content Section */}
       {tabValue === 0 && (
-        <Box mt={4}>
-          <Card>
-            <CardContent>
-              <TextareaAutosize
-                minRows={3}
-                placeholder="Bạn đang nghĩ gì?"
-                value={postContent}
-                onChange={(e) => setPostContent(e.target.value)}
-                style={{ width: "100%", padding: "8px", fontFamily: "inherit" }}
-              />
-              <Grid container spacing={2} style={{ marginTop: "16px" }}>
-                <Grid item>
-                  <Button variant="outlined" startIcon={<VideoCall />}>
+        <Grid container spacing={3} sx={{ px: 4 }}>
+          {/* Left Sidebar */}
+          <Grid item xs={12} md={5} lg={4}>
+            <Card sx={{ 
+              borderRadius: "16px",
+              mb: 3,
+              boxShadow: "0 2px 12px rgba(0,0,0,0.1)"
+            }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
+                  Giới thiệu
+                </Typography>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <Typography>🎥 YTB: ANH PHI</Typography>
+                  <Typography>
+                    🌐 Web hack data 4g giá rẻ: https://datasieure.click
+                  </Typography>
+                  <Typography>🏢 Làm việc tại make money online</Typography>
+                  <Typography>💼 Làm việc tại Freelancer</Typography>
+                  <Typography>👥 1.831 người theo dõi</Typography>
+                </Box>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  sx={{ 
+                    mt: 3,
+                    borderRadius: "20px",
+                    textTransform: "none",
+                    fontWeight: "medium"
+                  }}
+                >
+                  Chỉnh sửa chi tiết
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Main Content */}
+          <Grid item xs={12} md={7} lg={8}>
+            {/* Create Post Card */}
+            <Card sx={{ 
+              borderRadius: "16px",
+              mb: 3,
+              boxShadow: "0 2px 12px rgba(0,0,0,0.1)"
+            }}>
+              <CardContent>
+                <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+                  <Avatar src="/placeholder.svg?height=40&width=40" />
+                  <TextareaAutosize
+                    minRows={2}
+                    placeholder="Bạn đang nghĩ gì?"
+                    value={postContent}
+                    onChange={(e) => setPostContent(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "12px 16px",
+                      borderRadius: "20px",
+                      border: "1px solid #ddd",
+                      resize: "none",
+                      fontFamily: "inherit",
+                      fontSize: "1rem",
+                    }}
+                  />
+                </Box>
+                <Box sx={{ 
+                  display: "flex",
+                  gap: 2,
+                  borderTop: "1px solid #eee",
+                  pt: 2
+                }}>
+                  <Button
+                    startIcon={<VideoCall />}
+                    sx={{ 
+                      flex: 1,
+                      borderRadius: "20px",
+                      textTransform: "none",
+                      fontWeight: "medium"
+                    }}
+                  >
                     Video trực tiếp
                   </Button>
-                </Grid>
-                <Grid item>
-                  <Button variant="outlined" startIcon={<PhotoCamera />}>
+                  <Button
+                    startIcon={<PhotoCamera />}
+                    sx={{ 
+                      flex: 1,
+                      borderRadius: "20px",
+                      textTransform: "none",
+                      fontWeight: "medium"
+                    }}
+                  >
                     Ảnh/Video
                   </Button>
-                </Grid>
-                <Grid item>
-                  <Button variant="outlined" startIcon={<Event />}>
-                    Sự kiện trong đời
+                  <Button
+                    startIcon={<Event />}
+                    sx={{ 
+                      flex: 1,
+                      borderRadius: "20px",
+                      textTransform: "none",
+                      fontWeight: "medium"
+                    }}
+                  >
+                    Sự kiện
                   </Button>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
+                </Box>
+              </CardContent>
+            </Card>
 
-          <Box mt={4}>
+            {/* Posts */}
             {posts.map((post) => (
-              <Card key={post.id} style={{ marginBottom: "16px" }}>
+              <Card 
+                key={post.id} 
+                sx={{ 
+                  borderRadius: "16px",
+                  mb: 3,
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.1)"
+                }}
+              >
                 <CardHeader
                   avatar={
                     <Avatar
@@ -188,63 +293,130 @@ const ProfileUI = () => {
                       <MoreHoriz />
                     </IconButton>
                   }
-                  title={post.author}
-                  subheader={post.date}
+                  title={
+                    <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                      {post.author}
+                    </Typography>
+                  }
+                  subheader={
+                    <Typography variant="body2" color="text.secondary">
+                      {post.date}
+                    </Typography>
+                  }
                 />
                 <CardContent>
-                  <Typography>{post.content}</Typography>
+                  <Typography variant="body1" sx={{ mb: 2, whiteSpace: "pre-line" }}>
+                    {post.content}
+                  </Typography>
                   {post.image && (
-                    <img
-                      src={post.image}
-                      alt=""
-                      style={{
-                        marginTop: "16px",
-                        borderRadius: "8px",
-                        width: "100%",
-                      }}
-                    />
+                    <Box sx={{ 
+                      borderRadius: "16px",
+                      overflow: "hidden",
+                      mb: 2,
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+                    }}>
+                      <img
+                        src={post.image}
+                        alt=""
+                        style={{
+                          width: "100%",
+                          height: "auto",
+                          display: "block",
+                        }}
+                      />
+                    </Box>
                   )}
-                  <Grid container spacing={2} style={{ marginTop: "16px" }}>
-                    <Grid item>
-                      <Button startIcon={<ThumbUp />}>Thích</Button>
-                    </Grid>
-                    <Grid item>
-                      <Button startIcon={<Comment />}>Bình luận</Button>
-                    </Grid>
-                    <Grid item>
-                      <Button startIcon={<Share />}>Chia sẻ</Button>
-                    </Grid>
-                  </Grid>
+                  <Box sx={{ 
+                    display: "flex",
+                    gap: 2,
+                    borderTop: "1px solid #eee",
+                    pt: 2
+                  }}>
+                    <Button
+                      startIcon={<ThumbUp />}
+                      sx={{ 
+                        flex: 1,
+                        borderRadius: "20px",
+                        textTransform: "none",
+                        fontWeight: "medium"
+                      }}
+                    >
+                      Thích
+                    </Button>
+                    <Button
+                      startIcon={<Comment />}
+                      sx={{ 
+                        flex: 1,
+                        borderRadius: "20px",
+                        textTransform: "none",
+                        fontWeight: "medium"
+                      }}
+                    >
+                      Bình luận
+                    </Button>
+                    <Button
+                      startIcon={<Share />}
+                      sx={{ 
+                        flex: 1,
+                        borderRadius: "20px",
+                        textTransform: "none",
+                        fontWeight: "medium"
+                      }}
+                    >
+                      Chia sẻ
+                    </Button>
+                  </Box>
                 </CardContent>
               </Card>
             ))}
-          </Box>
-        </Box>
+          </Grid>
+        </Grid>
       )}
 
       {tabValue === 1 && (
-        <Box mt={4}>
-          <Card>
+        <Box sx={{ px: 4 }}>
+          <Card sx={{ 
+            borderRadius: "16px",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.1)"
+          }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
                 Giới thiệu
               </Typography>
-              <Typography>YTB: ANH PHI</Typography>
-              <Typography>
-                Web hack data 4g giá rẻ : https://datasieure.click
-              </Typography>
-              <Button variant="outlined" style={{ marginTop: "16px" }}>
-                Chỉnh sửa tiểu sử
-              </Button>
-              <Box mt={4}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <Typography>🎥 YTB: ANH PHI</Typography>
+                <Typography>
+                  🌐 Web hack data 4g giá rẻ: https://datasieure.click
+                </Typography>
                 <Typography>🏢 Làm việc tại make money online</Typography>
-                <Typography>🏢 Làm việc tại Freelancer</Typography>
-                <Typography>👥 Có 1.831 người theo dõi</Typography>
-                <Typography>🌐 datasieure.click</Typography>
+                <Typography>💼 Làm việc tại Freelancer</Typography>
+                <Typography>👥 1.831 người theo dõi</Typography>
+                <Typography>🔗 datasieure.click</Typography>
               </Box>
-              <Button variant="outlined" style={{ marginTop: "16px" }}>
-                Chỉnh sửa chi tiết
-              </Button>
+              <Box sx={{ display: "flex", gap: 2, mt: 3 }}>
+                <Button
+                  variant="outlined"
+                  sx={{ 
+                    flex: 1,
+                    borderRadius: "20px",
+                    textTransform: "none",
+                    fontWeight: "medium"
+                  }}
+                >
+                  Chỉnh sửa tiểu sử
+                </Button>
+                <Button
+                  variant="outlined"
+                  sx={{ 
+                    flex: 1,
+                    borderRadius: "20px",
+                    textTransform: "none",
+                    fontWeight: "medium"
+                  }}
+                >
+                  Chỉnh sửa chi tiết
+                </Button>
+              </Box>
             </CardContent>
           </Card>
         </Box>
