@@ -2,7 +2,7 @@ import React from "react";
 import ListUI from "../ui/ChatForm/List/ListUI";
 import ChatUI from "../ui/ChatForm/Chat/ChatUI";
 import DetailUI from "../ui//ChatForm/Detail/DetailUI";
-import Notification from "../ui/ChatForm/Notification/Notification";
+
 const MessageUI = () => {
 
   return (
@@ -19,9 +19,6 @@ const MessageUI = () => {
         <div className="flex-1">
           <DetailUI></DetailUI>
         </div>
-      </div>
-      <div>
-        <Notification></Notification>
       </div>
     </div>
   );
