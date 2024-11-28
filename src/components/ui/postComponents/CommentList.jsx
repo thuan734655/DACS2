@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ThumbsUp, MessageCircle, Flag, ChevronDown, ChevronRight } from "lucide-react";
 import CommentInput from "./CommentInput";
 import Replies from "./Replies";
+import socket from "../../../services/socket";
 
 function CommentList({
   commentsList,
@@ -20,11 +21,82 @@ function CommentList({
 
   const toggleReplies = (replyId) => {
     setOpenReplies((prev) => ({
-
       ...prev,
       [replyId]: !prev[replyId], // Đảo trạng thái hiện tại của replyId
     }));
   };
+
+  // Helper function to find and update nested replies
+  const updateNestedReplies = (comments, replyId, newReply) => {
+    return comments.map((comment) => {
+      if (comment.replyId === replyId) {
+        // If this is the target reply, add the new reply to its replies array
+        return {
+          ...comment,
+          replies: [...(comment.replies || []), newReply],
+        };
+      } else if (comment.replies && comment.replies.length > 0) {
+        // If this comment has replies, recursively search them
+        return {
+          ...comment,
+          replies: updateNestedReplies(comment.replies, replyId, newReply),
+        };
+      }
+      return comment;
+    });
+  };
+
+  useEffect(() => {
+    // Listen for new comments
+    socket.on("receiveComment", ({ newComment }) => {
+      if (newComment && newComment.postId === postId) {
+        setCommentsList((prevComments) => [...prevComments, { ...newComment, replies: [] }]);
+        setCommentCount((prev) => prev + 1);
+      }
+    });
+
+    // Listen for new replies to comments
+    socket.on("receiveReplyToComment", ({ commentId, newReply }) => {
+      if (newReply) {
+        setCommentsList((prevComments) => {
+          return prevComments.map((comment) => {
+            if (comment.commentId === commentId) {
+              return {
+                ...comment,
+                replies: [...(comment.replies || []), newReply],
+              };
+            }
+            return comment;
+          });
+        });
+        setOpenReplies((prev) => ({ ...prev, [commentId]: true }));
+      }
+    });
+
+    // Listen for replies to replies
+    socket.on("receiveReplyToReply", ({ replyId, newReply }) => {
+      if (newReply) {
+        setCommentsList((prevComments) => {
+          return prevComments.map((comment) => {
+            if (comment.replies && comment.replies.length > 0) {
+              return {
+                ...comment,
+                replies: updateNestedReplies(comment.replies, replyId, newReply),
+              };
+            }
+            return comment;
+          });
+        });
+        setOpenReplies((prev) => ({ ...prev, [replyId]: true }));
+      }
+    });
+
+    return () => {
+      socket.off("receiveComment");
+      socket.off("receiveReplyToComment");
+      socket.off("receiveReplyToReply");
+    };
+  }, [postId, setCommentsList, setCommentCount]);
 
   return (
     <div className="space-y-4">
