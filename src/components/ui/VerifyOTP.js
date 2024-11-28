@@ -9,7 +9,7 @@ const VerifyOTP = ({ otp, handleInputChange, handleVerifyOtp, loading }) => (
       type="text"
       name="otp"
       id="otpField"
-      value={otp}
+      value={otp}              
       onChange={handleInputChange}
       placeholder="OTP"
       required

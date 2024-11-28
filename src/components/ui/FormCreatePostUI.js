@@ -1,127 +1,227 @@
-import React, { useState, useRef } from 'react';
-import { Video, Image as ImageIcon, Smile, Send, X, Upload } from 'lucide-react';
+import { useState } from "react";
+import { X, Image } from "lucide-react";
+import socket from "../../services/socket";
 
-const FormCreatePostUI = () => {
-  const [postContent, setPostContent] = useState('');
-  const [image, setImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [showImageForm, setShowImageForm] = useState(false);
-  const fileInputRef = useRef(null);
+const FromCreatePost = ({ setFormCreatePostVisible }) => {
+  const [postText, setPostText] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [textColor, setTextColor] = useState("#000000");
+  const [backgroundColor, setBackgroundColor] = useState("#ffffff");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (postContent.trim() || image) {
-      // Here you would typically send the post and image to your backend
-      console.log('Submitting post:', postContent);
-      console.log('Image:', image);
-      alert('Post created successfully!'); // Replace with your preferred notification method
-      setPostContent('');
-      setImage(null);
-      setImagePreview(null);
-      setShowImageForm(false);
-    } else {
-      alert('Post content or image is required.'); // Replace with your preferred notification method
-    }
+  const handleClose = () => {
+    setFormCreatePostVisible(false);
+    setPostText("");
+    setSelectedFiles([]);
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    const filesWithPreview = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setSelectedFiles((prevFiles) => [...prevFiles, ...filesWithPreview]);
+  };
+
+  const handleRemoveFile = (index) => {
+    const updatedFiles = selectedFiles.filter((_, i) => i !== index);
+    setSelectedFiles(updatedFiles);
+  };
+
+  const handlePost = async () => {
+    if (!postText.trim()) return;
+    const infoUser = localStorage.getItem("user");
+    const parsedInfoUser = JSON.parse(infoUser);
+    const idUser = parsedInfoUser.idUser;
+
+    setIsLoading(true);
+
+    try {
+      // Convert files to base64 with file info
+      const mediaPromises = selectedFiles.map(async (fileData) => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            resolve({
+              name: fileData.file.name,
+              type: fileData.file.type,
+              data: reader.result
+            });
+          };
+          reader.readAsDataURL(fileData.file);
+        });
+      });
+
+      const mediaFiles = await Promise.all(mediaPromises);
+
+      // Create post data
+      const postData = {
+        text: postText,
+        idUser: idUser,
+        textColor: textColor,
+        backgroundColor: backgroundColor,
+        listFileUrl: mediaFiles, 
+        comments: [],
+        createdAt: Date.now()
       };
-      reader.readAsDataURL(file);
-    }
-  };
 
-  const removeImage = () => {
-    setImage(null);
-    setImagePreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      // Emit post data through WebSocket
+      socket.emit("newPost", { post: postData });
+      handleClose();
+    } catch (error) {
+      console.error("Error posting:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-4 mb-4 max-w-2xl mx-auto">
-      <div className="flex items-start space-x-4 mb-4">
-        <img
-          src="https://github.com/shadcn.png"
-          alt="User Avatar"
-          className="w-10 h-10 rounded-full"
-        />
-        <textarea
-          placeholder="Phi ơi, bạn đang nghĩ gì thế?"
-          value={postContent}
-          onChange={(e) => setPostContent(e.target.value)}
-          className="flex-grow resize-none border rounded-lg p-2"
-          rows={3}
-        />
-      </div>
-
-      {imagePreview && (
-        <div className="relative mb-4">
-          <img src={imagePreview} alt="Preview" className="max-w-full h-auto rounded-lg" />
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+      <div className="bg-white rounded-lg w-full max-w-[500px] shadow-xl">
+        <div className="relative border-b p-4">
+          <h1 className="text-xl font-semibold text-center">Tạo Post</h1>
           <button
-            type="button"
-            className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
-            onClick={removeImage}
+            onClick={handleClose}
+            className="absolute right-4 top-4 p-1 hover:bg-gray-100 rounded-full"
+            aria-label="Close"
           >
-            <X className="h-4 w-4" />
+            <X className="h-6 w-6" />
           </button>
         </div>
-      )}
 
-      {showImageForm && !imagePreview && (
-        <div className="mb-4 border-2 border-dashed border-gray-300 rounded-lg p-4">
-          <div className="flex items-center justify-center w-full">
-            <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-64 cursor-pointer bg-gray-50 hover:bg-gray-100">
-              <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                <Upload className="w-10 h-10 mb-3 text-gray-400" />
-                <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                <p className="text-xs text-gray-500">SVG, PNG, JPG or GIF (MAX. 800x400px)</p>
-              </div>
-              <input
-                id="dropzone-file"
-                type="file"
-                className="hidden"
-                onChange={handleImageChange}
-                accept="image/*"
-                ref={fileInputRef}
-              />
-            </label>
+        {/* User Info */}
+        <div className="p-4 flex items-center gap-2">
+          <img
+            src="/placeholder.svg?height=40&width=40"
+            alt="User avatar"
+            className="w-10 h-10 rounded-full"
+          />
+          <div>
+            <div className="font-semibold">Your Name</div>
           </div>
         </div>
-      )}
 
-      <div className="flex flex-wrap justify-between items-center pt-2 border-t border-gray-200">
-        <div className="flex space-x-2 sm:space-x-4">
-          <button type="button" className="flex items-center text-red-500 hover:bg-red-100 p-2 rounded-lg">
-            <Video className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Video trực tiếp</span>
-          </button>
+        {/* Post Input */}
+        <div className="p-4">
+          <textarea
+            placeholder="What's on your mind?"
+            value={postText}
+            onChange={(e) => setPostText(e.target.value)}
+            style={{ color: textColor, backgroundColor }}
+            className="w-full min-h-[150px] text-lg resize-none outline-none border rounded-md p-2"
+          />
+        </div>
+
+        {/* Color Options */}
+        <div className="p-4 flex gap-4">
+          <div>
+            <label>Text Color: </label>
+            <input
+              className="cursor-pointer"
+              type="color"
+              value={textColor}
+              onChange={(e) => setTextColor(e.target.value)}
+            />
+          </div>
+          <div>
+            <label>Background Color: </label>
+            <input
+              className="cursor-pointer"
+              type="color"
+              value={backgroundColor}
+              onChange={(e) => setBackgroundColor(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Media Upload Area */}
+        <div className="mx-4 border rounded-lg p-4">
+          <div className="text-center">
+            <div className="font-semibold">Add Photo/Video</div>
+            <div className="text-sm text-gray-500">or drag and drop</div>
+            <label
+              htmlFor="file-upload"
+              className="inline-flex items-center justify-center w-10 h-10 bg-gray-100 rounded-full mb-2 cursor-pointer"
+            >
+              <Image className="h-6 w-6" />
+            </label>
+            <input
+              type="file"
+              multiple
+              accept="image/*,video/*"
+              onChange={handleFileChange}
+              className="hidden"
+              id="file-upload"
+            />
+          </div>
+
+          {/* Preview selected files */}
+          {selectedFiles.length > 0 && (
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              {selectedFiles.map((fileData, index) => (
+                <div key={index} className="relative">
+                  {fileData.file.type.startsWith("image/") ? (
+                    <img
+                      src={fileData.preview}
+                      alt="Preview"
+                      className="object-cover w-full h-20 rounded-md"
+                    />
+                  ) : (
+                    <video
+                      src={fileData.preview}
+                      className="object-cover w-full h-20 rounded-md"
+                      controls
+                    />
+                  )}
+                  <button
+                    onClick={() => handleRemoveFile(index)}
+                    className="absolute top-1 right-1 bg-gray-700 text-white rounded-full p-1 hover:bg-gray-800"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Post Button */}
+        <div className="p-4">
           <button
-            type="button"
-            className="flex items-center text-green-500 hover:bg-green-100 p-2 rounded-lg"
-            onClick={() => setShowImageForm(!showImageForm)}
+            onClick={handlePost}
+            disabled={!postText.trim() || isLoading}
+            className="w-full py-2 px-4 bg-blue-500 text-white rounded-md font-semibold
+                       disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition duration-200"
           >
-            <ImageIcon className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Ảnh/video</span>
-          </button>
-          <button type="button" className="flex items-center text-yellow-500 hover:bg-yellow-100 p-2 rounded-lg">
-            <Smile className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Cảm xúc/hoạt động</span>
+            {isLoading ? (
+              <span className="flex items-center justify-center">
+                <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="white"
+                    d="M4 12c0 4.418 3.582 8 8 8s8-3.582 8-8H4z"
+                  />
+                </svg>
+                Posting...
+              </span>
+            ) : (
+              "Post"
+            )}
           </button>
         </div>
-        <button type="submit" className="mt-2 sm:mt-0 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
-          <Send className="mr-2 h-4 w-4 inline" />
-          Đăng
-        </button>
       </div>
-    </form>
+    </div>
   );
 };
 
-export default FormCreatePostUI;
+export default FromCreatePost;
