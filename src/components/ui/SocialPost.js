@@ -10,6 +10,17 @@ const socket = io("http://localhost:5000");
 
 function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
   const { shares } = post;
+  const [idUser, setIdUser] = useState(
+    JSON.parse(localStorage.getItem("user"))?.idUser || ""
+  );
+  const findEmojiOfUser = useCallback((groupedLikes) => {
+    // Tìm emoji của user hiện tại
+    Object.entries(groupedLikes).forEach(([emoji, users]) => {
+      if (users.includes(idUser)) {
+        return emoji;
+      }
+    });
+  });
   const [likeCount, setLikeCount] = useState(
     groupedLikes ? Object.values(groupedLikes).flat().length : 0
   );
@@ -18,10 +29,7 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
   );
 
   const [showReactionPicker, setShowReactionPicker] = useState(false);
-  const [emojiChoose, setEmojiChoose] = useState(null);
-  const [idUser, setIdUser] = useState(
-    JSON.parse(localStorage.getItem("user"))?.idUser || ""
-  );
+  const [emojiChoose, setEmojiChoose] = useState(findEmojiOfUser(groupedLikes));
   const [emojiCounts, setEmojiCounts] = useState(groupedLikes || {});
   const [showSubPost, setShowSubPost] = useState(false);
 
@@ -44,20 +52,20 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
 
   useEffect(() => {
     const handleReceiveReaction = (data) => {
-      console.log(data);
+      console.log(Object.entries(data.groupedLikes));
       if (data.postId === postId) {
         setEmojiCounts(data.groupedLikes);
         setLikeCount(Object.values(data.groupedLikes).flat().length);
-        setEmojiChoose(null);
+        setEmojiChoose(findEmojiOfUser(data.groupedLikes));
       }
     };
-
+  
     socket.on("receiveReaction", handleReceiveReaction);
-
+  
     return () => {
       socket.off("receiveReaction", handleReceiveReaction);
     };
-  }, [postId]);
+  }, [postId, idUser]);
 
   const handleLike = (emoji) => {
     if (!idUser) {
@@ -98,7 +106,7 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
 
     return emojiElements;
   };
-
+console.log(emojiChoose);
   return (
     <div className="bg-white shadow-md rounded-lg p-4 mb-4" id={postId}>
       <PostContent post={post} user={user} />

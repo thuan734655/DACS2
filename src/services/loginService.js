@@ -1,10 +1,10 @@
 import axiosAPI from "./configAxios.js";
 
 export const requestOTP = async (email) => {
-  return await axios.post(`${BASE_URL}/requestOTP`, { email });
+  return await axiosAPI.post(`/requestOTP`, { email });
 };
 export const getInfoUser = async (idUser) => {
-  return await axios.post(`${BASE_URL}/info-user`, { idUser });
+  return await axiosAPI.post(`/info-user`, { idUser });
 };
 
 export const verifyOTP = async (email, otp, infoDevice) => {
@@ -42,7 +42,7 @@ export const checkMail = async (formData) => {
 
 export const login = async (email, password, visitorId) => {
   try {
-    const responses = await axios.post(`${BASE_URL}/v1/auth/login`, {
+    const responses = await axiosAPI.post(`/v1/auth/login`, {
      
       email,
       password,
@@ -53,7 +53,7 @@ export const login = async (email, password, visitorId) => {
       },
       body: JSON.stringify({ email, password }),
     });
-    return response;
+    return responses;
   } catch (error) {
     throw error.response ? error.response.data : new Error("Login failed.");
   }
@@ -62,8 +62,8 @@ export const login = async (email, password, visitorId) => {
 export const getConversationPartner = async (currentUserId) => {
   console.log("currentUserId:", currentUserId);
   try {
-    const response = await axios.get(
-      `${BASE_URL}/api/conversations/partner/${currentUserId}`
+    const response = await axiosAPI.get(
+      `/api/conversations/partner/${currentUserId}`
     );
     return response;
   } catch (error) {

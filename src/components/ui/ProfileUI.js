@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {
   Avatar,
@@ -30,19 +30,9 @@ import {
 const ProfileUI = () => {
   const [postContent, setPostContent] = useState("");
   const [tabValue, setTabValue] = useState(0);
-  const [user, setUser] = useState(null);
-  useEffect(() => {
-    // Lấy dữ liệu từ localStorage
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      setUser(JSON.parse(userData)); // Cập nhật state
-    }
-  }, []);
-
-  // Render giao diện
-  if (!user) {
-    return <p>No user data found.</p>;
-  }
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
   const posts = [
     {
       id: 1,
@@ -60,6 +50,7 @@ const ProfileUI = () => {
       image: null,
     },
     {
+    
       id: 3,
       author: "Hoàng Phi",
       date: "7 Tháng 3, 2024",
@@ -68,10 +59,6 @@ const ProfileUI = () => {
       image: "/placeholder.svg?height=300&width=500",
     },
   ];
-
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-  };
 
   return (
     <Container maxWidth="lg" sx={{ mt: 2 }}>
@@ -122,7 +109,7 @@ const ProfileUI = () => {
       }}>
         <Box sx={{ position: "relative", mt: -8 }}>
           <Avatar
-            src={user.avatar}
+            src="/placeholder.svg?height=168&width=168"
             alt="Hoàng Phi"
             sx={{
               width: 168,
@@ -131,36 +118,87 @@ const ProfileUI = () => {
               boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
             }}
           />
-        </Grid>
-        <Grid item xs>
-          <Typography variant="h5">{user.fullName}</Typography>
-          <Typography color="textSecondary">2,3K người bạn</Typography>
-        </Grid>
-        <Grid item>
-          <Button variant="contained">+ Thêm vào tin</Button>
-          <Button
-            variant="outlined"
-            startIcon={<Edit />}
-            style={{ marginLeft: "8px" }}
+          <IconButton
+            sx={{
+              position: "absolute",
+              bottom: 8,
+              right: 8,
+              backgroundColor: "primary.main",
+              color: "white",
+              "&:hover": { backgroundColor: "primary.dark" },
+              boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+            }}
           >
-            Chỉnh sửa trang cá nhân
-          </Button>
-        </Grid>
-      </Grid>
+            <CameraAlt />
+          </IconButton>
+        </Box>
+        
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
+            Hoàng Phi
+          </Typography>
+          <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 2 }}>
+            2,3K người bạn · 1,8K người theo dõi
+          </Typography>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<Edit />}
+              sx={{ 
+                borderRadius: "20px",
+                px: 3,
+                textTransform: "none",
+                fontWeight: "medium"
+              }}
+            >
+              Chỉnh sửa trang cá nhân
+            </Button>
+            <Button
+              variant="outlined"
+              sx={{ 
+                borderRadius: "20px",
+                px: 3,
+                textTransform: "none",
+                fontWeight: "medium"
+              }}
+            >
+              + Thêm vào tin
+            </Button>
+          </Box>
+        </Box>
+      </Box>
 
-      <Tabs
-        value={tabValue}
-        onChange={handleTabChange}
-        variant="scrollable"
-        scrollButtons="auto"
-      >
-        <Tab label="Bài viết" />
-        <Tab label="Giới thiệu" />
-        <Tab label="Bạn bè" />
-        <Tab label="Ảnh" />
-        <Tab label="Video" />
-        <Tab label="Reels" />
-      </Tabs>
+      {/* Tabs Section */}
+      <Box sx={{ 
+        borderBottom: 1, 
+        borderColor: "divider",
+        mb: 4,
+        px: 4
+      }}>
+        <Tabs
+          value={tabValue}
+          onChange={handleTabChange}
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{
+            "& .MuiTab-root": {
+              textTransform: "none",
+              fontWeight: "medium",
+              fontSize: "1rem",
+              minWidth: "auto",
+              px: 3,
+            },
+          }}
+        >
+          <Tab label="Bài viết" />
+          <Tab label="Giới thiệu" />
+          <Tab label="Bạn bè" />
+          <Tab label="Ảnh" />
+          <Tab label="Video" />
+          <Tab label="Reels" />
+        </Tabs>
+      </Box>
 
       {/* Content Section */}
       {tabValue === 0 && (
