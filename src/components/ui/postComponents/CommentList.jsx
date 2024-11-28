@@ -27,7 +27,7 @@ function CommentList({
 
   // Helper function to find and update nested replies
   const updateNestedReplies = (comments, commentId, newReply) => {
-    return comments.map(comment => {
+    return comments.map((comment) => {
       if (comment.commentId === commentId || comment.replyId === commentId) {
         // If this is the target comment, add the new reply
         return {
@@ -55,11 +55,11 @@ function CommentList({
     socket.on("receiveComment", ({ newComment }) => {
       console.log("Received new comment:", newComment);
       if (newComment && newComment.postId === postId) {
-        setCommentsList(prevComments => [...prevComments, {
+        setCommentsList((prevComments) => [...prevComments, {
           ...newComment,
           replies: []
         }]);
-        setCommentCount(prev => prev + 1);
+        setCommentCount((prev) => prev + 1);
       }
     });
 
@@ -67,11 +67,35 @@ function CommentList({
     socket.on("receiveReplyToComment", ({ commentId, newReply }) => {
       console.log("Received reply:", { commentId, newReply });
       if (newReply) {
-        setCommentsList(prevComments => updateNestedReplies(prevComments, commentId, newReply));
+        setCommentsList((prevComments) => updateNestedReplies(prevComments, commentId, newReply));
         // Automatically open the replies section when a new reply is added
-        setOpenReplies(prev => ({
+        setOpenReplies((prev) => ({
           ...prev,
           [commentId]: true
+        }));
+      }
+    });
+
+    // Listen for reply-to-reply
+    socket.on("receiveReplyToReply", ({ replyId, newReply }) => {
+      console.log("Received reply to reply:", { replyId, newReply });
+      if (newReply) {
+        setCommentsList((prevComments) => {
+          return prevComments.map((comment) => {
+            // Check if this comment has the target reply
+            if (comment.replies) {
+              return {
+                ...comment,
+                replies: updateNestedReplies(comment.replies, replyId, newReply)
+              };
+            }
+            return comment;
+          });
+        });
+        // Automatically open the replies section
+        setOpenReplies((prev) => ({
+          ...prev,
+          [replyId]: true
         }));
       }
     });
@@ -79,6 +103,7 @@ function CommentList({
     return () => {
       socket.off("receiveComment");
       socket.off("receiveReplyToComment");
+      socket.off("receiveReplyToReply");
     };
   }, [postId, setCommentsList, setCommentCount]);
 

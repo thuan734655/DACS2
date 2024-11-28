@@ -14,12 +14,12 @@ function CommentInput({
   setCommentCount,
   isReply,
   replyName,
-  replyId,
+  replyTo,
   commentId,
   commentInputId,
 }) {
   const [newComment, setNewComment] = useState(
-    isReply || replyId ? replyName + ": " : ""
+    isReply || replyTo ? replyName + ": " : ""
   );
   const [emojiPicker, setEmojiPicker] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -90,17 +90,14 @@ function CommentInput({
 
       comment.listFileUrl = base64Files;
 
-      // Emit comment or reply to the server
-      if (isReply) {
+      if (replyTo) {
+        console.log("new replies");
+        const replyContent = { replyData: comment, replyId: replyTo };
+        socket.emit("replyToReply", replyContent);
+      } else  if (isReply) {
         console.log("new ");
-
         const replyContent = { replyData: comment, commentId };
         socket.emit("replyComment", replyContent);
-      } else if (replyId) {
-        console.log("new replies");
-
-        const replyContent = { replyData: comment, replyId: replyId };
-        socket.emit("replyToReply", replyContent);
       } else {
         console.log("new comment");
         console.log(postId)
