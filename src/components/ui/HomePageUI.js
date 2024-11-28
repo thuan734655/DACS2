@@ -7,9 +7,8 @@ import MessagesUI from "./MessagesUI";
 import ChatUI from "./ChatUI";
 import FriendsUI from "./FriendsUI";
 import UserSearchUI from "./UserSearchUI";
-import NavCreatePostUI from "./NavCreatePostUI"; // Import NavCreatePostUI
 import { getPosts } from "../../services/postService";
-import { getUserProfile, getOnlineFriends, getFriendRequests, respondToFriendRequest } from "../../services/userService";
+import { getOnlineFriends, getFriendRequests, respondToFriendRequest } from "../../services/userService";
 import { FaBell, FaEnvelope, FaUserFriends, FaHome, FaPen } from 'react-icons/fa';
 import socket from "../../services/socket";
 
@@ -18,11 +17,19 @@ const HomePageUI = () => {
   const [listPosts, setListPosts] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [profile, setProfile] = useState(null);
+  const [user, setUser] = useState(null);
   const [onlineFriends, setOnlineFriends] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
   const [activeTab, setActiveTab] = useState('home');
   const [selectedChat, setSelectedChat] = useState(null);
+
+  useEffect(() => {
+    // Lấy dữ liệu từ localStorage
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
 
   const loadPosts = async () => {
     try {
@@ -30,7 +37,6 @@ const HomePageUI = () => {
       setError(null);
       const response = await getPosts();
       if (response && response.data) {
-        console.log(Object.entries(response.data),"hehehe");
         setListPosts(response.data);
       } else {
         setListPosts({});
@@ -45,13 +51,11 @@ const HomePageUI = () => {
 
   const loadUserData = async () => {
     try {
-      const [profileData, onlineFriendsData, friendRequestsData] = await Promise.all([
-        getUserProfile(),
+      const [onlineFriendsData, friendRequestsData] = await Promise.all([
         getOnlineFriends(),
         getFriendRequests()
       ]);
 
-      setProfile(profileData);
       setOnlineFriends(onlineFriendsData);
       setFriendRequests(friendRequestsData);
     } catch (error) {
@@ -74,51 +78,56 @@ const HomePageUI = () => {
   };
 
   useEffect(() => {
-    loadPosts();
-    loadUserData();
+    if (user) {
+      loadPosts();
+      loadUserData();
 
-    // Listen for new posts
-    socket.on("receiveNewPost", ({ post }) => {
-      console.log("New post received:", post);
-      setListPosts(prevPosts => {
-        const newPosts = { ...prevPosts };
-        newPosts[post.id] = post;
-        return newPosts;
+      // Listen for new posts
+      socket.on("receiveNewPost", ({ post }) => {
+        setListPosts(prevPosts => {
+          const newPosts = { ...prevPosts };
+          newPosts[post.id] = post;
+          return newPosts;
+        });
       });
-    });
 
-    return () => {
-      socket.off("receiveNewPost");
-    };
-  }, []);
+      return () => {
+        socket.off("receiveNewPost");
+      };
+    }
+  }, [user]);
 
   const renderLeftPanel = () => {
+    if (!user) {
+      return <p>No user data found.</p>;
+    }
+
     return (
       <>
         {/* Profile Section */}
         <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
           <div className="flex items-center space-x-4 mb-4">
             <img
-              src={profile?.avatar || `https://api.dicebear.com/6.x/avataaars/svg?seed=${profile?.username}`}
-              alt={profile?.fullName}
+              src={user?.avatar || `https://api.dicebear.com/6.x/avataaars/svg?seed=${user?.username}`}
+              alt={user?.fullName}
               className="w-16 h-16 rounded-full"
             />
             <div>
-              <h2 className="font-semibold text-lg">{profile?.fullName || "Đang tải..."}</h2>
-              <p className="text-gray-500">@{profile?.username || "..."}</p>
+              <h2 className="font-semibold text-lg">{user?.fullName || "Đang tải..."}</h2>
+              <p className="text-gray-500">@{user?.username || "..."}</p>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <div className="font-semibold">{profile?.friends || 0}</div>
+              <div className="font-semibold">{user?.friends || 0}</div>
               <div className="text-gray-500 text-sm">Bạn bè</div>
             </div>
             <div>
-              <div className="font-semibold">{profile?.photos || 0}</div>
+              <div className="font-semibold">{user?.photos || 0}</div>
               <div className="text-gray-500 text-sm">Ảnh</div>
             </div>
             <div>
-              <div className="font-semibold">{profile?.likes || 0}</div>
+              <div className="font-semibold">{user?.likes || 0}</div>
               <div className="text-gray-500 text-sm">Thích</div>
             </div>
           </div>
@@ -181,6 +190,10 @@ const HomePageUI = () => {
   };
 
   const renderMainContent = () => {
+    if (!user) {
+      return <p>Please log in to view content.</p>;
+    }
+
     switch (activeTab) {
       case 'home':
         return (
@@ -189,6 +202,7 @@ const HomePageUI = () => {
               <FormCreatePost
                 setFormCreatePostVisible={setFormCreatePostVisible}
                 reloadPosts={loadPosts}
+                user={user}
               />
             )}
             {isLoading ? (
@@ -211,6 +225,7 @@ const HomePageUI = () => {
                       commentCountDefault={postData.commentCount}
                       post={postData.post}
                       user={postData.infoUserList[postData.post.idUser]}
+                      currentUser={user}
                     />
                   );
                 })}
@@ -219,10 +234,10 @@ const HomePageUI = () => {
           </>
         );
       case 'notifications':
-        return <NotificationsUI />;
+        return <NotificationsUI user={user} />;
       case 'messages':
         return selectedChat ? (
-          <ChatUI chat={selectedChat} onBack={() => setSelectedChat(null)} />
+          <ChatUI chat={selectedChat} onBack={() => setSelectedChat(null)} user={user} />
         ) : (
           <div className="h-full flex items-center justify-center text-gray-500">
             <div className="text-center">
@@ -232,15 +247,23 @@ const HomePageUI = () => {
           </div>
         );
       case 'friends':
-        return <FriendsUI />;
+        return <FriendsUI user={user} />;
       default:
         return null;
     }
   };
 
+  if (!user) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <p className="text-xl text-gray-600">Please log in to access the application.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen overflow-hidden">
-      <HeaderUI />
+      <HeaderUI user={user} />
       <div className="grid grid-cols-12 gap-4 px-2 py-6 h-full">
         {/* Left Sidebar */}
         <div className="col-span-12 md:col-span-3 pt-10 overflow-y-auto">
@@ -259,9 +282,10 @@ const HomePageUI = () => {
               showInRightPanel={true} 
               onChatSelect={handleChatSelect}
               selectedChatId={selectedChat?.id}
+              user={user}
             />
           ) : activeTab === 'friends' ? (
-            <UserSearchUI />
+            <UserSearchUI user={user} />
           ) : (
             <>
               {/* Online Friends */}
@@ -332,4 +356,4 @@ const HomePageUI = () => {
   );
 };
 
-export default HomePageUI;
+export default HomePageUI; 
