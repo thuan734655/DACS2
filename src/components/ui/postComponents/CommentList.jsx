@@ -25,6 +25,31 @@ function CommentList({
     }));
   };
 
+  // Helper function to find and update nested replies
+  const updateNestedReplies = (comments, commentId, newReply) => {
+    return comments.map(comment => {
+      if (comment.commentId === commentId || comment.replyId === commentId) {
+        // If this is the target comment, add the new reply
+        return {
+          ...comment,
+          replies: [...(comment.replies || []), {
+            ...newReply,
+            replyId: newReply.id,
+            user: Array.isArray(newReply.user) ? newReply.user : [newReply.user],
+            replies: []
+          }]
+        };
+      } else if (comment.replies && comment.replies.length > 0) {
+        // If this comment has replies, recursively search them
+        return {
+          ...comment,
+          replies: updateNestedReplies(comment.replies, commentId, newReply)
+        };
+      }
+      return comment;
+    });
+  };
+
   useEffect(() => {
     // Listen for new comments
     socket.on("receiveComment", ({ newComment }) => {
@@ -42,21 +67,12 @@ function CommentList({
     socket.on("receiveReplyToComment", ({ commentId, newReply }) => {
       console.log("Received reply:", { commentId, newReply });
       if (newReply) {
-        setCommentsList(prevComments => 
-          prevComments.map(comment => {
-            if (comment.commentId === commentId) {
-              return {
-                ...comment,
-                replies: [...(comment.replies || []), {
-                  ...newReply,
-                  replyId: newReply.id,
-                  user: Array.isArray(newReply.user) ? newReply.user : [newReply.user]
-                }]
-              };
-            }
-            return comment;
-          })
-        );
+        setCommentsList(prevComments => updateNestedReplies(prevComments, commentId, newReply));
+        // Automatically open the replies section when a new reply is added
+        setOpenReplies(prev => ({
+          ...prev,
+          [commentId]: true
+        }));
       }
     });
 
@@ -173,6 +189,7 @@ function CommentList({
                   setCommentCount={setCommentCount}
                   handleToggleCommentInput={handleToggleCommentInput}
                   activeId={activeId}
+                  depth={0}
                 />
               </div>
             )}
