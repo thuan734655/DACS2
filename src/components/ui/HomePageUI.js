@@ -11,6 +11,7 @@ import NavCreatePostUI from "./NavCreatePostUI"; // Import NavCreatePostUI
 import { getPosts } from "../../services/postService";
 import { getUserProfile, getOnlineFriends, getFriendRequests, respondToFriendRequest } from "../../services/userService";
 import { FaBell, FaEnvelope, FaUserFriends, FaHome, FaPen } from 'react-icons/fa';
+import socket from "../../services/socket";
 
 const HomePageUI = () => {
   const [formCreatePostVisible, setFormCreatePostVisible] = useState(false);
@@ -74,6 +75,20 @@ const HomePageUI = () => {
   useEffect(() => {
     loadPosts();
     loadUserData();
+
+    // Listen for new posts
+    socket.on("receiveNewPost", ({ post }) => {
+      console.log("New post received:", post);
+      setListPosts(prevPosts => {
+        const newPosts = { ...prevPosts };
+        newPosts[post.id] = post;
+        return newPosts;
+      });
+    });
+
+    return () => {
+      socket.off("receiveNewPost");
+    };
   }, []);
 
   const renderLeftPanel = () => {

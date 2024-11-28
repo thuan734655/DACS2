@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { X, Image } from "lucide-react";
-import { createPost } from "../../services/postService";
+import socket from "../../services/socket";
 
-const FromCreatePost = ({ setFormCreatePostVisible, reloadPosts }) => {
+const FromCreatePost = ({ setFormCreatePostVisible }) => {
   const [postText, setPostText] = useState("");
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -11,7 +11,6 @@ const FromCreatePost = ({ setFormCreatePostVisible, reloadPosts }) => {
 
   const handleClose = () => {
     setFormCreatePostVisible(false);
-    reloadPosts();
     setPostText("");
     setSelectedFiles([]);
   };
@@ -37,20 +36,38 @@ const FromCreatePost = ({ setFormCreatePostVisible, reloadPosts }) => {
     const idUser = parsedInfoUser.idUser;
 
     setIsLoading(true);
-    let formData = new FormData();
-    formData.append("text", postText);
-    formData.append("idUser", idUser);
-    formData.append("textColor", textColor);
-    formData.append("backgroundColor", backgroundColor);
-    formData.append("comments", []);
-
-    selectedFiles.forEach((fileData) => {
-      formData.append("media", fileData.file);
-    });
 
     try {
-      formData.forEach((fileData) => console.log(fileData));
-      await createPost(formData);
+      // Convert files to base64 with file info
+      const mediaPromises = selectedFiles.map(async (fileData) => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            resolve({
+              name: fileData.file.name,
+              type: fileData.file.type,
+              data: reader.result
+            });
+          };
+          reader.readAsDataURL(fileData.file);
+        });
+      });
+
+      const mediaFiles = await Promise.all(mediaPromises);
+
+      // Create post data
+      const postData = {
+        text: postText,
+        idUser: idUser,
+        textColor: textColor,
+        backgroundColor: backgroundColor,
+        listFileUrl: mediaFiles, 
+        comments: [],
+        createdAt: Date.now()
+      };
+
+      // Emit post data through WebSocket
+      socket.emit("newPost", { post: postData });
       handleClose();
     } catch (error) {
       console.error("Error posting:", error);
