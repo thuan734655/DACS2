@@ -7,6 +7,7 @@ import MessagesUI from "./MessagesUI";
 import ChatUI from "./ChatUI";
 import FriendsUI from "./FriendsUI";
 import UserSearchUI from "./UserSearchUI";
+import NavCreatePostUI from "./NavCreatePostUI"; // Import NavCreatePostUI
 import { getPosts } from "../../services/postService";
 import { getUserProfile, getOnlineFriends, getFriendRequests, respondToFriendRequest } from "../../services/userService";
 import { FaBell, FaEnvelope, FaUserFriends, FaHome, FaPen } from 'react-icons/fa';
@@ -169,8 +170,8 @@ const HomePageUI = () => {
         return (
           <>
             {formCreatePostVisible && (
-              <FormCreatePost 
-                onClose={() => setFormCreatePostVisible(false)}
+              <FormCreatePost
+                setFormCreatePostVisible={setFormCreatePostVisible}
                 reloadPosts={loadPosts}
               />
             )}
