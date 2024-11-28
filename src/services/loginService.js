@@ -1,29 +1,43 @@
-import axiosAPI from "./configAxios.js";
+import axios from "axios";
+
+const BASE_URL = "http://localhost:5000";
 
 export const requestOTP = async (email) => {
-  return await axiosAPI.post(`/requestOTP`, { email });
+  return await axios.post(`${BASE_URL}/requestOTP`, { email });
 };
 export const getInfoUser = async (idUser) => {
-  return await axiosAPI.post(`/info-user`, { idUser });
+  return await axios.post(`${BASE_URL}/info-user`, { idUser });
 };
 
 export const verifyOTP = async (email, otp, infoDevice) => {
-  return await axiosAPI.post(`/verify-otp`, { email, otp, infoDevice });
+  try {
+    console.log('Sending verify OTP request with:', { email, otp, infoDevice });
+    const response = await axios.post(`${BASE_URL}/verify-otp`, { email, otp, infoDevice });
+    console.log('Verify OTP response:', response);
+    return response;
+  } catch (error) {
+    console.log('Verify OTP error:', error);
+    if (error.response) {
+      console.log('Error response:', error.response.data);
+      console.log('Error status:', error.response.status);
+    }
+    throw error;
+  }
 };
 
 export const changePassword = async (email, otp, newPassword) => {
-  return await axiosAPI.post(`/change-password`, {
+  return await axios.post(`${BASE_URL}/change-password`, {
     email,
     otp,
     newPassword,
   });
 };
 
-
 export const signUp = async (formData) => {
   try {
-    const response = await axiosAPI.post(`/v1/auth/register`, formData);
-    return response;
+    const response = await axios.post(`${BASE_URL}/v1/auth/register`, formData);
+    console.log(response.data + "gsdgs");
+    return response.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error("Sign up failed.");
   }
@@ -31,18 +45,16 @@ export const signUp = async (formData) => {
 
 export const checkMail = async (formData) => {
   try {
-    const response = await axiosAPI.post(`/checkmail`, formData);
-    return response;
+    const response = await axios.post(`${BASE_URL}/checkmail`, formData);
+    return response.data;
   } catch (error) {
-    throw error.response
-      ? error.response.data
-      : new Error("Check mail failed.");
+    throw error.response ? error.response.data : new Error("Sign up failed.");
   }
 };
 
 export const login = async (email, password, visitorId) => {
   try {
-    const responses = await axiosAPI.post(`/v1/auth/login`, {
+    const responses = await axios.post(`${BASE_URL}/v1/auth/login`, {
      
       email,
       password,
@@ -53,7 +65,7 @@ export const login = async (email, password, visitorId) => {
       },
       body: JSON.stringify({ email, password }),
     });
-    return responses;
+    return responses.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error("Login failed.");
   }
@@ -62,8 +74,8 @@ export const login = async (email, password, visitorId) => {
 export const getConversationPartner = async (currentUserId) => {
   console.log("currentUserId:", currentUserId);
   try {
-    const response = await axiosAPI.get(
-      `/api/conversations/partner/${currentUserId}`
+    const response = await axios.get(
+      `${BASE_URL}/api/conversations/partner/${currentUserId}`
     );
     return response;
   } catch (error) {
