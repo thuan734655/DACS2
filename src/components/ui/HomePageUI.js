@@ -30,6 +30,7 @@ const HomePageUI = () => {
       setError(null);
       const response = await getPosts();
       if (response && response.data) {
+        console.log(Object.entries(response.data),"hehehe");
         setListPosts(response.data);
       } else {
         setListPosts({});
@@ -205,7 +206,7 @@ const HomePageUI = () => {
                   return (
                     <SocialPost
                       key={postId}
-                      postId={postId}
+                      postId={postData.post.postId}
                       groupedLikes={postData.groupedLikes}
                       commentCountDefault={postData.commentCount}
                       post={postData.post}
