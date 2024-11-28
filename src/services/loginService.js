@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:7749";
+const BASE_URL = "http://localhost:5000";
 
 export const requestOTP = async (email) => {
   return await axios.post(`${BASE_URL}/requestOTP`, { email });
