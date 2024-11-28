@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { ThumbsUp, MessageCircle, Flag, ChevronDown, ChevronRight } from "lucide-react";
 import CommentInput from "./CommentInput";
 import Replies from "./Replies";
 import socket from "../../../services/socket";
+import { formatTimestamp } from "../../../utils/timeFormat";
 
 function CommentList({
   commentsList,
@@ -27,7 +28,7 @@ function CommentList({
 
   // Helper function to find and update nested replies
   const updateNestedReplies = (comments, commentId, newReply) => {
-    return comments.map(comment => {
+    return comments.map((comment) => {
       if (comment.commentId === commentId || comment.replyId === commentId) {
         // If this is the target comment, add the new reply
         return {
@@ -55,11 +56,11 @@ function CommentList({
     socket.on("receiveComment", ({ newComment }) => {
       console.log("Received new comment:", newComment);
       if (newComment && newComment.postId === postId) {
-        setCommentsList(prevComments => [...prevComments, {
+        setCommentsList((prevComments) => [...prevComments, {
           ...newComment,
           replies: []
         }]);
-        setCommentCount(prev => prev + 1);
+        setCommentCount((prev) => prev + 1);
       }
     });
 
@@ -67,9 +68,9 @@ function CommentList({
     socket.on("receiveReplyToComment", ({ commentId, newReply }) => {
       console.log("Received reply:", { commentId, newReply });
       if (newReply) {
-        setCommentsList(prevComments => updateNestedReplies(prevComments, commentId, newReply));
+        setCommentsList((prevComments) => updateNestedReplies(prevComments, commentId, newReply));
         // Automatically open the replies section when a new reply is added
-        setOpenReplies(prev => ({
+        setOpenReplies((prev) => ({
           ...prev,
           [commentId]: true
         }));
@@ -82,42 +83,56 @@ function CommentList({
     };
   }, [postId, setCommentsList, setCommentCount]);
 
+  // Sort comments by timestamp in descending order (newest first)
+  const sortedComments = useMemo(() => {
+    return [...commentsList].sort((a, b) => {
+      const timestampA = new Date(a.timestamp || 0).getTime();
+      const timestampB = new Date(b.timestamp || 0).getTime();
+      return timestampB - timestampA;
+    });
+  }, [commentsList]);
+
   return (
     <div className="space-y-4">
-      {commentsList.map(
-        ({ idUser, replyId, commentId, user, text, fileUrls, replies }) => (
+      {sortedComments.map(
+        ({ idUser, replyId, commentId, user = [], text, fileUrls, replies, timestamp }) => (
           <div key={replyId || commentId} className="comment-thread" id={commentId}>
             {/* Hiển thị comment chính */}
             <div className="flex items-start gap-2 mb-2">
               <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
                 <img
-                  src={user[0].avatar || "anonymous"}
+                  src={user[0]?.avatar || "anonymous"}
                   alt="User avatar"
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="flex-1 bg-gray-100 rounded-lg p-2">
-                <p className="font-semibold text-sm">
-                  {user[0].fullName || "Anonymous"}
-                </p>
-                <p className="text-sm">{text || "No content available"}</p>
-                {fileUrls?.map((fileUrl, index) =>
-                  fileUrl.endsWith(".mp4") ? (
-                    <video
-                      key={index}
-                      controls
-                      className="w-full rounded-lg mt-2"
-                      src={"http://localhost:5000" + fileUrl}
-                    />
-                  ) : (
-                    <img
-                      key={index}
-                      className="w-full rounded-lg mt-2"
-                      src={"http://localhost:5000" + fileUrl}
-                      alt="Comment media"
-                    />
-                  )
-                )}
+              <div className="flex-1">
+                <div className="bg-gray-100 rounded-lg p-2">
+                  <p className="font-semibold text-sm">
+                    {user[0]?.fullName || "Anonymous"}
+                  </p>
+                  <p className="text-sm">{text || "No content available"}</p>
+                  {fileUrls?.map((fileUrl, index) =>
+                    fileUrl.endsWith(".mp4") ? (
+                      <video
+                        key={index}
+                        controls
+                        className="w-full rounded-lg mt-2"
+                        src={"http://localhost:5000" + fileUrl}
+                      />
+                    ) : (
+                      <img
+                        key={index}
+                        className="w-full rounded-lg mt-2"
+                        src={"http://localhost:5000" + fileUrl}
+                        alt="Comment media"
+                      />
+                    )
+                  )}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {formatTimestamp(timestamp)}
+                </div>
               </div>
             </div>
 
@@ -125,10 +140,10 @@ function CommentList({
             <div className="flex gap-4 ml-10">
               <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900">
                 {emojiChoose || (
-                  <>
+                  <React.Fragment>
                     <ThumbsUp className="h-4 w-4" />
                     <span>Thích</span>
-                  </>
+                  </React.Fragment>
                 )}
               </button>
               <button
@@ -148,15 +163,15 @@ function CommentList({
                   onClick={() => toggleReplies(commentId)}
                 >
                   {openReplies[commentId] ? (
-                    <>
+                    <React.Fragment>
                       <ChevronDown className="h-4 w-4" />
                       <span>Ẩn {replies.length} phản hồi</span>
-                    </>
+                    </React.Fragment>
                   ) : (
-                    <>
+                    <React.Fragment>
                       <ChevronRight className="h-4 w-4" />
                       <span>Xem thêm {replies.length} phản hồi</span>
-                    </>
+                    </React.Fragment>
                   )}
                 </button>
               )}
@@ -172,7 +187,7 @@ function CommentList({
                   setCommentCount={setCommentCount}
                   commentId={commentId}
                   isReply={true}
-                  replyName={user[0].fullName}
+                  replyName={user[0]?.fullName}
                   commentInputId={`comment-input-${commentId}`}
                 />
               </div>
