@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ThumbsUp, MessageCircle, Flag } from "lucide-react";
+import { ThumbsUp, MessageCircle, Flag, ChevronDown, ChevronRight } from "lucide-react";
 import CommentInput from "./CommentInput";
 import Replies from "./Replies";
 
@@ -15,12 +15,22 @@ function CommentList({
   const handleToggleCommentInput = (id) => {
     setActiveId((current) => (current === id ? null : id)); // Toggle active ID
   };
-  console.log(commentsList);
+
+  const [openReplies, setOpenReplies] = useState({}); // Trạng thái của replies con
+
+  const toggleReplies = (replyId) => {
+    setOpenReplies((prev) => ({
+
+      ...prev,
+      [replyId]: !prev[replyId], // Đảo trạng thái hiện tại của replyId
+    }));
+  };
+
   return (
     <div className="space-y-4">
       {commentsList.map(
         ({ idUser, replyId, commentId, user, text, fileUrls, replies }) => (
-          <div key={replyId || commentId} className="comment-thread">
+          <div key={replyId || commentId} className="comment-thread" id={commentId}>
             {/* Hiển thị comment chính */}
             <div className="flex items-start gap-2 mb-2">
               <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
@@ -76,6 +86,24 @@ function CommentList({
                 <Flag className="h-4 w-4" />
                 <span>Báo cáo</span>
               </button>
+              {replies?.length > 0 && (
+                <button
+                  className="flex items-center gap-1 text-gray-600 hover:text-gray-900"
+                  onClick={() => toggleReplies(commentId)}
+                >
+                  {openReplies[commentId] ? (
+                    <>
+                      <ChevronDown className="h-4 w-4" />
+                      <span>Ẩn {replies.length} phản hồi</span>
+                    </>
+                  ) : (
+                    <>
+                      <ChevronRight className="h-4 w-4" />
+                      <span>Xem thêm {replies.length} phản hồi</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
 
             {/* Hiển thị khung nhập nếu comment đang được active */}
@@ -83,6 +111,7 @@ function CommentList({
               <div className="ml-10 mt-2">
                 <CommentInput
                   postId={postId}
+                  replyTo={commentId}
                   setCommentsList={setCommentsList}
                   setCommentCount={setCommentCount}
                   commentId={commentId}
@@ -93,19 +122,19 @@ function CommentList({
               </div>
             )}
 
-            {/* Hiển thị replies */}
-            {replies?.length > 0 && (
-              <Replies
-                commentsList={replies}
-                emojiChoose={emojiChoose}
-                postId={postId}
-                setCommentsList={setCommentsList}
-                setCommentCount={setCommentCount}
-                user={user}
-                handleToggleCommentInput={handleToggleCommentInput}
-                activeId={activeId}
-                maxDepth={3} // Giới hạn cấp độ tối đa
-              />
+            {/* Hiển thị replies khi được mở */}
+            {openReplies[commentId] && replies?.length > 0 && (
+              <div className="ml-10">
+                <Replies
+                  commentsList={replies}
+                  emojiChoose={emojiChoose}
+                  postId={postId}
+                  setCommentsList={setCommentsList}
+                  setCommentCount={setCommentCount}
+                  handleToggleCommentInput={handleToggleCommentInput}
+                  activeId={activeId}
+                />
+              </div>
             )}
           </div>
         )

@@ -108,10 +108,10 @@ function CommentInput({
       // Emit comment or reply to the server
       if (isReply) {
         const replyContent = { replyData: comment, commentId };
-        console.log(commentId);
+        console.log(commentId)
+        console.log(document.querySelector(`#${commentId}`))
         socket.emit("replyComment", replyContent);
       } else if (replyId) {
-        console.log(replyId, 123);
         const replyContent = { replyData: comment, replyId: replyId };
         socket.emit("replyToReply", replyContent);
       } else {

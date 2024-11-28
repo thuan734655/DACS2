@@ -27,7 +27,6 @@ const Replies = ({
       [replyId]: !prev[replyId], // Đảo trạng thái hiện tại của replyId
     }));
   };
-  console.log(depth);
   return (
     <div className={`${depth < 5 ? "ml-4" : "reset-ml"} mt-2`}>
       {/* Duyệt qua từng reply trong commentsList */}
@@ -105,7 +104,7 @@ const Replies = ({
                 ) : (
                   <>
                     <ChevronRight className="h-4 w-4" />
-                    <span>Xem thêm</span>
+                    <span>Xem thêm {reply.replies.length} phản hồi</span>
                   </>
                 )}
               </button>
