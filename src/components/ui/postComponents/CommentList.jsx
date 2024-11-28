@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ThumbsUp, MessageCircle, Flag, ChevronDown, ChevronRight } from "lucide-react";
 import CommentInput from "./CommentInput";
 import Replies from "./Replies";
+import socket from "../../../services/socket";
 
 function CommentList({
   commentsList,
@@ -10,21 +11,60 @@ function CommentList({
   setCommentsList,
   setCommentCount,
 }) {
-  const [activeId, setActiveId] = useState(null); // ID của comment đang mở khung nhập
+  const [activeId, setActiveId] = useState(null);
+  const [openReplies, setOpenReplies] = useState({});
 
   const handleToggleCommentInput = (id) => {
-    setActiveId((current) => (current === id ? null : id)); // Toggle active ID
+    setActiveId((current) => (current === id ? null : id));
   };
-
-  const [openReplies, setOpenReplies] = useState({}); // Trạng thái của replies con
 
   const toggleReplies = (replyId) => {
     setOpenReplies((prev) => ({
-
       ...prev,
-      [replyId]: !prev[replyId], // Đảo trạng thái hiện tại của replyId
+      [replyId]: !prev[replyId],
     }));
   };
+
+  useEffect(() => {
+    // Listen for new comments
+    socket.on("receiveComment", ({ newComment }) => {
+      console.log("Received new comment:", newComment);
+      if (newComment && newComment.postId === postId) {
+        setCommentsList(prevComments => [...prevComments, {
+          ...newComment,
+          replies: []
+        }]);
+        setCommentCount(prev => prev + 1);
+      }
+    });
+
+    // Listen for new replies
+    socket.on("receiveReplyToComment", ({ commentId, newReply }) => {
+      console.log("Received reply:", { commentId, newReply });
+      if (newReply) {
+        setCommentsList(prevComments => 
+          prevComments.map(comment => {
+            if (comment.commentId === commentId) {
+              return {
+                ...comment,
+                replies: [...(comment.replies || []), {
+                  ...newReply,
+                  replyId: newReply.id,
+                  user: Array.isArray(newReply.user) ? newReply.user : [newReply.user]
+                }]
+              };
+            }
+            return comment;
+          })
+        );
+      }
+    });
+
+    return () => {
+      socket.off("receiveComment");
+      socket.off("receiveReplyToComment");
+    };
+  }, [postId, setCommentsList, setCommentCount]);
 
   return (
     <div className="space-y-4">
@@ -35,7 +75,7 @@ function CommentList({
             <div className="flex items-start gap-2 mb-2">
               <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
                 <img
-                  src={user[0].avatar || "aonymous"}
+                  src={user[0].avatar || "anonymous"}
                   alt="User avatar"
                   className="w-full h-full object-cover"
                 />
