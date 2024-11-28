@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { ThumbsUp, MessageCircle, Flag, ChevronDown, ChevronRight } from "lucide-react";
 import CommentInput from "./CommentInput";
 import Replies from "./Replies";
 import socket from "../../../services/socket";
-import { formatTimestamp } from "../../../utils/timeFormat";
 
 function CommentList({
   commentsList,
@@ -27,24 +26,19 @@ function CommentList({
   };
 
   // Helper function to find and update nested replies
-  const updateNestedReplies = (comments, commentId, newReply) => {
+  const updateNestedReplies = (comments, replyId, newReply) => {
     return comments.map((comment) => {
-      if (comment.commentId === commentId || comment.replyId === commentId) {
-        // If this is the target comment, add the new reply
+      if (comment.replyId === replyId) {
+        // If this is the target reply, add the new reply to its replies array
         return {
           ...comment,
-          replies: [...(comment.replies || []), {
-            ...newReply,
-            replyId: newReply.id,
-            user: Array.isArray(newReply.user) ? newReply.user : [newReply.user],
-            replies: []
-          }]
+          replies: [...(comment.replies || []), newReply],
         };
       } else if (comment.replies && comment.replies.length > 0) {
         // If this comment has replies, recursively search them
         return {
           ...comment,
-          replies: updateNestedReplies(comment.replies, commentId, newReply)
+          replies: updateNestedReplies(comment.replies, replyId, newReply),
         };
       }
       return comment;
@@ -54,43 +48,54 @@ function CommentList({
   useEffect(() => {
     // Listen for new comments
     socket.on("receiveComment", ({ newComment }) => {
-      console.log("Received new comment:", newComment);
       if (newComment && newComment.postId === postId) {
-        setCommentsList((prevComments) => [...prevComments, {
-          ...newComment,
-          replies: []
-        }]);
+        setCommentsList((prevComments) => [...prevComments, { ...newComment, replies: [] }]);
         setCommentCount((prev) => prev + 1);
       }
     });
 
-    // Listen for new replies
+    // Listen for new replies to comments
     socket.on("receiveReplyToComment", ({ commentId, newReply }) => {
-      console.log("Received reply:", { commentId, newReply });
       if (newReply) {
-        setCommentsList((prevComments) => updateNestedReplies(prevComments, commentId, newReply));
-        // Automatically open the replies section when a new reply is added
-        setOpenReplies((prev) => ({
-          ...prev,
-          [commentId]: true
-        }));
+        setCommentsList((prevComments) => {
+          return prevComments.map((comment) => {
+            if (comment.commentId === commentId) {
+              return {
+                ...comment,
+                replies: [...(comment.replies || []), newReply],
+              };
+            }
+            return comment;
+          });
+        });
+        setOpenReplies((prev) => ({ ...prev, [commentId]: true }));
+      }
+    });
+
+    // Listen for replies to replies
+    socket.on("receiveReplyToReply", ({ replyId, newReply }) => {
+      if (newReply) {
+        setCommentsList((prevComments) => {
+          return prevComments.map((comment) => {
+            if (comment.replies && comment.replies.length > 0) {
+              return {
+                ...comment,
+                replies: updateNestedReplies(comment.replies, replyId, newReply),
+              };
+            }
+            return comment;
+          });
+        });
+        setOpenReplies((prev) => ({ ...prev, [replyId]: true }));
       }
     });
 
     return () => {
       socket.off("receiveComment");
       socket.off("receiveReplyToComment");
+      socket.off("receiveReplyToReply");
     };
   }, [postId, setCommentsList, setCommentCount]);
-
-  // Sort comments by timestamp in descending order (newest first)
-  const sortedComments = useMemo(() => {
-    return [...commentsList].sort((a, b) => {
-      const timestampA = new Date(a.timestamp || 0).getTime();
-      const timestampB = new Date(b.timestamp || 0).getTime();
-      return timestampB - timestampA;
-    });
-  }, [commentsList]);
 
   return (
     <div className="space-y-4">
