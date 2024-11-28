@@ -9,7 +9,7 @@ const socket = io("http://localhost:5000");
 const SubPost = ({ postId, user, post, setShowSubPost, setCommentCount }) => {
   const [commentsList, setCommentsList] = useState([]);
   const [loading, setLoading] = useState(true); // Loading state to track comments fetching
-
+console.log(postId ,"posf")
   useEffect(() => {
     // Emit event to fetch all comments for the post
     socket.emit("getCommentsAll", { postId });

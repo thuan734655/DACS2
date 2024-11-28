@@ -7,9 +7,11 @@ import MessagesUI from "./MessagesUI";
 import ChatUI from "./ChatUI";
 import FriendsUI from "./FriendsUI";
 import UserSearchUI from "./UserSearchUI";
+import NavCreatePostUI from "./NavCreatePostUI"; // Import NavCreatePostUI
 import { getPosts } from "../../services/postService";
 import { getUserProfile, getOnlineFriends, getFriendRequests, respondToFriendRequest } from "../../services/userService";
 import { FaBell, FaEnvelope, FaUserFriends, FaHome, FaPen } from 'react-icons/fa';
+import socket from "../../services/socket";
 
 const HomePageUI = () => {
   const [formCreatePostVisible, setFormCreatePostVisible] = useState(false);
@@ -28,6 +30,7 @@ const HomePageUI = () => {
       setError(null);
       const response = await getPosts();
       if (response && response.data) {
+        console.log(Object.entries(response.data),"hehehe");
         setListPosts(response.data);
       } else {
         setListPosts({});
@@ -73,6 +76,20 @@ const HomePageUI = () => {
   useEffect(() => {
     loadPosts();
     loadUserData();
+
+    // Listen for new posts
+    socket.on("receiveNewPost", ({ post }) => {
+      console.log("New post received:", post);
+      setListPosts(prevPosts => {
+        const newPosts = { ...prevPosts };
+        newPosts[post.id] = post;
+        return newPosts;
+      });
+    });
+
+    return () => {
+      socket.off("receiveNewPost");
+    };
   }, []);
 
   const renderLeftPanel = () => {
@@ -169,8 +186,8 @@ const HomePageUI = () => {
         return (
           <>
             {formCreatePostVisible && (
-              <FormCreatePost 
-                onClose={() => setFormCreatePostVisible(false)}
+              <FormCreatePost
+                setFormCreatePostVisible={setFormCreatePostVisible}
                 reloadPosts={loadPosts}
               />
             )}
@@ -189,7 +206,7 @@ const HomePageUI = () => {
                   return (
                     <SocialPost
                       key={postId}
-                      postId={postId}
+                      postId={postData.post.postId}
                       groupedLikes={postData.groupedLikes}
                       commentCountDefault={postData.commentCount}
                       post={postData.post}

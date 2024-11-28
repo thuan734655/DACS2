@@ -9,6 +9,7 @@ import SubPost from "./postComponents/SubPost";
 const socket = io("http://localhost:5000");
 
 function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
+  console.log(postId,"fasfas");
   const { shares } = post;
   const [idUser, setIdUser] = useState(
     JSON.parse(localStorage.getItem("user"))?.idUser || ""
