@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { ThumbsUp, MessageCircle, Flag, ChevronDown, ChevronRight } from "lucide-react";
 import CommentInput from "./CommentInput";
 import Replies from "./Replies";
 import socket from "../../../services/socket";
+import { formatTimestamp } from "../../../utils/timeFormat";
 
 function CommentList({
   commentsList,
@@ -11,17 +12,19 @@ function CommentList({
   setCommentsList,
   setCommentCount,
 }) {
-  const [activeId, setActiveId] = useState(null);
-  const [openReplies, setOpenReplies] = useState({});
+  const [activeId, setActiveId] = useState(null); // ID của comment đang mở khung nhập
+  const [openReplies, setOpenReplies] = useState({}); // Trạng thái của replies con
 
+  // Toggle input field for comment reply
   const handleToggleCommentInput = (id) => {
-    setActiveId((current) => (current === id ? null : id));
+    setActiveId((current) => (current === id ? null : id)); // Toggle active ID
   };
 
+  // Toggle replies visibility
   const toggleReplies = (replyId) => {
     setOpenReplies((prev) => ({
       ...prev,
-      [replyId]: !prev[replyId],
+      [replyId]: !prev[replyId], // Đảo trạng thái hiện tại của replyId
     }));
   };
 
@@ -45,11 +48,15 @@ function CommentList({
     });
   };
 
+  // Update the comment list when new comment or reply is received
   useEffect(() => {
     // Listen for new comments
     socket.on("receiveComment", ({ newComment }) => {
       if (newComment && newComment.postId === postId) {
-        setCommentsList((prevComments) => [...prevComments, { ...newComment, replies: [] }]);
+        setCommentsList((prevComments) => [
+          ...prevComments,
+          { ...newComment, replies: [] },
+        ]);
         setCommentCount((prev) => prev + 1);
       }
     });
@@ -96,6 +103,15 @@ function CommentList({
       socket.off("receiveReplyToReply");
     };
   }, [postId, setCommentsList, setCommentCount]);
+
+  // Sort comments by timestamp in descending order (newest first)
+  const sortedComments = useMemo(() => {
+    return [...commentsList].sort((a, b) => {
+      const timestampA = new Date(a.timestamp || 0).getTime();
+      const timestampB = new Date(b.timestamp || 0).getTime();
+      return timestampB - timestampA;
+    });
+  }, [commentsList]);
 
   return (
     <div className="space-y-4">

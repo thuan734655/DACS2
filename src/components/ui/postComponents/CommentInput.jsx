@@ -60,7 +60,22 @@ function CommentInput({
     setEmojiPicker(false);
   }, []);
 
- 
+  // Listen for new comments from the server
+  useEffect(() => {
+    socket.on("receiveComment", ({ newComment }) => {
+      console.log(newComment);
+      newComment.user = [newComment.user];
+      if (newComment.postId === postId) {
+        setCommentsList((prevComments) => [...prevComments, newComment]);
+        setCommentCount((prevCount) => prevCount + 1);
+      }
+    });
+
+    return () => {
+      socket.off("receiveComment");
+    };
+  }, [postId, setCommentsList, setCommentCount]);
+
   // Handle comment submission
   const handleAddComment = useCallback(async () => {
     const userInfo = localStorage.getItem("user");
@@ -92,18 +107,14 @@ function CommentInput({
 
       // Emit comment or reply to the server
       if (isReply) {
-        console.log("new ");
-
         const replyContent = { replyData: comment, commentId };
+        console.log(commentId)
+        console.log(document.querySelector(`#${commentId}`))
         socket.emit("replyComment", replyContent);
       } else if (replyId) {
-        console.log("new replies");
-
         const replyContent = { replyData: comment, replyId: replyId };
         socket.emit("replyToReply", replyContent);
       } else {
-        console.log("new comment");
-        console.log(postId)
         socket.emit("newComment", { comment });
       }
 
@@ -112,6 +123,7 @@ function CommentInput({
       setSelectedFiles([]);
     }
   }, [newComment, selectedFiles, postId, idUser, isReply, commentId]);
+
   return (
     <div
       className="flex items-start gap-3 p-4 bg-white rounded-lg shadow-sm border border-gray-100 hover:border-gray-200 transition-all duration-200"
