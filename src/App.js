@@ -5,6 +5,7 @@ import LoginUI from "./components/ui/LoginUI";
 import MessageUI from "./components/ui/MessageUI";
 import ProfileUI from "./components/ui/ProfileUI";
 import SignUp from "./components/ui/SignUp";
+import NotificationPage from './pages/NotificationPage';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
           <Route path="/homepage" element={<HomePageUI />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/profile" element={<ProfileUI />} />
+          <Route path="/notifications" element={<NotificationPage />} />
         </Routes>
       </Router>
     </div>

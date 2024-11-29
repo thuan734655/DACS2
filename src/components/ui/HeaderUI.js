@@ -1,8 +1,42 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Logo from "../../assets/imgs/Logo.png";
 import { LogOut, User } from "lucide-react";
+import NotificationComponent from "../NotificationComponent";
+import { Link } from 'react-router-dom';
+import { subscribeToNotifications } from '../../services/notificationSocket';
 
-const HeaderUI = () => {
+const HeaderUI = ({ user }) => {
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (user?.idUser) {
+      subscribeToNotifications(user.idUser, {
+        onNotificationsList: (notificationsList) => {
+          setNotifications(notificationsList);
+          const unread = notificationsList.filter(n => !n.read).length;
+          setUnreadCount(unread);
+        },
+        onNewNotification: (notification) => {
+          setNotifications(prev => [notification, ...prev]);
+          setUnreadCount(prev => prev + 1);
+        },
+        onNotificationRead: (notificationId) => {
+          setNotifications(prev =>
+            prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+          );
+          setUnreadCount(prev => Math.max(0, prev - 1));
+        },
+        onAllNotificationsRead: () => {
+          setNotifications(prev =>
+            prev.map(n => ({ ...n, read: true }))
+          );
+          setUnreadCount(0);
+        }
+      });
+    }
+  }, [user?.idUser]);
+
   return (
     <div className="bg-white shadow-md py-2 fixed w-full z-10">
       <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
@@ -36,6 +70,15 @@ const HeaderUI = () => {
 
         {/* Icons bên phải */}
         <div className="w-60 flex justify-end space-x-4 pl-42"> 
+          {user && (
+            <Link to="/notifications" className="relative">
+              <NotificationComponent 
+                notifications={notifications}
+                unreadCount={unreadCount}
+                userId={user.idUser}
+              />
+            </Link>
+          )}
           <button 
             className="p-2 hover:bg-gray-100 rounded-full w-10 h-10 flex items-center justify-center bg-gray-50 border border-gray-200 transition-colors duration-200" 
             title="Hồ sơ"
