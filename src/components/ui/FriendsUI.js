@@ -60,14 +60,19 @@ const FriendsUI = () => {
 
   const handleAddFriend = async (userId) => {
     try {
-      // Gọi API để gửi lời mời kết bạn
-      await sendFriendRequest(userId);
+      if (!user) {
+        setError("Vui lòng đăng nhập để thực hiện chức năng này");
+        return;
+      }
+      console.log("Sending friend request with:", { userId, requesterId: user.idUser });
+      // Gọi API để gửi lời mời kết bạn với requesterId
+      await sendFriendRequest(userId, user.idUser);
       // Cập nhật lại danh sách gợi ý kết bạn
       const updatedSuggestions = await getSuggestedFriends();
       setSuggestedFriends(updatedSuggestions);
     } catch (error) {
-      console.error("Error sending friend request:", error);
-      setError("Có lỗi xảy ra khi gửi lời mời kết bạn. Vui lòng thử lại sau.");
+      console.error("Error sending friend request:", error.response?.data || error.message || error);
+      setError(error.response?.data?.message || "Có lỗi xảy ra khi gửi lời mời kết bạn. Vui lòng thử lại sau.");
     }
   };
   const renderFriendRequests = () => (

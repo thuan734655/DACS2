@@ -60,9 +60,11 @@ export const getSuggestedFriends = async (limit = 10) => {
     return [];
   }
 };
-export const sendFriendRequest = async (userId) => {
+export const sendFriendRequest = async (userId, requesterId) => {
   try {
-    const response = await axiosAPI.post("/api/users/send-friend-request", { userId });
+    const response = await axiosAPI.post(`/api/users/${userId}/send-friend-request`, {
+      requesterId: requesterId  // Thêm requesterId vào body
+    });
     return response.data;
   } catch (error) {
     console.error("Lỗi khi gửi lời mời kết bạn:", error);
