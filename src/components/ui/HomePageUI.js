@@ -38,6 +38,7 @@ const HomePageUI = () => {
       const response = await getPosts();
       if (response && response.data) {
         setListPosts(response.data);
+        console.log(response.data);
       } else {
         setListPosts({});
       }
@@ -49,6 +50,7 @@ const HomePageUI = () => {
     }
   };
 
+  console.log(listPosts);
   const loadUserData = async () => {
     try {
       const [onlineFriendsData, friendRequestsData] = await Promise.all([
@@ -88,15 +90,13 @@ const HomePageUI = () => {
         
         setListPosts(prevPosts => {
           const newPosts = { ...prevPosts };
-          const postId = post.id || Date.now().toString();
+          const postId = post.postId || Date.now().toString();
           
           // Structure the post data properly
           newPosts[postId] = {
             post: {
               ...post,
-              postId: postId,
               toggle: false, // Initialize toggle state
-              idUser: post.idUser,
               text: post.text || "",
               textColor: post.textColor || "#000000",
               backgroundColor: post.backgroundColor || "#ffffff",
@@ -244,7 +244,7 @@ const HomePageUI = () => {
                   return (
                     <SocialPost
                       key={postId}
-                      postId={postData.post.postId || postData.postId}
+                      postId={postData.post.postId || postId}
                       groupedLikes={postData.groupedLikes}
                       commentCountDefault={postData.commentCount}
                       post={postData.post}
