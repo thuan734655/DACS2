@@ -78,7 +78,8 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
       .filter(([emoji, users]) => users.length > 0)
       .map(([emoji, users]) => {
         users.forEach(user => { 
-          if ((user - '0') === idUser) {
+          console.log(user,idUser);
+          if ((user - '0') == idUser) {
             selectedEmoji = emoji;
           }  
         });
@@ -93,7 +94,6 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
           </div>
         );
       });
-console.log(emojiChoose, selectedEmoji);
     if (selectedEmoji !== emojiChoose) {
       setEmojiChoose(selectedEmoji);
     }
