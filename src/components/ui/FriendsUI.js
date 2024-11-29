@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FaUserPlus, FaUserFriends, FaUserClock, FaTimes, FaCheck } from 'react-icons/fa';
 import { getSuggestedFriends, getFriendRequests, respondToFriendRequest, sendFriendRequest } from '../../services/userService';
+import { toast } from 'react-toastify';
 const FriendsUI = () => {
   const [activeTab, setActiveTab] = useState('requests'); // 'requests' or 'suggestions'
   const [friendRequests, setFriendRequests] = useState([]);
@@ -16,13 +17,16 @@ const FriendsUI = () => {
       
       setIsLoading(true);
       try {
-        const [requestsData, suggestionsData]= await Promise.all([
+        const [requestsData, suggestionsData] = await Promise.all([
           getFriendRequests(),
           getSuggestedFriends()
-        ]);        
+        ]);
+        
+        console.log('Friend requests data:', requestsData);
+        
         if (!Array.isArray(suggestionsData)) {
           throw new Error("Invalid suggestions data");
-        }      
+        }
         setFriendRequests(requestsData);
         setSuggestedFriends(suggestionsData);
       } catch (err) {
@@ -42,22 +46,36 @@ const FriendsUI = () => {
       setUser(JSON.parse(userData));
     }
   }, []);
-  const handleFriendRequest = async (userId, accept) => {
+  const handleFriendRequest = async (requesterId, accept) => {
     try {
-      await respondToFriendRequest(userId, accept);
+      console.log('Handling friend request:', { requesterId, accept });
+      
+      await respondToFriendRequest(requesterId, accept);
+      // Hiển thị thông báo thành công
+      toast.success(accept ? "Đã chấp nhận lời mời kết bạn" : "Đã từ chối lời mời kết bạn");
+      
       // Cập nhật lại cả danh sách lời mời kết bạn và gợi ý kết bạn
       const [updatedRequests, updatedSuggestions] = await Promise.all([
         getFriendRequests(),
         getSuggestedFriends()
       ]);
+      
+      console.log('Updated data after response:', {
+        requests: updatedRequests,
+        suggestions: updatedSuggestions
+      });
+      
       setFriendRequests(updatedRequests);
       setSuggestedFriends(updatedSuggestions);
     } catch (error) {
-      console.error("Error handling friend request:", error);
-      setError("Có lỗi xảy ra khi xử lý lời mời kết bạn. Vui lòng thử lại sau.");
+      const errorMessage = error.response?.data?.message || "Có lỗi xảy ra khi xử lý lời mời kết bạn";
+      console.error("Error handling friend request:", {
+        error: error.response?.data || error.message || error,
+        requestData: { requesterId, accept }
+      });
+      toast.error(errorMessage);
     }
   };
-
   const handleAddFriend = async (userId) => {
     try {
       if (!user) {
@@ -78,38 +96,46 @@ const FriendsUI = () => {
   const renderFriendRequests = () => (
     <div className="space-y-4">
       <h3 className="font-semibold text-lg mb-4">Lời mời kết bạn</h3>
-      {friendRequests.length === 0 ? (
+      {!friendRequests || friendRequests.length === 0 ? (
         <p className="text-gray-500 text-center">Không có lời mời kết bạn nào</p>
       ) : (
-        friendRequests.map(request => (
-          <div key={request.id} className="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-lg">
-            <img
-              src={request.avatar}
-              alt={request.name}
-              className="w-12 h-12 rounded-full"
-            />
-            <div className="flex-grow">
-              <h4 className="font-medium">{request.name}</h4>
-              <p className="text-sm text-gray-500">{request.mutualFriends} bạn chung</p>
-              <div className="flex space-x-2 mt-2">
-                <button
-                  onClick={() => handleFriendRequest(request.id, true)}
-                  className="px-4 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm flex items-center"
-                >
-                  <FaCheck className="mr-1" />
-                  Chấp nhận
-                </button>
-                <button
-                  onClick={() => handleFriendRequest(request.id, false)}
-                  className="px-4 py-1 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm flex items-center"
-                >
-                  <FaTimes className="mr-1" />
-                  Từ chối
-                </button>
+        friendRequests.map(request => {
+          // Thêm log để debug
+          console.log('Request data:', request);
+          
+          return (
+            <div key={request.id} className="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-lg">
+              <img
+                src={request.avatar || '/default-avatar.png'}
+                alt={request.fullName}
+                className="w-12 h-12 rounded-full object-cover"
+              />
+              <div className="flex-grow">
+                <h4 className="font-medium">{request.fullName}</h4>
+                <div className="flex space-x-2 mt-2">
+                  <button
+                    onClick={() => {
+                      // Sử dụng requester_id thay vì requesterId
+                      console.log('Accepting request from:', request.requester_id);
+                      handleFriendRequest(request.requester_id, true);
+                    }}
+                    className="px-4 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm flex items-center"
+                  >
+                    <FaCheck className="mr-1" />
+                    Chấp nhận
+                  </button>
+                  <button
+                    onClick={() => handleFriendRequest(request.requester_id, false)}
+                    className="px-4 py-1 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm flex items-center"
+                  >
+                    <FaTimes className="mr-1" />
+                    Từ chối
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))
+          );
+        })
       )}
     </div>
   );
