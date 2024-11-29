@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, Image } from "lucide-react";
 import socket from "../../services/socket";
 
@@ -8,7 +8,7 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [textColor, setTextColor] = useState("#000000");
   const [backgroundColor, setBackgroundColor] = useState("#ffffff");
-
+  const [user, setUser] = useState(null)
   const handleClose = () => {
     setFormCreatePostVisible(false);
     setPostText("");
@@ -75,6 +75,13 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
       setIsLoading(false);
     }
   };
+  useEffect(() => {
+    // Lấy dữ liệu từ localStorage
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
@@ -93,12 +100,12 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
         {/* User Info */}
         <div className="p-4 flex items-center gap-2">
           <img
-            src="/placeholder.svg?height=40&width=40"
+            src={user?.avatar || "/placeholder.svg?height=40&width=40"}
             alt="User avatar"
             className="w-10 h-10 rounded-full"
           />
           <div>
-            <div className="font-semibold">Your Name</div>
+            <div className="font-semibold">{user?.fullName || "Loading..."}</div>
           </div>
         </div>
 
