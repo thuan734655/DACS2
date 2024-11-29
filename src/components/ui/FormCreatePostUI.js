@@ -46,7 +46,7 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
             resolve({
               name: fileData.file.name,
               type: fileData.file.type,
-              data: reader.result
+              data: reader.result,
             });
           };
           reader.readAsDataURL(fileData.file);
@@ -54,20 +54,33 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
       });
 
       const mediaFiles = await Promise.all(mediaPromises);
+      const timestamp = Date.now();
+      const postId = timestamp.toString();
 
-      // Create post data
+      // Create post data with proper structure
       const postData = {
+        id: postId,
+        postId: postId,
         text: postText,
         idUser: idUser,
         textColor: textColor,
         backgroundColor: backgroundColor,
-        listFileUrl: mediaFiles, 
+        listFileUrl: mediaFiles,
         comments: [],
-        createdAt: Date.now()
+        createdAt: timestamp,
+        toggle: false, // Initialize toggle state
+        groupedLikes: [],
+        commentCount: 0,
       };
 
       // Emit post data through WebSocket
-      socket.emit("newPost", { post: postData });
+      socket.emit("newPost", {
+        post: postData,
+        infoUserList: {
+          [idUser]: parsedInfoUser,
+        },
+      });
+
       handleClose();
     } catch (error) {
       console.error("Error posting:", error);
