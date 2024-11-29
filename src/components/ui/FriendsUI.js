@@ -46,34 +46,47 @@ const FriendsUI = () => {
       setUser(JSON.parse(userData));
     }
   }, []);
-  const handleFriendRequest = async (requesterId, accept) => {
+  const handleFriendRequest = async (requester_id, accept) => {
     try {
-      console.log('Handling friend request:', { requesterId, accept });
+      setIsLoading(true); // Thêm loading state khi xử lý
       
-      await respondToFriendRequest(requesterId, accept);
-      // Hiển thị thông báo thành công
-      toast.success(accept ? "Đã chấp nhận lời mời kết bạn" : "Đã từ chối lời mời kết bạn");
+      console.log('Xử lý lời mời kết bạn:', {
+        requester_id,
+        action: accept ? 'Chấp nhận' : 'Từ chối'
+      });
+
+      // Gọi API xử lý phản hồi
+      await respondToFriendRequest(requester_id, accept);
+
+      // Cập nhật UI và hiển thị thông báo
+      toast.success(
+        accept 
+          ? "Đã chấp nhận lời mời kết bạn thành công" 
+          : "Đã từ chối lời mời kết bạn"
+      );
       
-      // Cập nhật lại cả danh sách lời mời kết bạn và gợi ý kết bạn
+      // Cập nhật lại danh sách lời mời và gợi ý kết bạn
       const [updatedRequests, updatedSuggestions] = await Promise.all([
         getFriendRequests(),
         getSuggestedFriends()
       ]);
+
+      console.log('Danh sách lời mời sau khi cập nhật:', updatedRequests);
       
-      console.log('Updated data after response:', {
-        requests: updatedRequests,
-        suggestions: updatedSuggestions
-      });
-      
+      // Cập nhật state
       setFriendRequests(updatedRequests);
       setSuggestedFriends(updatedSuggestions);
+
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Có lỗi xảy ra khi xử lý lời mời kết bạn";
-      console.error("Error handling friend request:", {
-        error: error.response?.data || error.message || error,
-        requestData: { requesterId, accept }
-      });
+      console.error('Lỗi khi xử lý lời mời kết bạn:', error);
+      const errorMessage = error.response?.data?.message || 
+        (accept 
+          ? "Không thể chấp nhận lời mời kết bạn. Vui lòng thử lại sau."
+          : "Không thể từ chối lời mời kết bạn. Vui lòng thử lại sau."
+        );
       toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
   const handleAddFriend = async (userId) => {
@@ -112,26 +125,40 @@ const FriendsUI = () => {
               />
               <div className="flex-grow">
                 <h4 className="font-medium">{request.fullName}</h4>
-                <div className="flex space-x-2 mt-2">
-                  <button
-                    onClick={() => {
-                      // Sử dụng requester_id thay vì requesterId
-                      console.log('Accepting request from:', request.requester_id);
-                      handleFriendRequest(request.requester_id, true);
-                    }}
-                    className="px-4 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm flex items-center"
-                  >
-                    <FaCheck className="mr-1" />
-                    Chấp nhận
-                  </button>
-                  <button
-                    onClick={() => handleFriendRequest(request.requester_id, false)}
-                    className="px-4 py-1 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm flex items-center"
-                  >
-                    <FaTimes className="mr-1" />
-                    Từ chối
-                  </button>
-                </div>
+                <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleFriendRequest(request.requester_id, true)}
+                      disabled={isLoading}
+                      className={`px-4 py-2 bg-blue-500 text-white rounded-lg 
+                        ${!isLoading ? 'hover:bg-blue-600' : 'opacity-75 cursor-not-allowed'}
+                        text-sm flex items-center transition-colors`}
+                    >
+                      {isLoading ? (
+                        <span className="flex items-center">
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Đang xử lý...
+                        </span>
+                      ) : (
+                        <>
+                          <FaCheck className="mr-2" />
+                          Chấp nhận
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleFriendRequest(request.requester_id, false)}
+                      disabled={isLoading}
+                      className={`px-4 py-2 bg-gray-200 text-gray-700 rounded-lg 
+                        ${!isLoading ? 'hover:bg-gray-300' : 'opacity-75 cursor-not-allowed'}
+                        text-sm flex items-center transition-colors`}
+                    >
+                      {!isLoading && <FaTimes className="mr-2" />}
+                      Từ chối
+                    </button>
+                  </div>
               </div>
             </div>
           );
