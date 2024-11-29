@@ -1,62 +1,109 @@
 import React from "react";
-import Avatar from "./Avatar";
-import { MoreHorizontal, X } from "lucide-react";
 import MediaPreview from "./MediaPreview";
+import { X } from "lucide-react";
 
-function PostContent({ user, post, iconX, setShowSubPost }) {
-  const { createdAt, text, backgroundColor, textColor, mediaUrls } = post;
-  const {
-    fullName = "Người dùng không xác định",
-    avatar = "/placeholder.svg",
-  } = user || {};
+function PostContent({ post, user, isComment = false, onClose }) {
+  if (!post) return null;
+console.log(post, "postContent")
+  const formatDate = (timestamp) => {
+    if (!timestamp) return "Không có thời gian";
+    try {
+      return new Date(timestamp).toLocaleString();
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Không có thời gian";
+    }
+  };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleString("vi-VN", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  const renderSharedContent = () => {
+    if (!post.sharedPostContent) return null;
+
+    return (
+      <div className="mt-4 border rounded-lg p-4 bg-gray-50">
+        <div className="flex items-center mb-2">
+          <img
+            src={post.sharedPostContent.originalUser?.avatar || "/default-avatar.png"}
+            alt={post.sharedPostContent.originalUser?.fullName || "User"}
+            className="w-8 h-8 rounded-full mr-2"
+          />
+          <div>
+            <span className="font-semibold">
+              {post.sharedPostContent.originalUser?.fullName || "User"}
+            </span>
+            {!isComment && (
+              <p className="text-xs text-gray-500">
+                Đã đăng lúc: {formatDate(post.createdAt)}
+              </p>
+            )}
+          </div>
+        </div>
+        <div 
+          className="p-4 rounded-lg" 
+          style={{
+            backgroundColor: post.sharedPostContent.backgroundColor || "white",
+            color: post.sharedPostContent.textColor || "black"
+          }}
+        >
+          <p className="whitespace-pre-wrap mb-4">{post.sharedPostContent.text}</p>
+          {post.sharedPostContent.mediaUrls && post.sharedPostContent.mediaUrls.length > 0 && (
+            <MediaPreview mediaUrls={post.sharedPostContent.mediaUrls} />
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
-    <>
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-2">
-          <Avatar src={avatar} alt={fullName} fallback="U" />
+    <div className="p-4">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center">
+          <img
+            src={user?.avatar || "/default-avatar.png"}
+            alt={user?.fullName || "User"}
+            className="w-10 h-10 rounded-full mr-3"
+          />
           <div>
-            <h2 className="font-semibold text-sm">{fullName}</h2>
-            <div className="flex items-center gap-1 text-sm text-gray-500">
-              <span>{formatDate(createdAt)}</span>
-        
-            </div>
+            <h3 className="font-semibold">{user?.fullName || "User"}</h3>
+            {!isComment && post.isShared && (
+              <div className="text-sm text-gray-500">
+                <p>Đã chia sẻ lúc: {formatDate(post.sharedAt || post.createdAt)}</p>
+              </div>
+            )}
+            {!isComment && !post.isShared && (
+              <p className="text-sm text-gray-500">
+                Đã đăng lúc: {formatDate(post.createdAt || post.sharedAt)}
+              </p>
+            )}
           </div>
         </div>
-        <button className="text-gray-500 hover:bg-gray-200 p-1 rounded-full">
-          {iconX ? (
-            <X onClick={() => setShowSubPost && setShowSubPost(false)} />
-          ) : (
-            <MoreHorizontal className="h-5 w-5" />
-          )}
-        </button>
+        {isComment && onClose && (
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <X className="h-5 w-5 text-gray-500" />
+          </button>
+        )}
       </div>
 
-      <div
-        className="mt-3 rounded-lg p-4"
-        style={{ backgroundColor, color: textColor }}
+      <div 
+        className="rounded-lg" 
+        style={{
+          backgroundColor: post.isShared ? "white" : (post.backgroundColor || "white"),
+          color: post.isShared ? "black" : (post.textColor || "black")
+        }}
       >
-        {text}
-      </div>
+        {post.text && (
+          <p className="whitespace-pre-wrap mb-4">{post.text}</p>
+        )}
+        
+        {!post.isShared && post.mediaUrls && post.mediaUrls.length > 0 && (
+          <MediaPreview mediaUrls={post.mediaUrls} />
+        )}
 
-      {mediaUrls && mediaUrls.length > 0 && (
-        <div className="mt-3">
-          <MediaPreview mediaUrls={mediaUrls} />
-        </div>
-      )}
-    </>
+        {post.isShared && renderSharedContent()}
+      </div>
+    </div>
   );
 }
 

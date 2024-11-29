@@ -35,6 +35,8 @@ console.log(postId ,"posf")
       <PostContent
         post={post}
         user={user}
+        isComment={true}
+        onClose={() => setShowSubPost(false)}
         iconX={true}
         setShowSubPost={setShowSubPost}
       />
