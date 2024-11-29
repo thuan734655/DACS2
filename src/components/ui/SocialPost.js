@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { ThumbsUp, MessageCircle, Send, Share2 } from "lucide-react";
+import { ThumbsUp, MessageCircle, Share2 } from "lucide-react";
 import socket from "../../services/socket";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -160,13 +160,13 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
         </div>
       </div>
 
-      <div className="mt-3 pt-3 border-t grid grid-cols-4 gap-1 relative">
-        <div className="relative">
+      <div className="mt-3 pt-3 border-t flex justify-between items-center px-4">
+        <div className="relative flex-1 flex justify-center">
           <button
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 w-full justify-center"
             onClick={() => setShowReactionPicker(!showReactionPicker)}
           >
-            <span className="flex gap-2 ">
+            <span className="flex gap-2 items-center">
               {emojiChoose ? (
                 emojiChoose
               ) : (
@@ -186,29 +186,28 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
           )}
         </div>
 
-        <button
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
-          onClick={() => setShowSubPost((prev) => !prev)}
-        >
-          <MessageCircle className="h-5 w-5" />
-          Bình luận
-        </button>
+        <div className="flex-1 flex justify-center">
+          <button
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 w-full justify-center"
+            onClick={() => setShowSubPost((prev) => !prev)}
+          >
+            <MessageCircle className="h-5 w-5" />
+            <span>Bình luận</span>
+          </button>
+        </div>
 
-        <button className="flex items-center gap-2 text-gray-600 hover:text-gray-800">
-          <Send className="h-5 w-5" />
-          Gửi
-        </button>
-
-        <button 
-          className={`flex items-center gap-2 text-gray-600 hover:text-green-500 transition-all duration-200 transform ${
-            isSharing ? 'scale-125' : ''
-          }`}
-          onClick={handleShare}
-          disabled={isSharing}
-        >
-          <Share2 className={`h-5 w-5 ${isSharing ? 'animate-pulse' : ''}`} />
-          <span>{shareCount}</span>
-        </button>
+        <div className="flex-1 flex justify-center">
+          <button 
+            className={`flex items-center gap-2 text-gray-600 hover:text-red-500 transition-all duration-200 transform w-full justify-center ${
+              isSharing ? 'scale-125' : ''
+            }`}
+            onClick={handleShare}
+            disabled={isSharing}
+          >
+            <Share2 className={`h-5 w-5 ${isSharing ? 'animate-pulse' : ''}`} />
+            <span>{shareCount}</span>
+          </button>
+        </div>
       </div>
 
       {showSubPost && (
