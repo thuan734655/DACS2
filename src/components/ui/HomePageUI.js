@@ -8,7 +8,7 @@ import ChatUI from "./ChatUI";
 import FriendsUI from "./FriendsUI";
 import UserSearchUI from "./UserSearchUI";
 import { getPosts } from "../../services/postService";
-import { getOnlineFriends, getFriendRequests, respondToFriendRequest } from "../../services/userService";
+import { getOnlineFriends, getFriendRequests,getFriendCount } from "../../services/userService";
 import { FaBell, FaEnvelope, FaUserFriends, FaHome, FaPen } from 'react-icons/fa';
 import socket from "../../services/socket";
 
@@ -22,6 +22,7 @@ const HomePageUI = () => {
   const [friendRequests, setFriendRequests] = useState([]);
   const [activeTab, setActiveTab] = useState('home');
   const [selectedChat, setSelectedChat] = useState(null);
+  const [friendCount, setFriendCount] = useState(0);
 
   useEffect(() => {
     // Lấy dữ liệu từ localStorage
@@ -51,30 +52,23 @@ const HomePageUI = () => {
   };
 
   console.log(listPosts);
-  const loadUserData = async () => {
+const loadUserData = async () => {
     try {
-      const [onlineFriendsData, friendRequestsData] = await Promise.all([
+      const [onlineFriendsData, friendRequestsData, friendCountData] = await Promise.all([
         getOnlineFriends(),
-        getFriendRequests()
+        getFriendRequests(),
+        getFriendCount()
       ]);
 
       setOnlineFriends(onlineFriendsData);
       setFriendRequests(friendRequestsData);
+      setFriendCount(friendCountData.count || 0);
+      
+      console.log('Số lượng bạn bè:', friendCountData);
     } catch (error) {
       console.error("Lỗi khi tải dữ liệu người dùng:", error);
     }
   };
-
-  const handleFriendRequest = async (requestId, accept) => {
-    try {
-      await respondToFriendRequest(requestId, accept);
-      const updatedRequests = await getFriendRequests();
-      setFriendRequests(updatedRequests);
-    } catch (error) {
-      console.error("Lỗi khi xử lý lời mời kết bạn:", error);
-    }
-  };
-
   const handleChatSelect = (chat) => {
     setSelectedChat(chat);
   };
@@ -143,7 +137,7 @@ const HomePageUI = () => {
           </div>
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <div className="font-semibold">{user?.friends || 0}</div>
+              <div className="font-semibold">{friendCount || 0}</div>
               <div className="text-gray-500 text-sm">Bạn bè</div>
             </div>
             <div>
@@ -330,43 +324,6 @@ const HomePageUI = () => {
                           <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
                         </div>
                         <div className="font-medium">{friend.name}</div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              {/* Friend Requests */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="font-semibold text-lg mb-4">Lời mời kết bạn</h3>
-                <div className="space-y-4">
-                  {friendRequests.length === 0 ? (
-                    <div className="text-gray-500 text-center">Không có lời mời kết bạn nào</div>
-                  ) : (
-                    friendRequests.map(request => (
-                      <div key={request.id} className="flex items-center space-x-3">
-                        <img
-                          src={request.avatar || `https://api.dicebear.com/6.x/avataaars/svg?seed=${request.username}`}
-                          alt={request.name}
-                          className="w-10 h-10 rounded-full"
-                        />
-                        <div>
-                          <div className="font-medium">{request.name}</div>
-                          <div className="flex space-x-2 mt-2">
-                            <button
-                              onClick={() => handleFriendRequest(request.id, true)}
-                              className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
-                            >
-                              Chấp nhận
-                            </button>
-                            <button
-                              onClick={() => handleFriendRequest(request.id, false)}
-                              className="px-3 py-1 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm"
-                            >
-                              Từ chối
-                            </button>
-                          </div>
-                        </div>
                       </div>
                     ))
                   )}

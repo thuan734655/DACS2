@@ -101,4 +101,14 @@ export const sendFriendRequest = async (userId, requesterId) => {
     throw error;
   }
 };
-
+export const getFriendCount = async () => {
+  try {
+    const userData = localStorage.getItem("user");
+    const currentUser = JSON.parse(userData);
+    const response = await axiosAPI.get(`/api/users/${currentUser.idUser}/friends/count`);
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi lấy số lượng bạn bè:", error);
+    return 0;
+  }
+};
