@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ThumbsUp, MessageCircle, Send, Share2 } from "lucide-react";
-import io from "socket.io-client";
+import socket from "../../services/socket";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import EmojiPickerComponent from "./postComponents/EmojiPickerComponent";
 import PostContent from "./postComponents/PostContent";
 import SubPost from "./postComponents/SubPost";
 
-const socket = io("http://localhost:5000");
-
 function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
-  const { shares } = post;
+  const [shareCount, setShareCount] = useState(post.shares || 0);
   const [likeCount, setLikeCount] = useState(
     groupedLikes ? Object.values(groupedLikes).flat().length : 0
   );
@@ -24,6 +24,55 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
   );
   const [emojiCounts, setEmojiCounts] = useState(groupedLikes || {});
   const [showSubPost, setShowSubPost] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+  useEffect(() => {
+    socket.on("postShared", ({ postId: sharedPostId, shareCount }) => {
+      if (sharedPostId === postId) {
+        setShareCount(shareCount);
+      }
+    });
+
+    return () => {
+      socket.off("postShared");
+    };
+  }, [postId]);
+
+  const handleShare = () => {
+    if (!idUser) {
+      toast.error('Vui lòng đăng nhập để chia sẻ bài viết!', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      return;
+    }
+    setShowConfirmDialog(true);
+  };
+
+  const confirmShare = () => {
+    setShowConfirmDialog(false);
+    setIsSharing(true);
+    socket.emit("sharePost", { 
+      postId,
+      idUser 
+    });
+
+    toast.success('Đã chia sẻ bài viết thành công!', {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    });
+
+    setTimeout(() => setIsSharing(false), 1000);
+  };
 
   const handleOutsideClick = useCallback((e) => {
     if (!e.target.closest(".reaction-picker") && !e.target.closest("button")) {
@@ -44,7 +93,6 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
 
   useEffect(() => {
     const handleReceiveReaction = (data) => {
-      console.log(data);
       if (data.postId === postId) {
         setEmojiCounts(data.groupedLikes);
         setLikeCount(Object.values(data.groupedLikes).flat().length);
@@ -77,11 +125,10 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
     const emojiElements = Object.entries(emojiCounts)
       .filter(([emoji, users]) => users.length > 0)
       .map(([emoji, users]) => {
-        users.forEach(user => { 
-          console.log(user,idUser);
+        users.forEach(user => {
           if ((user - '0') == idUser) {
             selectedEmoji = emoji;
-          }  
+          }
         });
         
         return (
@@ -94,6 +141,7 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
           </div>
         );
       });
+
     if (selectedEmoji !== emojiChoose) {
       setEmojiChoose(selectedEmoji);
     }
@@ -108,7 +156,7 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
         <div className="flex items-center gap-1">{renderEmoji()}</div>
         <div className="flex items-center gap-3">
           <span>{commentCount} bình luận</span>
-          <span>{shares} lượt chia sẻ</span>
+          <span>{shareCount} lượt chia sẻ</span>
         </div>
       </div>
 
@@ -151,11 +199,18 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
           Gửi
         </button>
 
-        <button className="flex items-center gap-2 text-gray-600 hover:text-gray-800">
-          <Share2 className="h-5 w-5" />
-          Chia sẻ
+        <button 
+          className={`flex items-center gap-2 text-gray-600 hover:text-green-500 transition-all duration-200 transform ${
+            isSharing ? 'scale-125' : ''
+          }`}
+          onClick={handleShare}
+          disabled={isSharing}
+        >
+          <Share2 className={`h-5 w-5 ${isSharing ? 'animate-pulse' : ''}`} />
+          <span>{shareCount}</span>
         </button>
       </div>
+
       {showSubPost && (
         <SubPost
           postId={postId}
@@ -165,6 +220,29 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
           setCommentCount={setCommentCount}
         />
       )}
+      {showConfirmDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm mx-4">
+            <h3 className="text-lg font-semibold mb-4">Xác nhận chia sẻ</h3>
+            <p className="text-gray-600 mb-6">Bạn có muốn chia sẻ bài viết này không?</p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowConfirmDialog(false)}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+              >
+                Không
+              </button>
+              <button
+                onClick={confirmShare}
+                className="px-4 py-2 bg-green-500 text-white hover:bg-green-600 rounded-md transition-colors"
+              >
+                Có
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      <ToastContainer />
     </div>
   );
 }
