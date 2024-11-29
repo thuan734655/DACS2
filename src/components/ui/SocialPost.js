@@ -26,6 +26,7 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
   const [showSubPost, setShowSubPost] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [shareText, setShareText] = useState("");
 
   useEffect(() => {
     socket.on("postShared", ({ postId: sharedPostId, shareCount }) => {
@@ -59,7 +60,8 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
     setIsSharing(true);
     socket.emit("sharePost", { 
       postId,
-      idUser 
+      idUser,
+      shareText 
     });
 
     toast.success('Đã chia sẻ bài viết thành công!', {
@@ -71,6 +73,7 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
       draggable: true,
     });
 
+    setShareText("");
     setTimeout(() => setIsSharing(false), 1000);
   };
 
@@ -170,10 +173,10 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
               {emojiChoose ? (
                 emojiChoose
               ) : (
-                <>
+                <React.Fragment>
                   <ThumbsUp className="h-5 w-5" />
                   <span>Thích</span>
-                </>
+                </React.Fragment>
               )}
             </span>
           </button>
@@ -222,21 +225,31 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
       )}
       {showConfirmDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm mx-4">
-            <h3 className="text-lg font-semibold mb-4">Xác nhận chia sẻ</h3>
-            <p className="text-gray-600 mb-6">Bạn có muốn chia sẻ bài viết này không?</p>
-            <div className="flex justify-end space-x-3">
+          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Chia sẻ bài viết</h3>
+            
+            <textarea
+              className="w-full p-3 border rounded-lg mb-4 min-h-[120px] resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Bạn nghĩ gì về bài viết này?"
+              value={shareText}
+              onChange={(e) => setShareText(e.target.value)}
+            />
+
+            <div className="flex justify-end gap-3">
               <button
-                onClick={() => setShowConfirmDialog(false)}
+                onClick={() => {
+                  setShowConfirmDialog(false);
+                  setShareText("");
+                }}
                 className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
               >
-                Không
+                Hủy
               </button>
               <button
                 onClick={confirmShare}
-                className="px-4 py-2 bg-green-500 text-white hover:bg-green-600 rounded-md transition-colors"
+                className="px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 rounded-md transition-colors"
               >
-                Có
+                Chia sẻ
               </button>
             </div>
           </div>
