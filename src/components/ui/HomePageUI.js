@@ -84,9 +84,33 @@ const HomePageUI = () => {
 
       // Listen for new posts
       socket.on("receiveNewPost", ({ post }) => {
+        if (!post) return;
+        
         setListPosts(prevPosts => {
           const newPosts = { ...prevPosts };
-          newPosts[post.id] = post;
+          const postId = post.id || Date.now().toString();
+          
+          // Structure the post data properly
+          newPosts[postId] = {
+            post: {
+              ...post,
+              postId: postId,
+              toggle: false, // Initialize toggle state
+              idUser: post.idUser,
+              text: post.text || "",
+              textColor: post.textColor || "#000000",
+              backgroundColor: post.backgroundColor || "#ffffff",
+              listFileUrl: post.listFileUrl || [],
+              comments: post.comments || [],
+              createdAt: post.createdAt || Date.now()
+            },
+            groupedLikes: post.groupedLikes || [],
+            commentCount: post.commentCount || 0,
+            infoUserList: {
+              [post.idUser]: user
+            }
+          };
+          
           return newPosts;
         });
       });
@@ -103,7 +127,7 @@ const HomePageUI = () => {
     }
 
     return (
-      <>
+      <div>
         {/* Profile Section */}
         <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
           <div className="flex items-center space-x-4 mb-4">
@@ -185,7 +209,7 @@ const HomePageUI = () => {
             </button>
           </nav>
         </div>
-      </>
+      </div>
     );
   };
 
@@ -197,7 +221,7 @@ const HomePageUI = () => {
     switch (activeTab) {
       case 'home':
         return (
-          <>
+          <div>
             {formCreatePostVisible && (
               <FormCreatePost
                 setFormCreatePostVisible={setFormCreatePostVisible}
@@ -231,7 +255,7 @@ const HomePageUI = () => {
                 })}
               </div>
             )}
-          </>
+          </div>
         );
       case 'notifications':
         return <NotificationsUI user={user} />;
@@ -287,7 +311,7 @@ const HomePageUI = () => {
           ) : activeTab === 'friends' ? (
             <UserSearchUI user={user} />
           ) : (
-            <>
+            <div>
               {/* Online Friends */}
               <div className="bg-white rounded-lg shadow-lg p-4">
                 <h3 className="font-semibold text-lg mb-4">Bạn bè đang online</h3>
@@ -348,7 +372,7 @@ const HomePageUI = () => {
                   )}
                 </div>
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>
@@ -356,4 +380,4 @@ const HomePageUI = () => {
   );
 };
 
-export default HomePageUI; 
+export default HomePageUI;
