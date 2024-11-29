@@ -60,21 +60,7 @@ function CommentInput({
     setEmojiPicker(false);
   }, []);
 
-  // Listen for new comments from the server
-  useEffect(() => {
-    socket.on("receiveComment", ({ newComment }) => {
-      console.log(newComment);
-      newComment.user = [newComment.user];
-      if (newComment.postId === postId) {
-        setCommentsList((prevComments) => [...prevComments, newComment]);
-        setCommentCount((prevCount) => prevCount + 1);
-      }
-    });
 
-    return () => {
-      socket.off("receiveComment");
-    };
-  }, [postId, setCommentsList, setCommentCount]);
 
   // Handle comment submission
   const handleAddComment = useCallback(async () => {

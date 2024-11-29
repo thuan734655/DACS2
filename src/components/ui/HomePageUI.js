@@ -220,7 +220,7 @@ const HomePageUI = () => {
                   return (
                     <SocialPost
                       key={postId}
-                      postId={postData.post.postId}
+                      postId={postData.post.postId || postData.postId}
                       groupedLikes={postData.groupedLikes}
                       commentCountDefault={postData.commentCount}
                       post={postData.post}
