@@ -7,8 +7,8 @@ const HeaderUI = () => {
     <div className="bg-white shadow-md py-2 fixed w-full z-10">
       <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
         {/* Logo bên trái */}
-        <div className="w-48"> 
-          <img src={Logo} alt="Logo" className="w-10 h-10" />
+        <div className="w-32 "> 
+          <img src={Logo} alt="Logo" className="w-10 h-10 " />
         </div>
 
         {/* Thanh tìm kiếm ở giữa */}
@@ -35,7 +35,7 @@ const HeaderUI = () => {
         </div>
 
         {/* Icons bên phải */}
-        <div className="w-48 flex justify-end space-x-4"> 
+        <div className="w-60 flex justify-end space-x-4 pl-42"> 
           <button 
             className="p-2 hover:bg-gray-100 rounded-full w-10 h-10 flex items-center justify-center bg-gray-50 border border-gray-200 transition-colors duration-200" 
             title="Hồ sơ"

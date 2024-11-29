@@ -41,3 +41,32 @@ export const respondToFriendRequest = async (requestId, accept) => {
     throw error;
   }
 };
+export const getSuggestedFriends = async (limit = 10) => {
+  try {
+    // Lấy thông tin user từ localStorage
+    const userData = localStorage.getItem("user");
+    if (!userData) {
+      throw new Error("Người dùng chưa đăng nhập");
+    }
+
+    const { idUser } = JSON.parse(userData);
+    
+    // Gọi API với userId trong path thay vì params
+    const response = await axiosAPI.get(`/api/users/${idUser}/suggested-friends?limit=${limit}`);
+   
+    return response.data || [];
+  } catch (error) {
+    console.error("Lỗi khi lấy gợi ý kết bạn:", error);
+    return [];
+  }
+};
+export const sendFriendRequest = async (userId) => {
+  try {
+    const response = await axiosAPI.post("/api/users/send-friend-request", { userId });
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi gửi lời mời kết bạn:", error);
+    throw error;
+  }
+};
+

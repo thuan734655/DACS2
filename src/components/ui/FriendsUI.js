@@ -1,60 +1,75 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaUserPlus, FaUserFriends, FaUserClock, FaTimes, FaCheck } from 'react-icons/fa';
-
+import { getSuggestedFriends, getFriendRequests, respondToFriendRequest, sendFriendRequest } from '../../services/userService';
 const FriendsUI = () => {
   const [activeTab, setActiveTab] = useState('requests'); // 'requests' or 'suggestions'
-
+  const [friendRequests, setFriendRequests] = useState([]);
+  const [suggestedFriends, setSuggestedFriends] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
   // Mock data for friend requests
-  const friendRequests = [
-    {
-      id: 1,
-      name: 'Nguyễn Văn A',
-      avatar: 'https://api.dicebear.com/6.x/avataaars/svg?seed=user1',
-      mutualFriends: 5
-    },
-    {
-      id: 2,
-      name: 'Trần Thị B',
-      avatar: 'https://api.dicebear.com/6.x/avataaars/svg?seed=user2',
-      mutualFriends: 3
-    }
-  ];
+  
+  useEffect(() => {
+    const loadFriendsData = async () => {
+      if (!user) return;
+      
+      setIsLoading(true);
+      try {
+        const [requestsData, suggestionsData]= await Promise.all([
+          getFriendRequests(),
+          getSuggestedFriends()
+        ]);        
+        if (!Array.isArray(suggestionsData)) {
+          throw new Error("Invalid suggestions data");
+        }      
+        setFriendRequests(requestsData);
+        setSuggestedFriends(suggestionsData);
+      } catch (err) {
+        setError("Không thể tải dữ liệu. Vui lòng thử lại sau.");
+        console.error("Error loading friends data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  // Mock data for suggested friends
-  const suggestedFriends = [
-    {
-      id: 3,
-      name: 'Lê Văn C',
-      avatar: 'https://api.dicebear.com/6.x/avataaars/svg?seed=user3',
-      mutualFriends: 8,
-      occupation: 'Developer tại Tech Corp'
-    },
-    {
-      id: 4,
-      name: 'Phạm Thị D',
-      avatar: 'https://api.dicebear.com/6.x/avataaars/svg?seed=user4',
-      mutualFriends: 6,
-      occupation: 'Designer tại Creative Studio'
-    },
-    {
-      id: 5,
-      name: 'Hoàng Văn E',
-      avatar: 'https://api.dicebear.com/6.x/avataaars/svg?seed=user5',
-      mutualFriends: 4,
-      occupation: 'Student tại University'
+    loadFriendsData();
+  }, [user]);
+  useEffect(() => {
+    // Lấy dữ liệu từ localStorage
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      setUser(JSON.parse(userData));
     }
-  ];
-
-  const handleFriendRequest = (userId, accept) => {
-    // Handle friend request acceptance/rejection
-    console.log(`Friend request ${accept ? 'accepted' : 'rejected'} for user ${userId}`);
+  }, []);
+  const handleFriendRequest = async (userId, accept) => {
+    try {
+      await respondToFriendRequest(userId, accept);
+      // Cập nhật lại cả danh sách lời mời kết bạn và gợi ý kết bạn
+      const [updatedRequests, updatedSuggestions] = await Promise.all([
+        getFriendRequests(),
+        getSuggestedFriends()
+      ]);
+      setFriendRequests(updatedRequests);
+      setSuggestedFriends(updatedSuggestions);
+    } catch (error) {
+      console.error("Error handling friend request:", error);
+      setError("Có lỗi xảy ra khi xử lý lời mời kết bạn. Vui lòng thử lại sau.");
+    }
   };
 
-  const handleAddFriend = (userId) => {
-    // Handle sending friend request
-    console.log(`Friend request sent to user ${userId}`);
+  const handleAddFriend = async (userId) => {
+    try {
+      // Gọi API để gửi lời mời kết bạn
+      await sendFriendRequest(userId);
+      // Cập nhật lại danh sách gợi ý kết bạn
+      const updatedSuggestions = await getSuggestedFriends();
+      setSuggestedFriends(updatedSuggestions);
+    } catch (error) {
+      console.error("Error sending friend request:", error);
+      setError("Có lỗi xảy ra khi gửi lời mời kết bạn. Vui lòng thử lại sau.");
+    }
   };
-
   const renderFriendRequests = () => (
     <div className="space-y-4">
       <h3 className="font-semibold text-lg mb-4">Lời mời kết bạn</h3>
@@ -93,33 +108,68 @@ const FriendsUI = () => {
       )}
     </div>
   );
+console.log(suggestedFriends, 'suggestedFriends');
 
-  const renderSuggestedFriends = () => (
-    <div className="space-y-4">
-      <h3 className="font-semibold text-lg mb-4">Những người bạn có thể biết</h3>
-      {suggestedFriends.map(friend => (
-        <div key={friend.id} className="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-lg">
-          <img
-            src={friend.avatar}
-            alt={friend.name}
-            className="w-12 h-12 rounded-full"
-          />
-          <div className="flex-grow">
-            <h4 className="font-medium">{friend.name}</h4>
-            <p className="text-sm text-gray-500">{friend.occupation}</p>
-            <p className="text-sm text-gray-500">{friend.mutualFriends} bạn chung</p>
-            <button
-              onClick={() => handleAddFriend(friend.id)}
-              className="mt-2 px-4 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm flex items-center w-fit"
-            >
-              <FaUserPlus className="mr-1" />
-              Thêm bạn bè
-            </button>
+  const renderSuggestedFriends = () => {
+    if (isLoading) {
+      return <div className="text-center py-4 text-gray-500">Đang tải gợi ý kết bạn...</div>;
+    }
+
+    if (error) {
+      return <div className="text-center text-red-500 py-4">{error}</div>;
+    }
+
+    if (!suggestedFriends || suggestedFriends.length === 0) {
+      return <div className="text-center py-4 text-gray-500">Không có gợi ý kết bạn nào.</div>;
+    }
+
+    return (
+      <div className="space-y-3">
+        {suggestedFriends?.[0].map((friend) => (
+          <div
+            key={friend.idUser}
+            className="bg-white p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
+          >
+            <div className="flex items-center gap-3">
+              <img
+                src={`https://api.dicebear.com/6.x/avataaars/svg?seed=${friend.idUser}`}
+                alt={`${friend.fullName || 'User'}`}
+                className="w-12 h-12 rounded-full object-cover"
+              />
+
+              <div className="flex-grow">
+                <h3 className="font-medium text-gray-900">
+                  {friend.fullName || "Người dùng"}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {friend.birthday ? `Sinh nhật: ${new Date(friend.birthday).toLocaleDateString()}` : 'Chưa có thông tin sinh nhật'}
+                </p>
+                <p className='text-sm text-gray-600'>{friend.mutual_friends_count} bạn chung</p>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleAddFriend(friend.idUser)}
+                  className="px-3 py-1.5 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center gap-1"
+                >
+                  <FaUserPlus className="text-sm" />
+                  Kết bạn
+                </button>
+                <button
+                  className="px-3 py-1.5 bg-gray-100 text-gray-600 text-sm rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                >
+                  Bỏ qua
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      ))}
-    </div>
-  );
+        ))}
+      </div>
+    );
+  };
+
+
+
 
   return (
     <div className="bg-white rounded-lg shadow-lg h-full">
