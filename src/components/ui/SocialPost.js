@@ -29,7 +29,9 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
   const [shareText, setShareText] = useState("");
 
   useEffect(() => {
-    const handlePostShared = ({ postId: sharedPostId, shareCount, success, error }) => {
+    const handlePostShared = ({ postId: sharedPostId, shareCount, success, error,idUserShare }) => {
+      console.log(idUserShare,"idUserShare", idUser,"idUser")
+     if(idUserShare === idUser){
       if (sharedPostId === postId) {
         console.log('[DEBUG] Received postShared event:', { sharedPostId, shareCount, success });
         setShareCount(shareCount);
@@ -57,6 +59,7 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
           setIsSharing(false);
         }
       }
+     }
     };
 
     // Clean up trước khi đăng ký event mới
