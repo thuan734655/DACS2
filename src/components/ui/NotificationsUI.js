@@ -5,7 +5,58 @@ import socket from '../../services/socket';
 
 const NotificationsUI = ({ user, data }) => {
   const [selectedNotification, setSelectedNotification] = useState(null);
-  const [notifications, setNotifications] = useState(data.notifications || []);
+  const [notifications, setNotifications] = useState(() => {
+    // Create default notifications with random users
+    const defaultUsers = [
+      { fullName: "Nguyễn Văn A", avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=user1" },
+      { fullName: "Trần Thị B", avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=user2" },
+      { fullName: "Lê Văn C", avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=user3" },
+      { fullName: "Phạm Thị D", avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=user4" },
+      { fullName: "Hoàng Văn E", avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=user5" },
+      { fullName: "Vũ Thị F", avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=user6" },
+      { fullName: "Đặng Văn G", avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=user7" },
+      { fullName: "Mai Thị H", avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=user8" }
+    ];
+
+    // Create different types of notifications
+    const createSampleContent = (originalNotification, index) => {
+      const randomUser = defaultUsers[Math.floor(Math.random() * defaultUsers.length)];
+      const notificationTypes = ['postShared', 'postLiked', 'postComment', 'friendRequest', 'taggedComment'];
+      const type = notificationTypes[index % notificationTypes.length];
+
+      let content = {
+        postTitle: "",
+        shareText: "",
+        user: randomUser
+      };
+
+      content.postTitle = "Bài viết đã được chia sẻ";
+      content.shareText = `${randomUser.fullName} đã chia sẻ bài viết của bạn`;
+      return {
+        ...originalNotification,
+        type,
+        data: content,
+        toggle: false
+      };
+    };
+
+    // If we have notifications from server, use their structure but replace content
+    if (data.notifications && Array.isArray(data.notifications)) {
+      return data.notifications.map((notification, index) => 
+        createSampleContent(notification, index)
+      );
+    }
+
+    // Fallback to 5 notifications if no server data
+    return Array(0).fill(null).map((_, index) => ({
+      id: `default-${index}`,
+      type: 'postShared',
+      read: false,
+      toggle: false,
+      timestamp: new Date(Date.now() - index * 60000).toISOString(),
+      ...createSampleContent({}, index)
+    }));
+  });
   const [idUser, setIdUser] = useState(
     JSON.parse(localStorage.getItem("user"))?.idUser || ""
   );
@@ -16,17 +67,29 @@ const NotificationsUI = ({ user, data }) => {
     const getNotifications = () => {
       socket.emit('getNotifications', { idUser });
 
-      socket.on('notifications', ({ notifications }) => {
-        if (Array.isArray(notifications)) {
-          setNotifications(notifications); // Cập nhật lại thông báo
+      socket.on('notifications', ({ notifications: serverNotifications }) => {
+        if (Array.isArray(serverNotifications)) {
+          // Initialize toggle property for each notification
+          const notificationsWithToggle = serverNotifications.map(notification => ({
+            ...notification,
+            toggle: false
+          }));
+          // Merge with existing default notifications
+          setNotifications(prevNotifications => {
+            const defaultNotifications = prevNotifications.filter(n => n.id.startsWith('default-'));
+            return [...notificationsWithToggle, ...defaultNotifications];
+          });
         } else {
-          console.error('Dữ liệu không phải là mảng:', notifications);
+          console.error('Dữ liệu không phải là mảng:', serverNotifications);
         }
       });
 
       // Lắng nghe sự kiện thông báo mới và thêm vào danh sách
       socket.on('notification', (notification) => {
-        setNotifications((prevNotifications) => [notification, ...prevNotifications]);
+        setNotifications((prevNotifications) => [{
+          ...notification,
+          toggle: false
+        }, ...prevNotifications]);
       });
     };
 
