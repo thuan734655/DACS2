@@ -118,7 +118,7 @@ const ProfileUI = () => {
       }}>
         <Box sx={{ position: "relative", mt: -8 }}>
           <Avatar
-            src={user.avatar}
+            src={user ? user.avatar : "/placeholder.svg?height=168&width=168"}
             alt="Hoàng Phi"
             sx={{
               width: 168,
@@ -144,7 +144,7 @@ const ProfileUI = () => {
         
         <Box sx={{ flex: 1 }}>
           <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
-            {user.fullName}
+           {user ? user.fullName :  "Người dùng"}
           </Typography>
           <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 2 }}>
             2,3K người bạn · 1,8K người theo dõi
