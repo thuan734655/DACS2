@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Avatar,
@@ -30,9 +30,18 @@ import {
 const ProfileUI = () => {
   const [postContent, setPostContent] = useState("");
   const [tabValue, setTabValue] = useState(0);
+  const [user, setUser] = useState(null);
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
+  useEffect(() => {
+    // Lấy dữ liệu từ localStorage
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
+  
   const posts = [
     {
       id: 1,
@@ -59,7 +68,7 @@ const ProfileUI = () => {
       image: "/placeholder.svg?height=300&width=500",
     },
   ];
-
+ 
   return (
     <Container maxWidth="lg" sx={{ mt: 2 }}>
       {/* Cover Image Section */}
@@ -109,7 +118,7 @@ const ProfileUI = () => {
       }}>
         <Box sx={{ position: "relative", mt: -8 }}>
           <Avatar
-            src="/placeholder.svg?height=168&width=168"
+            src={user.avatar}
             alt="Hoàng Phi"
             sx={{
               width: 168,
@@ -135,7 +144,7 @@ const ProfileUI = () => {
         
         <Box sx={{ flex: 1 }}>
           <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
-            Hoàng Phi
+            {user.fullName}
           </Typography>
           <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 2 }}>
             2,3K người bạn · 1,8K người theo dõi
