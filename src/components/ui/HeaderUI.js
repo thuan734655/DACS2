@@ -1,8 +1,13 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Logo from "../../assets/imgs/Logo.png";
 import { LogOut, User } from "lucide-react";
+import NotificationComponent from "../NotificationComponent";
+import { Link } from 'react-router-dom';
+import { subscribeToNotifications } from '../../services/notificationSocket';
 
-const HeaderUI = () => {
+const HeaderUI = ({ user }) => {
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   return (
     <div className="bg-white shadow-md py-2 fixed w-full z-10">
       <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">

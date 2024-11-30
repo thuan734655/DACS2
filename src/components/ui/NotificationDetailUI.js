@@ -1,180 +1,210 @@
-import React, { useState, useEffect } from 'react';
-import { FaArrowLeft, FaThumbsUp, FaComment, FaUserPlus, FaShare } from 'react-icons/fa';
-import SocialPost from './SocialPost';
+import React from 'react';
+import { formatDistanceToNow } from 'date-fns';
+import { vi } from 'date-fns/locale';
+import { getNotificationMessage, getNotificationIcon, getReactionEmoji } from '../../services/notificationService';
 
 const NotificationDetailUI = ({ notification, onBack }) => {
-  const [relatedContent, setRelatedContent] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const message = getNotificationMessage(notification);
+  const { icon, color } = getNotificationIcon(notification.type);
 
-  // Mock function to fetch related content
-  const fetchRelatedContent = async (type, id) => {
-    // Simulating API call
-    await new Promise(resolve => setTimeout(resolve, 500));
+  const renderNotificationContent = () => {
+    const { type, data } = notification;
 
-    // Mock data based on notification type
     switch (type) {
-      case 'POST_LIKE':
-      case 'POST_COMMENT':
-      case 'POST_SHARE':
-        return {
-          type: 'post',
-          data: {
-            id: 'post123',
-            content: 'Đây là nội dung bài viết gốc',
-            images: ['https://picsum.photos/seed/post123/600/400'],
-            createdAt: '2024-01-20T08:30:00Z',
-            user: {
-              id: 'user456',
-              name: 'Nguyễn Văn A',
-              avatar: 'https://api.dicebear.com/6.x/avataaars/svg?seed=user456'
-            },
-            likes: 42,
-            comments: 15,
-            shares: 5
-          }
-        };
-      case 'FRIEND_REQUEST':
-      case 'FRIEND_ACCEPT':
-        return {
-          type: 'user',
-          data: {
-            id: 'user789',
-            name: 'Trần Thị B',
-            avatar: 'https://api.dicebear.com/6.x/avataaars/svg?seed=user789',
-            mutualFriends: 3,
-            location: 'Hà Nội, Việt Nam',
-            occupation: 'Designer tại Creative Studio'
-          }
-        };
-      default:
-        return null;
-    }
-  };
-
-  useEffect(() => {
-    const loadRelatedContent = async () => {
-      setIsLoading(true);
-      try {
-        const content = await fetchRelatedContent(notification.type, notification.relatedId);
-        setRelatedContent(content);
-      } catch (error) {
-        console.error('Error loading related content:', error);
-      }
-      setIsLoading(false);
-    };
-
-    loadRelatedContent();
-  }, [notification]);
-
-  const renderIcon = () => {
-    switch (notification.type) {
-      case 'POST_LIKE':
-        return <FaThumbsUp className="text-blue-500" />;
-      case 'POST_COMMENT':
-        return <FaComment className="text-green-500" />;
-      case 'POST_SHARE':
-        return <FaShare className="text-purple-500" />;
-      case 'FRIEND_REQUEST':
-      case 'FRIEND_ACCEPT':
-        return <FaUserPlus className="text-blue-500" />;
-      default:
-        return null;
-    }
-  };
-
-  const renderRelatedContent = () => {
-    if (!relatedContent) return null;
-
-    switch (relatedContent.type) {
-      case 'post':
+      case 'like':
         return (
-          <div className="mt-4">
-            <h3 className="font-semibold text-lg mb-2">Bài viết liên quan</h3>
-            <SocialPost post={relatedContent.data} />
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <span className="text-2xl">{getReactionEmoji(data.emoji)}</span>
+              <span className="text-gray-600">{message.title}</span>
+            </div>
+            {data.postImage && (
+              <img
+                src={data.postImage}
+                alt="Post content"
+                className="w-full h-48 object-cover rounded-lg"
+              />
+            )}
+            {data.postTitle && (
+              <p className="text-gray-700 font-medium">{data.postTitle}</p>
+            )}
           </div>
         );
-      case 'user':
+
+      case 'comment':
         return (
-          <div className="mt-4">
-            <h3 className="font-semibold text-lg mb-2">Thông tin người dùng</h3>
-            <div className="bg-white rounded-lg p-4 shadow-sm">
-              <div className="flex items-start space-x-4">
+          <div className="space-y-4">
+            <p className="text-gray-600">{message.title}</p>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-gray-700">{data.content}</p>
+            </div>
+            {data.postTitle && (
+              <div className="mt-4">
+                <p className="text-sm text-gray-500">Bài viết gốc:</p>
+                <p className="text-gray-700 font-medium">{data.postTitle}</p>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'share':
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <span className="text-2xl">🔄</span>
+              <p className="text-gray-600">{message.title}</p>
+            </div>
+            
+            {data.shareText && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-gray-700 italic">"{data.shareText}"</p>
+              </div>
+            )}
+            
+            <div className="border rounded-lg p-4 space-y-3">
+              {data.postImage && (
                 <img
-                  src={relatedContent.data.avatar}
-                  alt={relatedContent.data.name}
-                  className="w-16 h-16 rounded-full"
+                  src={data.postImage}
+                  alt="Shared post"
+                  className="w-full h-48 object-cover rounded-lg"
                 />
+              )}
+              {data.postTitle && (
                 <div>
-                  <h4 className="font-medium text-lg">{relatedContent.data.name}</h4>
-                  <p className="text-gray-500">{relatedContent.data.occupation}</p>
-                  <p className="text-gray-500">{relatedContent.data.location}</p>
-                  <p className="text-gray-500">{relatedContent.data.mutualFriends} bạn chung</p>
-                  {notification.type === 'FRIEND_REQUEST' && (
-                    <div className="flex space-x-2 mt-2">
-                      <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                        Chấp nhận
-                      </button>
-                      <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
-                        Từ chối
-                      </button>
-                    </div>
-                  )}
+                  <p className="text-sm text-gray-500">Bài viết gốc:</p>
+                  <p className="text-gray-700 font-medium">{data.postTitle}</p>
                 </div>
+              )}
+              <div className="flex justify-end">
+                <button 
+                  onClick={() => window.location.href = `/post/${notification.relatedId}`}
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                >
+                  Xem bài viết gốc
+                </button>
               </div>
             </div>
           </div>
         );
+
+      case 'friend_request':
+      case 'friend_accept':
+        return (
+          <div className="space-y-4">
+            <p className="text-gray-600">{message.title}</p>
+            <div className="flex items-center space-x-4">
+              <img
+                src={notification.senderAvatar || '/default-avatar.png'}
+                alt={notification.senderName}
+                className="w-16 h-16 rounded-full object-cover"
+              />
+              <div>
+                <p className="font-medium">{notification.senderName}</p>
+                {type === 'friend_request' && (
+                  <div className="mt-2 space-x-2">
+                    <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                      Chấp nhận
+                    </button>
+                    <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
+                      Từ chối
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'mention':
+      case 'post_tag':
+        return (
+          <div className="space-y-4">
+            <p className="text-gray-600">{message.title}</p>
+            {data.preview && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-gray-700">{data.preview}</p>
+              </div>
+            )}
+            {data.postTitle && (
+              <p className="text-gray-700 font-medium">{data.postTitle}</p>
+            )}
+          </div>
+        );
+
+      case 'group_invite':
+      case 'group_accept':
+        return (
+          <div className="space-y-4">
+            <p className="text-gray-600">{message.title}</p>
+            {data.groupName && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="font-medium">Nhóm: {data.groupName}</p>
+                {type === 'group_invite' && (
+                  <div className="mt-4 space-x-2">
+                    <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                      Tham gia nhóm
+                    </button>
+                    <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
+                      Từ chối
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+
       default:
-        return null;
+        return <p className="text-gray-600">{message.title}</p>;
     }
   };
 
   return (
-    <div className="bg-gray-50 min-h-full">
-      {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
+    <div className="max-w-2xl mx-auto p-4">
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-4 border-b flex items-center space-x-4">
           <button
             onClick={onBack}
-            className="flex items-center text-gray-600 hover:text-gray-900"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
-            <FaArrowLeft className="mr-2" />
-            Quay lại
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
           </button>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="container mx-auto px-4 py-6">
-        {/* Notification Info */}
-        <div className="bg-white rounded-lg p-6 shadow-sm">
-          <div className="flex items-start space-x-4">
-            <div className="p-3 bg-gray-100 rounded-full">
-              {renderIcon()}
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold mb-2">
-                {notification.title}
-              </h2>
-              <p className="text-gray-600 mb-4">
-                {notification.content}
-              </p>
-              <p className="text-gray-400 text-sm">
-                {new Date(notification.createdAt).toLocaleString('vi-VN')}
-              </p>
-            </div>
-          </div>
+          <h1 className="text-xl font-semibold">Chi tiết thông báo</h1>
         </div>
 
-        {/* Related Content */}
-        {isLoading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="mt-4 text-gray-500">Đang tải nội dung liên quan...</p>
+        <div className="p-6">
+          <div className="flex items-center space-x-4 mb-6">
+            <img
+              src={notification.senderAvatar || '/default-avatar.png'}
+              alt={notification.senderName}
+              className="w-12 h-12 rounded-full object-cover"
+            />
+            <div className="flex-1">
+              <p className="font-medium">{notification.senderName}</p>
+              <p className="text-sm text-gray-500">
+                {formatDistanceToNow(notification.timestamp, {
+                  addSuffix: true,
+                  locale: vi,
+                })}
+              </p>
+            </div>
+            <div className={`text-2xl ${color}`}>{icon}</div>
           </div>
-        ) : (
-          renderRelatedContent()
-        )}
+
+          {renderNotificationContent()}
+        </div>
       </div>
     </div>
   );
