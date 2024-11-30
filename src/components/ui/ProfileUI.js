@@ -119,7 +119,7 @@ const ProfileUI = () => {
            {user ? user.fullName :  "Người dùng"}
           </Typography>
           <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 2 }}>
-            2,3K người bạn · 1,8K người theo dõi
+          
           </Typography>
           <Box sx={{ display: "flex", gap: 2 }}>
             <Button
@@ -135,17 +135,7 @@ const ProfileUI = () => {
             >
               Chỉnh sửa trang cá nhân
             </Button>
-            <Button
-              variant="outlined"
-              sx={{ 
-                borderRadius: "20px",
-                px: 3,
-                textTransform: "none",
-                fontWeight: "medium"
-              }}
-            >
-              + Thêm vào tin
-            </Button>
+         
           </Box>
         </Box>
       </Box>
