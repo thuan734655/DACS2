@@ -9,6 +9,7 @@ import NotificationPage from './pages/NotificationPage';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import React, { useEffect } from 'react';
 import { initializeSocket } from './services/socketService';
+import { ToastProvider } from './context/ToastContext';
 
 function App() {
   useEffect(() => {
@@ -17,19 +18,21 @@ function App() {
   }, []);
 
   return (
-    <div>
-      <Router>
-        <Routes>
-          <Route path="/" element={<LoginUI />} />
-          <Route path="/login" element={<LoginUI />} />
-          <Route path="/forgotten" element={<ForgottenUI />} />
-          <Route path="/homepage" element={<HomePageUI />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/profile" element={<ProfileUI />} />
-          <Route path="/notifications" element={<NotificationPage />} />
-        </Routes>
-      </Router>
-    </div>
+    <ToastProvider>
+      <div>
+        <Router>
+          <Routes>
+            <Route path="/" element={<LoginUI />} />
+            <Route path="/login" element={<LoginUI />} />
+            <Route path="/forgotten" element={<ForgottenUI />} />
+            <Route path="/homepage" element={<HomePageUI />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/profile" element={<ProfileUI />} />
+            <Route path="/notifications" element={<NotificationPage />} />
+          </Routes>
+        </Router>
+      </div>
+    </ToastProvider>
   );
 }
 

@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { FaThumbsUp, FaComment, FaUserPlus, FaShare } from 'react-icons/fa';
-import NotificationDetailUI from './NotificationDetailUI';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { getSocket, initializeSocket } from '../../services/socketService';
+import { getNotificationMessage, getNotificationIcon, showNotificationToast } from '../../services/notificationService';
+import NotificationDetailUI from './NotificationDetailUI';
 
 const NotificationsUI = () => {
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const idUser = JSON.parse(localStorage.getItem('user')).idUser;
+  const [unreadCount, setUnreadCount] = useState(0);
+  const idUser = JSON.parse(localStorage.getItem('user'))?.idUser;
+
   useEffect(() => {
     const initializeNotifications = async () => {
       try {
@@ -18,27 +20,39 @@ const NotificationsUI = () => {
           throw new Error('User not found');
         }
 
-        // Initialize socket connection
-        const socket = getSocket();
+        const socket = getSocket() || initializeSocket();
         
         // Join notification room
-        socket.emit('joinNotificationRoom', {idUser});
+        socket.emit('joinNotificationRoom', { idUser });
 
         // Listen for notifications list
         socket.on('notificationsList', (notificationsList) => {
-          setNotifications(notificationsList.sort((a, b) => b.timestamp - a.timestamp));
+          const sortedNotifications = notificationsList.sort((a, b) => b.timestamp - a.timestamp);
+          setNotifications(sortedNotifications);
+          setUnreadCount(sortedNotifications.filter(n => !n.read).length);
           setLoading(false);
         });
 
         // Listen for new notifications
         socket.on('newNotification', (notification) => {
           setNotifications(prev => [notification, ...prev]);
+          setUnreadCount(prev => prev + 1);
+          showNotificationToast(notification);
         });
 
         // Listen for notification updates
         socket.on('notificationUpdated', (updatedNotification) => {
           setNotifications(prev =>
-            prev.map(n => n.id === updatedNotification.id ? updatedNotification : n)
+            prev.map(n => {
+              if (n.id === updatedNotification.id) {
+                // If notification was unread and is now read, decrease unread count
+                if (!n.read && updatedNotification.read) {
+                  setUnreadCount(count => Math.max(0, count - 1));
+                }
+                return updatedNotification;
+              }
+              return n;
+            })
           );
         });
 
@@ -49,11 +63,9 @@ const NotificationsUI = () => {
         });
 
         // Request initial notifications
-        socket.emit('getNotifications', {idUser });
+        socket.emit('getNotifications', { idUser });
 
-        // Cleanup
         return () => {
-          socket.emit('leaveNotificationRoom');
           socket.off('notificationsList');
           socket.off('newNotification');
           socket.off('notificationUpdated');
@@ -66,60 +78,57 @@ const NotificationsUI = () => {
     };
 
     initializeNotifications();
-  }, []);
+  }, [idUser]);
 
-  const handleNotificationClick = async (notification) => {
+  const handleNotificationClick = (notification) => {
     if (!notification.read) {
       const socket = getSocket();
-      if (socket && idUser) {
-        socket.emit('markNotificationAsRead', {
-          notificationId: notification.id,
-          idUser
-        });
-      }
+      socket.emit('markNotificationAsRead', {
+        notificationId: notification.id,
+        idUser
+      });
     }
     setSelectedNotification(notification);
   };
 
   const handleMarkAllAsRead = () => {
     const socket = getSocket();
-    if (socket && idUser) {
-      socket.emit('markAllNotificationsAsRead', { idUser });
-    }
+    socket.emit('markAllNotificationsAsRead', { idUser });
   };
 
-  const getNotificationIcon = (type) => {
-    switch (type) {
-      case 'like':
-        return <FaThumbsUp className="text-blue-500" />;
-      case 'comment':
-        return <FaComment className="text-green-500" />;
-      case 'share':
-        return <FaShare className="text-orange-500" />;
-      case 'friend_request':
-      case 'friend_accept':
-        return <FaUserPlus className="text-purple-500" />;
-      default:
-        return null;
-    }
-  };
+  const renderNotificationContent = (notification) => {
+    const message = getNotificationMessage(notification);
+    const { icon, color } = getNotificationIcon(notification.type);
 
-  const getNotificationContent = (notification) => {
-    const { type, data } = notification;
-    switch (type) {
-      case 'like':
-        return `đã thả ${data.emoji || '👍'} cho bài viết của bạn`;
-      case 'comment':
-        return `đã bình luận về bài viết của bạn: "${data.content}"`;
-      case 'share':
-        return 'đã chia sẻ bài viết của bạn';
-      case 'friend_request':
-        return 'đã gửi lời mời kết bạn';
-      case 'friend_accept':
-        return 'đã chấp nhận lời mời kết bạn';
-      default:
-        return '';
-    }
+    return (
+      <div className="flex items-start space-x-3">
+        <div className="flex-shrink-0 w-10 h-10">
+          <img
+            src={notification.senderAvatar || '/default-avatar.png'}
+            alt=""
+            className="w-full h-full rounded-full object-cover"
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm text-gray-900">
+            <span className="font-medium">{notification.senderName}</span>{' '}
+            {message.description}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            {formatDistanceToNow(notification.timestamp, {
+              addSuffix: true,
+              locale: vi
+            })}
+          </p>
+        </div>
+        <div className={`flex-shrink-0 ${color}`}>
+          {icon}
+          {!notification.read && (
+            <span className="ml-2 w-2 h-2 bg-blue-500 rounded-full"></span>
+          )}
+        </div>
+      </div>
+    );
   };
 
   if (loading) {
@@ -132,7 +141,7 @@ const NotificationsUI = () => {
 
   if (error) {
     return (
-      <div className="flex justify-center items-center h-screen text-red-500">
+      <div className="p-4 bg-red-50 text-red-500 rounded-lg">
         {error}
       </div>
     );
@@ -151,20 +160,33 @@ const NotificationsUI = () => {
     <div className="max-w-2xl mx-auto p-4">
       <div className="bg-white rounded-lg shadow">
         <div className="p-4 border-b flex justify-between items-center">
-          <h1 className="text-xl font-semibold">Thông báo</h1>
-          {notifications.some(n => !n.read) && (
+          <div className="flex items-center space-x-3">
+            <h1 className="text-xl font-semibold">Thông báo</h1>
+            {unreadCount > 0 && (
+              <span className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-full">
+                {unreadCount} mới
+              </span>
+            )}
+          </div>
+          {unreadCount > 0 && (
             <button
               onClick={handleMarkAllAsRead}
-              className="text-sm text-blue-500 hover:text-blue-600"
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
             >
               Đánh dấu tất cả là đã đọc
             </button>
           )}
         </div>
-        <div className="divide-y">
+        <div className="divide-y divide-gray-100">
           {notifications.length === 0 ? (
-            <div className="p-4 text-center text-gray-500">
-              Không có thông báo nào
+            <div className="flex flex-col items-center justify-center py-16">
+              <div className="w-16 h-16 mb-4 text-gray-400">
+                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v1a3 3 0 016 0z" />
+                </svg>
+              </div>
+              <p className="text-lg font-medium text-gray-900">Chưa có thông báo nào</p>
+              <p className="mt-1 text-sm text-gray-500">Bạn sẽ nhận được thông báo khi có hoạt động mới</p>
             </div>
           ) : (
             notifications.map((notification) => (
@@ -175,33 +197,7 @@ const NotificationsUI = () => {
                   !notification.read ? 'bg-blue-50' : ''
                 }`}
               >
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0 w-10 h-10">
-                    <img
-                      src={notification.data.userAvatar || '/default-avatar.png'}
-                      alt=""
-                      className="w-full h-full rounded-full"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900">
-                      <span className="font-medium">{notification.data.userName}</span>{' '}
-                      {getNotificationContent(notification)}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {formatDistanceToNow(notification.timestamp, {
-                        addSuffix: true,
-                        locale: vi
-                      })}
-                    </p>
-                  </div>
-                  <div className="flex-shrink-0 flex items-center">
-                    {getNotificationIcon(notification.type)}
-                    {!notification.read && (
-                      <span className="ml-2 w-2 h-2 bg-blue-500 rounded-full"></span>
-                    )}
-                  </div>
-                </div>
+                {renderNotificationContent(notification)}
               </div>
             ))
           )}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ThumbsUp, MessageCircle, Share2 } from "lucide-react";
 import socket from "../../services/socket";
-import { ToastContainer, toast } from 'react-toastify';
+import { useToast } from '../../context/ToastContext';
 import 'react-toastify/dist/ReactToastify.css';
 
 import EmojiPickerComponent from "./postComponents/EmojiPickerComponent";
@@ -9,7 +9,10 @@ import PostContent from "./postComponents/PostContent";
 import SubPost from "./postComponents/SubPost";
 
 function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
+  const { showToast } = useToast();
   const [shareCount, setShareCount] = useState(post.shares || 0);
+  const [previousShareCount, setPreviousShareCount] = useState(post.shares || 0);
+  const [shareUpdateAnimation, setShareUpdateAnimation] = useState('');
   const [likeCount, setLikeCount] = useState(
     groupedLikes ? Object.values(groupedLikes).flat().length : 0
   );
@@ -26,32 +29,38 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
   const [showSubPost, setShowSubPost] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [shareText, setShareText] = useState("");
+  const [shareText, setShareText] = useState("")
 
 
   useEffect(() => {
-    socket.on("postShared", ({ postId: sharedPostId, shareCount }) => {
+    socket.on("postShared", ({ postId: sharedPostId, shareCount: newShareCount, error }) => {
       if (sharedPostId === postId) {
-        setShareCount(shareCount);
+        if (error) {
+          // Revert to previous count on error
+          setShareCount(previousShareCount);
+          showToast(error, 'error');
+        } else {
+          setShareCount(newShareCount);
+          // Trigger animation if count changed
+          if (newShareCount !== previousShareCount) {
+            setShareUpdateAnimation('animate-bounce');
+            setTimeout(() => setShareUpdateAnimation(''), 1000);
+            showToast('Đã chia sẻ bài viết thành công!', 'success');
+          }
+          setPreviousShareCount(newShareCount);
+        }
       }
     });
 
     return () => {
       socket.off("postShared");
     };
-  }, [postId]);
+  }, [postId, previousShareCount, showToast]);
 
 
   const handleShare = () => {
     if (!idUser) {
-      toast.error('Vui lòng đăng nhập để chia sẻ bài viết!', {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      showToast('Vui lòng đăng nhập để chia sẻ bài viết!', 'error');
       return;
     }
     setShowConfirmDialog(true);
@@ -61,19 +70,15 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
   const confirmShare = () => {
     setShowConfirmDialog(false);
     setIsSharing(true);
+    
+    // Optimistic update
+    const prevCount = shareCount;
+    setShareCount(prevCount + 1);
+    
     socket.emit("sharePost", {
       postId,
       idUser,
       shareText
-    });
-
-    toast.success('Đã chia sẻ bài viết thành công!', {
-      position: "top-right",
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
     });
 
     setShareText("");
@@ -236,7 +241,7 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
             disabled={isSharing}
           >
             <Share2 className={`h-5 w-5 ${isSharing ? 'animate-pulse' : ''}`} />
-            <span>{shareCount}</span>
+            <span className={shareUpdateAnimation}>{shareCount}</span>
           </button>
         </div>
       </div>
@@ -282,7 +287,6 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
           </div>
         </div>
       )}
-      <ToastContainer />
     </div>
   );
 }
