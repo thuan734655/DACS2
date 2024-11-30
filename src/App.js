@@ -1,8 +1,8 @@
 import ForgottenUI from "./components/ui/ForgottenUI";
-import FormCreatePostUI from "./components/ui/FormCreatePostUI";
+
 import HomePageUI from "./components/ui/HomePageUI";
 import LoginUI from "./components/ui/LoginUI";
-import MessageUI from "./components/ui/MessageUI";
+
 import ProfileUI from "./components/ui/ProfileUI";
 import SignUp from "./components/ui/SignUp";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
