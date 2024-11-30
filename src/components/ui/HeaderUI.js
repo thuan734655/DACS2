@@ -11,7 +11,7 @@ const HeaderUI = () => {
       <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
         {/* Logo bên trái */}
         <div className="w-32 "> 
-          <img src={Logo} alt="Logo" className="w-10 h-10 " />
+          <img src={Logo} alt="Logo" className="w-10 h-10 " onClick={() => navigate("/homepage")}/>
         </div>
 
         {/* Thanh tìm kiếm ở giữa */}
