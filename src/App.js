@@ -7,8 +7,15 @@ import ProfileUI from "./components/ui/ProfileUI";
 import SignUp from "./components/ui/SignUp";
 import NotificationPage from './pages/NotificationPage';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React, { useEffect } from 'react';
+import { initializeSocket } from './services/socketService';
 
 function App() {
+  useEffect(() => {
+    // Initialize socket connection when app starts
+    initializeSocket();
+  }, []);
+
   return (
     <div>
       <Router>

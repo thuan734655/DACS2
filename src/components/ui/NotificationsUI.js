@@ -1,78 +1,142 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaThumbsUp, FaComment, FaUserPlus, FaShare } from 'react-icons/fa';
 import NotificationDetailUI from './NotificationDetailUI';
+import { formatDistanceToNow } from 'date-fns';
+import { vi } from 'date-fns/locale';
+import { getSocket, initializeSocket } from '../../services/socketService';
 
 const NotificationsUI = () => {
   const [selectedNotification, setSelectedNotification] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const idUser = JSON.parse(localStorage.getItem('user')).idUser;
+  useEffect(() => {
+    const initializeNotifications = async () => {
+      try {
+        if (!idUser) {
+          throw new Error('User not found');
+        }
 
-  // Mock notifications data
-  const notifications = [
-    {
-      id: 1,
-      type: 'POST_LIKE',
-      title: 'Lượt thích mới',
-      content: 'Nguyễn Văn A đã thích bài viết của bạn',
-      createdAt: '2024-01-20T08:00:00Z',
-      isRead: false,
-      relatedId: 'post123'
-    },
-    {
-      id: 2,
-      type: 'POST_COMMENT',
-      title: 'Bình luận mới',
-      content: 'Trần Thị B đã bình luận về bài viết của bạn',
-      createdAt: '2024-01-20T07:30:00Z',
-      isRead: true,
-      relatedId: 'post456'
-    },
-    {
-      id: 3,
-      type: 'FRIEND_REQUEST',
-      title: 'Lời mời kết bạn',
-      content: 'Lê Văn C muốn kết bạn với bạn',
-      createdAt: '2024-01-19T15:45:00Z',
-      isRead: false,
-      relatedId: 'user789'
-    },
-    {
-      id: 4,
-      type: 'POST_SHARE',
-      title: 'Chia sẻ bài viết',
-      content: 'Phạm Thị D đã chia sẻ bài viết của bạn',
-      createdAt: '2024-01-19T14:20:00Z',
-      isRead: true,
-      relatedId: 'post789'
-    },
-    {
-      id: 5,
-      type: 'FRIEND_ACCEPT',
-      title: 'Chấp nhận kết bạn',
-      content: 'Hoàng Văn E đã chấp nhận lời mời kết bạn của bạn',
-      createdAt: '2024-01-19T10:15:00Z',
-      isRead: false,
-      relatedId: 'user101'
+        // Initialize socket connection
+        const socket = getSocket();
+        
+        // Join notification room
+        socket.emit('joinNotificationRoom', {idUser});
+
+        // Listen for notifications list
+        socket.on('notificationsList', (notificationsList) => {
+          setNotifications(notificationsList.sort((a, b) => b.timestamp - a.timestamp));
+          setLoading(false);
+        });
+
+        // Listen for new notifications
+        socket.on('newNotification', (notification) => {
+          setNotifications(prev => [notification, ...prev]);
+        });
+
+        // Listen for notification updates
+        socket.on('notificationUpdated', (updatedNotification) => {
+          setNotifications(prev =>
+            prev.map(n => n.id === updatedNotification.id ? updatedNotification : n)
+          );
+        });
+
+        // Handle errors
+        socket.on('error', (socketError) => {
+          setError(socketError.message);
+          setLoading(false);
+        });
+
+        // Request initial notifications
+        socket.emit('getNotifications', {idUser });
+
+        // Cleanup
+        return () => {
+          socket.emit('leaveNotificationRoom');
+          socket.off('notificationsList');
+          socket.off('newNotification');
+          socket.off('notificationUpdated');
+          socket.off('error');
+        };
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    initializeNotifications();
+  }, []);
+
+  const handleNotificationClick = async (notification) => {
+    if (!notification.read) {
+      const socket = getSocket();
+      if (socket && idUser) {
+        socket.emit('markNotificationAsRead', {
+          notificationId: notification.id,
+          idUser
+        });
+      }
     }
-  ];
+    setSelectedNotification(notification);
+  };
+
+  const handleMarkAllAsRead = () => {
+    const socket = getSocket();
+    if (socket && idUser) {
+      socket.emit('markAllNotificationsAsRead', { idUser });
+    }
+  };
 
   const getNotificationIcon = (type) => {
     switch (type) {
-      case 'POST_LIKE':
+      case 'like':
         return <FaThumbsUp className="text-blue-500" />;
-      case 'POST_COMMENT':
+      case 'comment':
         return <FaComment className="text-green-500" />;
-      case 'POST_SHARE':
-        return <FaShare className="text-purple-500" />;
-      case 'FRIEND_REQUEST':
-      case 'FRIEND_ACCEPT':
-        return <FaUserPlus className="text-blue-500" />;
+      case 'share':
+        return <FaShare className="text-orange-500" />;
+      case 'friend_request':
+      case 'friend_accept':
+        return <FaUserPlus className="text-purple-500" />;
       default:
         return null;
     }
   };
 
-  const handleNotificationClick = (notification) => {
-    setSelectedNotification(notification);
+  const getNotificationContent = (notification) => {
+    const { type, data } = notification;
+    switch (type) {
+      case 'like':
+        return `đã thả ${data.emoji || '👍'} cho bài viết của bạn`;
+      case 'comment':
+        return `đã bình luận về bài viết của bạn: "${data.content}"`;
+      case 'share':
+        return 'đã chia sẻ bài viết của bạn';
+      case 'friend_request':
+        return 'đã gửi lời mời kết bạn';
+      case 'friend_accept':
+        return 'đã chấp nhận lời mời kết bạn';
+      default:
+        return '';
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-screen text-red-500">
+        {error}
+      </div>
+    );
+  }
 
   if (selectedNotification) {
     return (
@@ -84,36 +148,63 @@ const NotificationsUI = () => {
   }
 
   return (
-    <div className="bg-gray-50 min-h-full">
-      <div className="container mx-auto px-4 py-6">
-        <h2 className="text-2xl font-semibold mb-6">Thông báo</h2>
-        <div className="space-y-4">
-          {notifications.map(notification => (
-            <div
-              key={notification.id}
-              className={`bg-white rounded-lg p-4 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors ${
-                !notification.isRead ? 'border-l-4 border-blue-500' : ''
-              }`}
-              onClick={() => handleNotificationClick(notification)}
+    <div className="max-w-2xl mx-auto p-4">
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-4 border-b flex justify-between items-center">
+          <h1 className="text-xl font-semibold">Thông báo</h1>
+          {notifications.some(n => !n.read) && (
+            <button
+              onClick={handleMarkAllAsRead}
+              className="text-sm text-blue-500 hover:text-blue-600"
             >
-              <div className="flex items-start space-x-4">
-                <div className="p-3 bg-gray-100 rounded-full">
-                  {getNotificationIcon(notification.type)}
-                </div>
-                <div className="flex-grow">
-                  <h3 className={`font-semibold ${!notification.isRead ? 'text-black' : 'text-gray-600'}`}>
-                    {notification.title}
-                  </h3>
-                  <p className={`${!notification.isRead ? 'text-gray-800' : 'text-gray-500'}`}>
-                    {notification.content}
-                  </p>
-                  <p className="text-gray-400 text-sm mt-2">
-                    {new Date(notification.createdAt).toLocaleString('vi-VN')}
-                  </p>
+              Đánh dấu tất cả là đã đọc
+            </button>
+          )}
+        </div>
+        <div className="divide-y">
+          {notifications.length === 0 ? (
+            <div className="p-4 text-center text-gray-500">
+              Không có thông báo nào
+            </div>
+          ) : (
+            notifications.map((notification) => (
+              <div
+                key={notification.id}
+                onClick={() => handleNotificationClick(notification)}
+                className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors duration-200 ${
+                  !notification.read ? 'bg-blue-50' : ''
+                }`}
+              >
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 w-10 h-10">
+                    <img
+                      src={notification.data.userAvatar || '/default-avatar.png'}
+                      alt=""
+                      className="w-full h-full rounded-full"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-gray-900">
+                      <span className="font-medium">{notification.data.userName}</span>{' '}
+                      {getNotificationContent(notification)}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {formatDistanceToNow(notification.timestamp, {
+                        addSuffix: true,
+                        locale: vi
+                      })}
+                    </p>
+                  </div>
+                  <div className="flex-shrink-0 flex items-center">
+                    {getNotificationIcon(notification.type)}
+                    {!notification.read && (
+                      <span className="ml-2 w-2 h-2 bg-blue-500 rounded-full"></span>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>
