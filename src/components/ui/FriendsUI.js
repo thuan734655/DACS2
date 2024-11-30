@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { FaUserPlus, FaUserFriends, FaUserClock, FaTimes, FaCheck } from 'react-icons/fa';
-import { getSuggestedFriends, getFriendRequests, respondToFriendRequest, sendFriendRequest } from '../../services/userService';
+import { getSuggestedFriends, getFriendRequests, respondToFriendRequest, sendFriendRequest, getFriendsList } from '../../services/userService';
 import { toast } from 'react-toastify';
 const FriendsUI = () => {
-  const [activeTab, setActiveTab] = useState('requests'); // 'requests' or 'suggestions'
+  const [activeTab, setActiveTab] = useState('friends'); // 'requests' or 'suggestions'
   const [friendRequests, setFriendRequests] = useState([]);
   const [suggestedFriends, setSuggestedFriends] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
+ 
   // Mock data for friend requests
   
   useEffect(() => {

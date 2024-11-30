@@ -1,41 +1,73 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaSearch, FaCircle, FaTimes } from 'react-icons/fa';
-import ChatUI from './ChatUI';
+import { getFriendsList } from '../../services/userService';
+import socket from '../../services/socket';
 
 const MessagesUI = ({ onClose, showInRightPanel = false, onChatSelect, selectedChatId }) => {
   const [searchTerm, setSearchTerm] = useState('');
-
-  // Mock conversations data
-  const conversations = [
-    {
-      id: 1,
-      user: 'Nguyễn Văn A',
-      avatar: 'https://api.dicebear.com/6.x/avataaars/svg?seed=chat1',
-      lastMessage: 'Bạn khỏe không?',
-      time: '2 phút trước',
-      unread: 2,
-      online: true
-    },
-    {
-      id: 2,
-      user: 'Trần Thị B',
-      avatar: 'https://api.dicebear.com/6.x/avataaars/svg?seed=chat2',
-      lastMessage: 'Hẹn gặp lại nhé!',
-      time: '1 giờ trước',
-      unread: 0,
-      online: false
-    },
-    {
-      id: 3,
-      user: 'Lê Văn C',
-      avatar: 'https://api.dicebear.com/6.x/avataaars/svg?seed=chat3',
-      lastMessage: 'Ok bạn',
-      time: '2 giờ trước',
-      unread: 1,
-      online: true
+  const [friends, setFriends] = useState([]);
+  const [onlineUsers, setOnlineUsers] = useState(new Set());
+  useEffect(() => {
+    const loadFriends = async () => {
+      const currentUser = JSON.parse(localStorage.getItem('user'));
+      if (currentUser && currentUser.idUser) {
+        const friendsList = await getFriendsList(currentUser.idUser);
+        setFriends(friendsList.map(friend => ({
+          id: friend.idUser,
+          user: friend.fullName || 'Người dùng',
+          avatar: friend.avatar || `https://api.dicebear.com/6.x/avataaars/svg?seed=${friend.idUser}`,
+          lastMessage: 'Nhấn để bắt đầu trò chuyện',
+          time: '',
+          unread: 0,
+          online: onlineUsers.has(friend.idUser)
+        })));
+      }
+    };
+    loadFriends();
+  }, [onlineUsers]);
+  useEffect(() => {
+    // Lấy thông tin user từ localStorage
+    const currentUser = JSON.parse(localStorage.getItem('user'));
+    
+    if (currentUser && currentUser.idUser) {
+      // Emit sự kiện userConnected khi component mount
+      console.log('Emitting userConnected with ID:', currentUser.idUser);
+      socket.emit('userConnected', currentUser.idUser);
     }
-  ];
-
+  
+    // Lắng nghe danh sách users online
+    socket.on('getOnlineUsers', (users) => {
+      console.log('Received online users:', users);
+      setOnlineUsers(new Set(users));
+    });
+  
+    // Lắng nghe khi có user mới online
+    socket.on('userConnected', (userId) => {
+      console.log('User connected:', userId);
+      setOnlineUsers(prev => new Set([...prev, userId]));
+    });
+  
+    // Lắng nghe khi có user offline
+    socket.on('userDisconnected', (userId) => {
+      console.log('User disconnected:', userId);
+      setOnlineUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+    });
+  
+    // Cleanup listeners khi component unmount
+    return () => {
+      if (currentUser && currentUser.idUser) {
+        // Thông báo user offline khi unmount
+        socket.emit('userDisconnected', currentUser.idUser);
+      }
+      socket.off('getOnlineUsers');
+      socket.off('userConnected');
+      socket.off('userDisconnected');
+    };
+  }, []);
   const handleChatClick = (chat) => {
     if (onChatSelect) {
       onChatSelect(chat);
@@ -68,16 +100,17 @@ const MessagesUI = ({ onClose, showInRightPanel = false, onChatSelect, selectedC
         </div>
       </div>
       <div className="overflow-y-auto">
-        {conversations
+      
+        {friends
           .filter(chat => 
-            chat.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            chat.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
+            (chat.user?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (chat.lastMessage?.toLowerCase() || '').includes(searchTerm.toLowerCase())
           )
           .map((chat) => (
             <div
-              key={chat.id}
+              key={chat.idUser}
               className={`p-4 hover:bg-gray-50 cursor-pointer ${
-                selectedChatId === chat.id ? 'bg-blue-50' : ''
+                selectedChatId === chat.idUser ? 'bg-blue-50' : ''
               }`}
               onClick={() => handleChatClick(chat)}
             >

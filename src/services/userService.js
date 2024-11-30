@@ -94,6 +94,7 @@ export const sendFriendRequest = async (userId, requesterId) => {
   try {
     const response = await axiosAPI.post(`/api/users/${userId}/send-friend-request`, {
       requesterId: requesterId  // Thêm requesterId vào body
+      
     });
     return response.data;
   } catch (error) {
@@ -110,5 +111,34 @@ export const getFriendCount = async () => {
   } catch (error) {
     console.error("Lỗi khi lấy số lượng bạn bè:", error);
     return 0;
+  }
+};
+export const searchUsersByName = async (fullName) => {
+  try {
+    const userData = localStorage.getItem("user");
+    const currentUser = JSON.parse(userData);
+    
+    // Gọi API tìm kiếm người dùng theo fullName
+    const response = await axiosAPI.get(`/api/users/search-by-name`, {
+      params: {
+        fullName: fullName,
+        currentUserId: currentUser.idUser
+      }
+    });
+
+    console.log('Kết quả tìm kiếm theo tên:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi tìm kiếm người dùng:", error);
+    throw error;
+  }
+};
+export const getFriendsList = async (idUser) => {
+  try {
+    const response = await axiosAPI.get(`/api/users/${idUser}/friends`);
+    return response.data || [];
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách bạn bè:", error);
+    return [];
   }
 };
