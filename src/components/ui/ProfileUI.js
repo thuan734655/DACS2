@@ -374,11 +374,17 @@ const ProfileUI = () => {
                         {isEditing ? (
                           <Autocomplete
                             freeSolo
-                            value={editedInfo.education}
+                            value={editedInfo.education === null ? '' : editedInfo.education}
                             onChange={(event, newValue) => {
                               setEditedInfo({
                                 ...editedInfo,
-                                education: newValue
+                                education: newValue === null ? '' : newValue
+                              });
+                            }}
+                            onInputChange={(event, newInputValue) => {
+                              setEditedInfo({
+                                ...editedInfo,
+                                education: newInputValue || ''
                               });
                             }}
                             options={educationLevels}
