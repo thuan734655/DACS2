@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getUserInfo, updateUserInfo } from "../../services/userService";
 import {
+  Autocomplete,
   Avatar,
   Box,
   Button,
@@ -13,6 +14,7 @@ import {
   Tab,
   Tabs,
   TextareaAutosize,
+  TextField,
   Typography,
 } from "@mui/material";
 import {
@@ -88,6 +90,32 @@ const ProfileUI = () => {
       [field]: event.target.value
     });
   };
+  const vietnamProvinces = [
+    "An Giang", "Bà Rịa - Vũng Tàu", "Bắc Giang", "Bắc Kạn", "Bạc Liêu", 
+    "Bắc Ninh", "Bến Tre", "Bình Định", "Bình Dương", "Bình Phước", 
+    "Bình Thuận", "Cà Mau", "Cần Thơ", "Cao Bằng", "Đà Nẵng", 
+    "Đắk Lắk", "Đắk Nông", "Điện Biên", "Đồng Nai", "Đồng Tháp", 
+    "Gia Lai", "Hà Giang", "Hà Nam", "Hà Nội", "Hà Tĩnh", 
+    "Hải Dương", "Hải Phòng", "Hậu Giang", "Hòa Bình", "Hưng Yên", 
+    "Khánh Hòa", "Kiên Giang", "Kon Tum", "Lai Châu", "Lâm Đồng", 
+    "Lạng Sơn", "Lào Cai", "Long An", "Nam Định", "Nghệ An", 
+    "Ninh Bình", "Ninh Thuận", "Phú Thọ", "Phú Yên", "Quảng Bình", 
+    "Quảng Nam", "Quảng Ngãi", "Quảng Ninh", "Quảng Trị", "Sóc Trăng", 
+    "Sơn La", "Tây Ninh", "Thái Bình", "Thái Nguyên", "Thanh Hóa", 
+    "Thừa Thiên Huế", "Tiền Giang", "TP Hồ Chí Minh", "Trà Vinh", "Tuyên Quang", 
+    "Vĩnh Long", "Vĩnh Phúc", "Yên Bái"
+  ];
+
+  const educationLevels = [
+    "Trung học cơ sở",
+    "Trung học phổ thông",
+    "Trung cấp",
+    "Cao đẳng",
+    "Đại học",
+    "Thạc sĩ",
+    "Tiến sĩ",
+    "Sau tiến sĩ"
+  ];
 
   
  
@@ -344,20 +372,31 @@ const ProfileUI = () => {
                           <span style={{ fontSize: '16px' }}>🎓</span> Học vấn
                         </Typography>
                         {isEditing ? (
-                          <TextareaAutosize
-                            minRows={2}
+                          <Autocomplete
+                            freeSolo
                             value={editedInfo.education}
-                            onChange={handleChange('education')}
-                            style={{
-                              width: '100%',
-                              padding: '10px 12px',
-                              borderRadius: '8px',
-                              border: '1px solid #e0e0e0',
-                              fontSize: '0.9rem',
-                              fontFamily: 'inherit',
-                              resize: 'vertical'
+                            onChange={(event, newValue) => {
+                              setEditedInfo({
+                                ...editedInfo,
+                                education: newValue
+                              });
                             }}
-                            placeholder="Nhập thông tin học vấn..."
+                            options={educationLevels}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                variant="outlined"
+                                size="small"
+                                placeholder="Nhập hoặc chọn trình độ học vấn"
+                                sx={{
+                                  '& .MuiOutlinedInput-root': {
+                                    borderRadius: '8px',
+                                    fontSize: '0.9rem',
+                                    backgroundColor: '#fff'
+                                  }
+                                }}
+                              />
+                            )}
                           />
                         ) : (
                           <Typography 
@@ -387,20 +426,31 @@ const ProfileUI = () => {
                           <span style={{ fontSize: '16px' }}>📍</span> Nơi ở hiện tại
                         </Typography>
                         {isEditing ? (
-                          <TextareaAutosize
-                            minRows={1}
+                          <Autocomplete
+                            freeSolo
                             value={editedInfo.location}
-                            onChange={handleChange('location')}
-                            style={{
-                              width: '100%',
-                              padding: '10px 12px',
-                              borderRadius: '8px',
-                              border: '1px solid #e0e0e0',
-                              fontSize: '0.9rem',
-                              fontFamily: 'inherit',
-                              resize: 'vertical'
+                            onChange={(event, newValue) => {
+                              setEditedInfo({
+                                ...editedInfo,
+                                location: newValue
+                              });
                             }}
-                            placeholder="Nhập nơi cư trú..."
+                            options={vietnamProvinces}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                variant="outlined"
+                                size="small"
+                                placeholder="Nhập hoặc chọn tỉnh thành"
+                                sx={{
+                                  '& .MuiOutlinedInput-root': {
+                                    borderRadius: '8px',
+                                    fontSize: '0.9rem',
+                                    backgroundColor: '#fff'
+                                  }
+                                }}
+                              />
+                            )}
                           />
                         ) : (
                           <Typography 

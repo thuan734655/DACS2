@@ -7,6 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import EmojiPickerComponent from "./postComponents/EmojiPickerComponent";
 import PostContent from "./postComponents/PostContent";
 import SubPost from "./postComponents/SubPost";
+import { toast } from "react-toastify";
 
 function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
   const { showToast } = useToast();
