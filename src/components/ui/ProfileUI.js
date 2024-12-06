@@ -559,45 +559,221 @@ const ProfileUI = () => {
             borderRadius: "16px",
             boxShadow: "0 2px 12px rgba(0,0,0,0.1)"
           }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
-                Giới thiệu
-              </Typography>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <Typography>🎥 YTB: ANH PHI</Typography>
-                <Typography>
-                  🌐 Web hack data 4g giá rẻ: https://datasieure.click
-                </Typography>
-                <Typography>🏢 Làm việc tại make money online</Typography>
-                <Typography>💼 Làm việc tại Freelancer</Typography>
-                <Typography>👥 1.831 người theo dõi</Typography>
-                <Typography>🔗 datasieure.click</Typography>
-              </Box>
-              <Box sx={{ display: "flex", gap: 2, mt: 3 }}>
-                <Button
-                  variant="outlined"
-                  sx={{ 
-                    flex: 1,
-                    borderRadius: "20px",
-                    textTransform: "none",
-                    fontWeight: "medium"
-                  }}
-                >
-                  Chỉnh sửa tiểu sử
-                </Button>
-                <Button
-                  variant="outlined"
-                  sx={{ 
-                    flex: 1,
-                    borderRadius: "20px",
-                    textTransform: "none",
-                    fontWeight: "medium"
-                  }}
-                >
-                  Chỉnh sửa chi tiết
-                </Button>
-              </Box>
-            </CardContent>
+         <CardContent>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    mb: 2.5 
+                  }}>
+                    <Typography variant="h6" sx={{ 
+                      fontWeight: 600,
+                      fontSize: "1.1rem",
+                      color: "#1a237e"
+                    }}>
+                      Giới thiệu
+                    </Typography>
+                    {!isEditing ? (
+                      <IconButton 
+                        onClick={handleEdit} 
+                        size="small"
+                        sx={{ 
+                          color: "primary.main",
+                          '&:hover': {
+                            backgroundColor: 'rgba(25, 118, 210, 0.04)'
+                          }
+                        }}
+                      >
+                        <Edit sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    ) : (
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Button 
+                          onClick={handleSave} 
+                          variant="contained" 
+                          size="small"
+                          sx={{ 
+                            textTransform: 'none',
+                            px: 2,
+                            py: 0.5,
+                            borderRadius: '8px',
+                            fontSize: '0.875rem'
+                          }}
+                        >
+                          Lưu
+                        </Button>
+                        <Button 
+                          onClick={handleCancel} 
+                          variant="outlined" 
+                          size="small"
+                          sx={{ 
+                            textTransform: 'none',
+                            px: 2,
+                            py: 0.5,
+                            borderRadius: '8px',
+                            fontSize: '0.875rem'
+                          }}
+                        >
+                          Hủy
+                        </Button>
+                      </Box>
+                    )}
+                  </Box>
+
+                  {loading ? (
+                    <Typography variant="body2" color="text.secondary">
+                      Đang tải...
+                    </Typography>
+                  ) : (
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+                      <Box>
+                        {isEditing ? (
+                          <TextareaAutosize
+                            minRows={3}
+                            value={editedInfo.introduction}
+                            onChange={handleChange('introduction')}
+                            style={{
+                              width: '100%',
+                              padding: '10px 12px',
+                              borderRadius: '8px',
+                              border: '1px solid #e0e0e0',
+                              fontSize: '0.9rem',
+                              fontFamily: 'inherit',
+                              resize: 'vertical',
+                              marginTop: '8px'
+                            }}
+                            placeholder="Viết giới thiệu về bản thân..."
+                          />
+                        ) : (
+                          <Typography 
+                            variant="body2" 
+                            sx={{ 
+                              color: userInfo.introduction ? '#2c3e50' : '#94a3b8',
+                              whiteSpace: 'pre-wrap',
+                              lineHeight: 1.6
+                            }}
+                          >
+                            {userInfo.introduction || "Chưa có thông tin giới thiệu"}
+                          </Typography>
+                        )}
+                      </Box>
+
+                      <Box>
+                        <Typography 
+                          variant="subtitle2" 
+                          sx={{ 
+                            color: '#475569',
+                            mb: 0.5,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1
+                          }}
+                        >
+                          <span style={{ fontSize: '16px' }}>🎓</span> Học vấn
+                        </Typography>
+                        {isEditing ? (
+                          <Autocomplete
+                            freeSolo
+                            value={editedInfo.education === null ? '' : editedInfo.education}
+                            onChange={(event, newValue) => {
+                              setEditedInfo({
+                                ...editedInfo,
+                                education: newValue === null ? '' : newValue
+                              });
+                            }}
+                            onInputChange={(event, newInputValue) => {
+                              setEditedInfo({
+                                ...editedInfo,
+                                education: newInputValue || ''
+                              });
+                            }}
+                            options={educationLevels}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                variant="outlined"
+                                size="small"
+                                placeholder="Nhập hoặc chọn trình độ học vấn"
+                                sx={{
+                                  '& .MuiOutlinedInput-root': {
+                                    borderRadius: '8px',
+                                    fontSize: '0.9rem',
+                                    backgroundColor: '#fff'
+                                  }
+                                }}
+                              />
+                            )}
+                          />
+                        ) : (
+                          <Typography 
+                            variant="body2" 
+                            sx={{ 
+                              color: userInfo.education ? '#2c3e50' : '#94a3b8',
+                              whiteSpace: 'pre-wrap',
+                              lineHeight: 1.6
+                            }}
+                          >
+                            {userInfo.education || "Chưa có thông tin học vấn"}
+                          </Typography>
+                        )}
+                      </Box>
+
+                      <Box>
+                        <Typography 
+                          variant="subtitle2" 
+                          sx={{ 
+                            color: '#475569',
+                            mb: 0.5,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1
+                          }}
+                        >
+                          <span style={{ fontSize: '16px' }}>📍</span> Nơi ở hiện tại
+                        </Typography>
+                        {isEditing ? (
+                          <Autocomplete
+                            freeSolo
+                            value={editedInfo.location}
+                            onChange={(event, newValue) => {
+                              setEditedInfo({
+                                ...editedInfo,
+                                location: newValue
+                              });
+                            }}
+                            options={vietnamProvinces}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                variant="outlined"
+                                size="small"
+                                placeholder="Nhập hoặc chọn tỉnh thành"
+                                sx={{
+                                  '& .MuiOutlinedInput-root': {
+                                    borderRadius: '8px',
+                                    fontSize: '0.9rem',
+                                    backgroundColor: '#fff'
+                                  }
+                                }}
+                              />
+                            )}
+                          />
+                        ) : (
+                          <Typography 
+                            variant="body2" 
+                            sx={{ 
+                              color: userInfo.location ? '#2c3e50' : '#94a3b8',
+                              whiteSpace: 'pre-wrap',
+                              lineHeight: 1.6
+                            }}
+                          >
+                            {userInfo.location || "Chưa có thông tin nơi cư trú"}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+                  )}
+                </CardContent>
           </Card>
         </Box>
       )}
