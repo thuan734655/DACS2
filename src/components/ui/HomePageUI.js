@@ -23,6 +23,38 @@ const HomePageUI = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [selectedChat, setSelectedChat] = useState(null);
   const [friendCount, setFriendCount] = useState(0);
+  const [idUser, setIdUser] = useState(
+    JSON.parse(localStorage.getItem("user"))?.idUser || ""
+  ); 
+  const [listNotification, setListNotification] = useState([]);
+
+  useEffect(() => {
+    // Listen for new notifications
+    const handleNewNotification = (notification) => {
+      if(notification.originPostIdUser === idUser){ 
+        setListNotification((prevNotifications) => [notification, ...prevNotifications]); 
+      }
+    };
+
+    // Listen for existing notifications
+    const handleExistingNotifications = ({ notifications }) => {
+      if (Array.isArray(notifications)) {
+        setListNotification(notifications);
+      } else {
+        console.error('Dữ liệu không phải là mảng:', notifications);
+        setListNotification([]);
+      }
+    };
+
+    socket.on('notification', handleNewNotification);
+    socket.on('notifications', handleExistingNotifications);
+
+    // Cleanup function
+    return () => {
+      socket.off('notification', handleNewNotification);
+      socket.off('notifications', handleExistingNotifications);
+    };
+  }, [idUser]);
 
   useEffect(() => {
     // Lấy dữ liệu từ localStorage
@@ -31,6 +63,12 @@ const HomePageUI = () => {
       setUser(JSON.parse(userData));
     }
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'notifications') {
+      socket.emit('getNotifications', { idUser });
+    }
+  }, [activeTab, idUser]);
 
   const loadPosts = async () => {
     try {
@@ -252,7 +290,7 @@ const loadUserData = async () => {
           </div>
         );
       case 'notifications':
-        return <NotificationsUI user={user} />;
+        return <NotificationsUI user={user} data={listNotification} />;
       case 'messages':
         return selectedChat ? (
           <ChatUI chat={selectedChat} onBack={() => setSelectedChat(null)} user={user} />

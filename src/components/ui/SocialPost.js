@@ -33,32 +33,52 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
 
 
   useEffect(() => {
-    socket.on("postShared", ({ postId: sharedPostId, shareCount: newShareCount, error }) => {
+    const handlePostShared = ({ postId: sharedPostId, shareCount, success, error,idUserShare }) => {
+      console.log(idUserShare,"idUserShare", idUser,"idUser")
+     if(idUserShare === idUser){
       if (sharedPostId === postId) {
-        if (error) {
-          // Revert to previous count on error
-          setShareCount(previousShareCount);
-          showToast(error, 'error');
-        } else {
-          setShareCount(newShareCount);
-          // Trigger animation if count changed
-          if (newShareCount !== previousShareCount) {
-            setShareUpdateAnimation('animate-bounce');
-            setTimeout(() => setShareUpdateAnimation(''), 1000);
-            showToast('Đã chia sẻ bài viết thành công!', 'success');
-          }
-          setPreviousShareCount(newShareCount);
+        console.log('[DEBUG] Received postShared event:', { sharedPostId, shareCount, success });
+        setShareCount(shareCount);
+        
+        if (success) {
+          toast.success('Đã chia sẻ bài viết thành công!', {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+          setShowConfirmDialog(false);
+          setIsSharing(false);
+        } else if (error) {
+          toast.error(`Lỗi khi chia sẻ bài viết: ${error}`, {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+          setIsSharing(false);
         }
       }
-    });
+     }
+    };
+
+    // Clean up trước khi đăng ký event mới
+    socket.off("postShared", handlePostShared);
+    socket.on("postShared", handlePostShared);
 
     return () => {
-      socket.off("postShared");
+      socket.off("postShared", handlePostShared);
     };
   }, [postId, previousShareCount, showToast]);
 
 
   const handleShare = () => {
+    if (isSharing) return; // Prevent double submission
+    
     if (!idUser) {
       showToast('Vui lòng đăng nhập để chia sẻ bài viết!', 'error');
       return;
@@ -68,21 +88,18 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
 
 
   const confirmShare = () => {
-    setShowConfirmDialog(false);
+    if (isSharing) return; // Prevent double submission
+    
     setIsSharing(true);
+    console.log('[DEBUG] Emitting sharePost event:', { postId, idUser, shareText });
     
-    // Optimistic update
-    const prevCount = shareCount;
-    setShareCount(prevCount + 1);
-    
-    socket.emit("sharePost", {
+    socket.emit("sharePost", { 
       postId,
       idUser,
       shareText
     });
 
     setShareText("");
-    setTimeout(() => setIsSharing(false), 1000);
   };
 
 
@@ -114,6 +131,8 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
       }
     };
 
+    // Clean up trước khi đăng ký event mới
+    socket.off("receiveReaction", handleReceiveReaction);
     socket.on("receiveReaction", handleReceiveReaction);
 
     return () => {
@@ -153,26 +172,28 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
 
 
   const renderEmoji = () => {
-    if (!emojiCounts) return null;
-
+    // Đảm bảo emojiCounts là một object
+    const counts = emojiCounts || {};
     let selectedEmoji = emojiChoose;
 
-    const emojiElements = Object.entries(emojiCounts)
-      .filter(([emoji, users]) => users.length > 0)
+    const emojiElements = Object.entries(counts)
+      .filter(([emoji, users]) => users && users.length > 0)  // Thêm kiểm tra users
       .map(([emoji, users]) => {
-        users.forEach(user => {
-          if ((user - '0') == idUser) {
-            selectedEmoji = emoji;
-          }
-        });
-
+        if (users) {  // Thêm kiểm tra users
+          users.forEach(user => {
+            if ((user - '0') === parseInt(idUser)) {  // Sửa phép so sánh
+              selectedEmoji = emoji;
+            }
+          });
+        }
+        
         return (
           <div
             key={emoji}
             className="flex items-center gap-1 text-sm text-gray-500"
           >
             <span>{emoji}</span>
-            <span>{users.length}</span>
+            <span>{users ? users.length : 0}</span>
           </div>
         );
       });

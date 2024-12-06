@@ -18,10 +18,15 @@ const ChatUI = ({ chat, onClose }) => {
   const [isInCall, setIsInCall] = useState(false);
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
+  const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   useEffect(() => {
     if (!currentUser?.idUser || !chat?.id) return;
-
+   
     const unsubscribe = subscribeToChat(
       currentUser.idUser,
       chat.id,
@@ -268,6 +273,7 @@ const ChatUI = ({ chat, onClose }) => {
               </div>
             </div>
           ))}
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Input Area */}

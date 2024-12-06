@@ -142,3 +142,30 @@ export const getFriendsList = async (idUser) => {
     return [];
   }
 };
+export const getUserInfo = async (userId) => {
+  try {
+    const response = await axiosAPI.get(`/api/users/${userId}/info`);
+    return response.data || {
+      introduction: '',
+      education: '',
+      location: ''
+    };
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin:", error);
+    return {
+      introduction: '',
+      education: '',
+      location: ''
+    };
+  }
+};
+
+export const updateUserInfo = async (userId, info) => {
+  try {
+    const response = await axiosAPI.put(`/api/users/${userId}/info`, info);
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi cập nhật thông tin:", error);
+    throw error;
+  }
+};

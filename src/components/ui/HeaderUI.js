@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from "react";
 import Logo from "../../assets/imgs/Logo.png";
 import { LogOut, User } from "lucide-react";
-import NotificationComponent from "../NotificationComponent";
-import { Link } from 'react-router-dom';
-import { subscribeToNotifications } from '../../services/notificationSocket';
+import { useNavigate } from "react-router-dom";
 
-const HeaderUI = ({ user }) => {
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+
+const HeaderUI = () => {
+  const navigate = useNavigate();
   return (
     <div className="bg-white shadow-md py-2 fixed w-full z-10">
       <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
         {/* Logo bên trái */}
         <div className="w-32 "> 
-          <img src={Logo} alt="Logo" className="w-10 h-10 " />
+          <img src={Logo} alt="Logo" className="w-10 h-10 " onClick={() => navigate("/homepage")}/>
         </div>
 
         {/* Thanh tìm kiếm ở giữa */}
@@ -43,13 +41,13 @@ const HeaderUI = ({ user }) => {
         <div className="w-60 flex justify-end space-x-4 pl-42"> 
           <button 
             className="p-2 hover:bg-gray-100 rounded-full w-10 h-10 flex items-center justify-center bg-gray-50 border border-gray-200 transition-colors duration-200" 
-            title="Hồ sơ"
+            title="Hồ sơ" onClick={() => navigate("/profile")}
           >
             <User className="w-5 h-5 text-gray-600" />
           </button>
           <button 
             className="p-2 hover:bg-gray-100 rounded-full w-10 h-10 flex items-center justify-center bg-gray-50 border border-gray-200 transition-colors duration-200" 
-            title="Đăng xuất"
+            title="Đăng xuất" onClick={() => navigate("/login")}
           >
             <LogOut className="w-5 h-5 text-gray-600" />
           </button>

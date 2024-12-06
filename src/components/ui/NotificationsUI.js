@@ -4,8 +4,9 @@ import { vi } from 'date-fns/locale';
 import { getSocket, initializeSocket } from '../../services/socketService';
 import { getNotificationMessage, getNotificationIcon, showNotificationToast } from '../../services/notificationService';
 import NotificationDetailUI from './NotificationDetailUI';
+import socket from '../../services/socket';
 
-const NotificationsUI = () => {
+const NotificationsUI = ({ user, data }) => {
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -80,6 +81,7 @@ const NotificationsUI = () => {
     initializeNotifications();
   }, [idUser]);
 
+  // Hàm xử lý khi người dùng click vào một thông báo
   const handleNotificationClick = (notification) => {
     if (!notification.read) {
       const socket = getSocket();
