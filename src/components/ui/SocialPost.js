@@ -3,7 +3,6 @@ import { ThumbsUp, MessageCircle, Share2 } from "lucide-react";
 import socket from "../../services/socket";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
 import EmojiPickerComponent from "./postComponents/EmojiPickerComponent";
 import PostContent from "./postComponents/PostContent";
 import SubPost from "./postComponents/SubPost";
