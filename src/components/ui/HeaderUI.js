@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Logo from "../../assets/imgs/Logo.png";
 import { LogOut, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";

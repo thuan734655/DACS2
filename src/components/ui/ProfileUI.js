@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { getUserInfo, updateUserInfo } from "../../services/userService";
+import {
+  getUserInfo,
+  updateUserInfo,
+  getFriendsList,
+  updateUserCover,
+  updateUserAvatar,
+} from "../../services/userService";
 import {
   Autocomplete,
   Avatar,
@@ -7,40 +13,40 @@ import {
   Button,
   Card,
   CardContent,
-  
+  CircularProgress,
   Container,
   Grid,
   IconButton,
+  Paper,
   Tab,
   Tabs,
   TextareaAutosize,
   TextField,
   Typography,
 } from "@mui/material";
-import {
-  CameraAlt,
-  Edit,
-  
-  VideoCall,
-  PhotoCamera,
-  Event,
-} from "@mui/icons-material";
+import { CameraAlt, Edit } from "@mui/icons-material";
+import { useNavigate, useParams } from "react-router-dom";
 
 const ProfileUI = () => {
-  const [postContent, setPostContent] = useState("");
+  const navigate = useNavigate();
+  const [currentUserId, setCurrentUserId] = useState(null);
   const [tabValue, setTabValue] = useState(0);
   const [user, setUser] = useState(null);
+  const [friends, setFriends] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const API_URL = "http://localhost:5000";
+  const { id } = useParams();
   const [userInfo, setUserInfo] = useState({
-    introduction: '',
-    education: '',
-    location: ''
+    introduction: "",
+    education: "",
+    location: "",
   });
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editedInfo, setEditedInfo] = useState({
-    introduction: '',
-    education: '',
-    location: ''
+    introduction: "",
+    education: "",
+    location: "",
   });
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -48,11 +54,11 @@ const ProfileUI = () => {
   useEffect(() => {
     // Lấy dữ liệu từ localStorage
     const userData = localStorage.getItem("user");
-    
     if (userData) {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
       setUser(JSON.parse(userData));
+      setCurrentUserId(parsedUser.idUser);
       const fetchUserInfo = async () => {
         const info = await getUserInfo(parsedUser.idUser);
         setUserInfo(info);
@@ -62,6 +68,67 @@ const ProfileUI = () => {
       fetchUserInfo();
     }
   }, []);
+  // Add useEffect for fetching friends
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (id) {
+          // Xem profile người khác
+          const info = await getUserInfo(id);
+          setUserInfo(info);
+          setEditedInfo(info);
+          const response = await getUserInfo(id);
+          if (response && response.data) {
+            setUserInfo({
+              ...response.data,
+              background: response.data.background,
+              avatar: response.data.avatar
+            });
+          }
+          // Lấy danh sách bạn bè của người đó
+          const friendsList = await getFriendsList(id);
+          setFriends(
+            friendsList.map((friend) => ({
+              id: friend.idUser,
+              fullName: friend.fullName || "Người dùng",
+              avatar:
+                friend.avatar ||
+                `https://api.dicebear.com/6.x/avataaars/svg?seed=${friend.idUser}`,
+            }))
+          );
+        } else {
+          // Xem profile bản thân
+          const userData = localStorage.getItem("user");
+          if (userData) {
+            const parsedUser = JSON.parse(userData);
+            setUser(parsedUser);
+            const info = await getUserInfo(parsedUser.idUser);
+            setUserInfo(info);
+            setEditedInfo(info);
+
+            // Lấy danh sách bạn bè của bản thân
+            const friendsList = await getFriendsList(parsedUser.idUser);
+            setFriends(
+              friendsList.map((friend) => ({
+                id: friend.idUser,
+                fullName: friend.fullName || "Người dùng",
+                avatar:
+                  friend.avatar ||
+                  `https://api.dicebear.com/6.x/avataaars/svg?seed=${friend.idUser}`,
+              }))
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id]);
+
   const handleEdit = () => {
     setIsEditing(true);
   };
@@ -87,23 +154,73 @@ const ProfileUI = () => {
   const handleChange = (field) => (event) => {
     setEditedInfo({
       ...editedInfo,
-      [field]: event.target.value
+      [field]: event.target.value,
     });
   };
   const vietnamProvinces = [
-    "An Giang", "Bà Rịa - Vũng Tàu", "Bắc Giang", "Bắc Kạn", "Bạc Liêu", 
-    "Bắc Ninh", "Bến Tre", "Bình Định", "Bình Dương", "Bình Phước", 
-    "Bình Thuận", "Cà Mau", "Cần Thơ", "Cao Bằng", "Đà Nẵng", 
-    "Đắk Lắk", "Đắk Nông", "Điện Biên", "Đồng Nai", "Đồng Tháp", 
-    "Gia Lai", "Hà Giang", "Hà Nam", "Hà Nội", "Hà Tĩnh", 
-    "Hải Dương", "Hải Phòng", "Hậu Giang", "Hòa Bình", "Hưng Yên", 
-    "Khánh Hòa", "Kiên Giang", "Kon Tum", "Lai Châu", "Lâm Đồng", 
-    "Lạng Sơn", "Lào Cai", "Long An", "Nam Định", "Nghệ An", 
-    "Ninh Bình", "Ninh Thuận", "Phú Thọ", "Phú Yên", "Quảng Bình", 
-    "Quảng Nam", "Quảng Ngãi", "Quảng Ninh", "Quảng Trị", "Sóc Trăng", 
-    "Sơn La", "Tây Ninh", "Thái Bình", "Thái Nguyên", "Thanh Hóa", 
-    "Thừa Thiên Huế", "Tiền Giang", "TP Hồ Chí Minh", "Trà Vinh", "Tuyên Quang", 
-    "Vĩnh Long", "Vĩnh Phúc", "Yên Bái"
+    "An Giang",
+    "Bà Rịa - Vũng Tàu",
+    "Bắc Giang",
+    "Bắc Kạn",
+    "Bạc Liêu",
+    "Bắc Ninh",
+    "Bến Tre",
+    "Bình Định",
+    "Bình Dương",
+    "Bình Phước",
+    "Bình Thuận",
+    "Cà Mau",
+    "Cần Thơ",
+    "Cao Bằng",
+    "Đà Nẵng",
+    "Đắk Lắk",
+    "Đắk Nông",
+    "Điện Biên",
+    "Đồng Nai",
+    "Đồng Tháp",
+    "Gia Lai",
+    "Hà Giang",
+    "Hà Nam",
+    "Hà Nội",
+    "Hà Tĩnh",
+    "Hải Dương",
+    "Hải Phòng",
+    "Hậu Giang",
+    "Hòa Bình",
+    "Hưng Yên",
+    "Khánh Hòa",
+    "Kiên Giang",
+    "Kon Tum",
+    "Lai Châu",
+    "Lâm Đồng",
+    "Lạng Sơn",
+    "Lào Cai",
+    "Long An",
+    "Nam Định",
+    "Nghệ An",
+    "Ninh Bình",
+    "Ninh Thuận",
+    "Phú Thọ",
+    "Phú Yên",
+    "Quảng Bình",
+    "Quảng Nam",
+    "Quảng Ngãi",
+    "Quảng Ninh",
+    "Quảng Trị",
+    "Sóc Trăng",
+    "Sơn La",
+    "Tây Ninh",
+    "Thái Bình",
+    "Thái Nguyên",
+    "Thanh Hóa",
+    "Thừa Thiên Huế",
+    "Tiền Giang",
+    "TP Hồ Chí Minh",
+    "Trà Vinh",
+    "Tuyên Quang",
+    "Vĩnh Long",
+    "Vĩnh Phúc",
+    "Yên Bái",
   ];
 
   const educationLevels = [
@@ -114,117 +231,226 @@ const ProfileUI = () => {
     "Đại học",
     "Thạc sĩ",
     "Tiến sĩ",
-    "Sau tiến sĩ"
+    "Sau tiến sĩ",
   ];
+  const handleAvatarChange = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setIsUploading(true);
+      try {
+        const formData = new FormData();
+        formData.append("avatar", file);
+        formData.append("userId", currentUserId);
 
-  
- 
+        const response = await updateUserAvatar(formData);
+        console.log("Upload response:", response);
+
+        if (response && response.data && response.data.avatarUrl) {
+          setUser((prev) => ({
+            ...prev,
+            avatar: response.data.avatarUrl,
+          }));
+
+          const userData = JSON.parse(localStorage.getItem("user"));
+          userData.avatar = response.data.avatarUrl;
+          localStorage.setItem("user", JSON.stringify(userData));
+        }
+      } catch (error) {
+        console.error("Error updating avatar:", error);
+        // Có thể thêm thông báo lỗi cho người dùng ở đây
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  };
+  const handleCoverChange = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      try {
+        const formData = new FormData();
+        formData.append("cover", file);
+        formData.append("userId", currentUserId);
+
+        const response = await updateUserCover(formData);
+        console.log("Upload response:", response);
+
+        if (response && response.data && response.data.coverUrl) {
+          const coverPath = response.data.coverUrl;
+
+          // Cập nhật state
+          setUserInfo((prev) => ({
+            ...prev,
+            background: coverPath, // Đổi từ coverPhoto thành background
+          }));
+
+          // Cập nhật localStorage
+          const userData = JSON.parse(localStorage.getItem("user"));
+          if (userData) {
+            userData.background = coverPath; // Đổi từ coverPhoto thành background
+            localStorage.setItem("user", JSON.stringify(userData));
+          }
+        }
+      } catch (error) {
+        console.error("Error updating cover photo:", error);
+      }
+    }
+  };
+
   return (
     <Container maxWidth="lg" sx={{ mt: 2 }}>
       {/* Cover Image Section */}
-      <Box sx={{ 
-        position: "relative", 
-        borderRadius: "16px", 
-        overflow: "hidden",
-        height: 300,
-        mb: 4,
-        boxShadow: "0 2px 12px rgba(0,0,0,0.1)"
-      }}>
+      <Box
+        sx={{
+          position: "relative",
+          borderRadius: "16px",
+          overflow: "hidden",
+          height: 300,
+          mb: 4,
+          boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
+        }}
+      >
         <img
-          src="data:image/jpeg;base64,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"
-          alt="Set background"
-          style={{ 
-            width: "100%", 
-            height: "100%", 
-            objectFit: "cover"
+          src={
+            user?.background
+              ? `${API_URL}${user.background}`
+              : "/default-background.png"
+          }
+          alt="Cover"
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
           }}
         />
-        <Button
-          variant="contained"
-          startIcon={<CameraAlt />}
-          sx={{
-            position: "absolute",
-            bottom: 16,
-            right: 16,
-            backgroundColor: "rgba(255, 255, 255, 0.9)",
-            color: "primary.main",
-            "&:hover": {
-              backgroundColor: "white",
-            },
-            backdropFilter: "blur(4px)",
-          }}
-        >
-          Chỉnh sửa ảnh bìa
-        </Button>
+        {(!id || id === currentUserId?.toString()) && (
+          <>
+            <input
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              id="cover-input"
+              onChange={handleCoverChange}
+            />
+            <label htmlFor="cover-input">
+              <Button
+                component="span"
+                variant="contained"
+                startIcon={<CameraAlt />}
+                sx={{
+                  position: "absolute",
+                  bottom: 16,
+                  right: 16,
+                  backgroundColor: "rgba(255, 255, 255, 0.9)",
+                  color: "primary.main",
+                  "&:hover": {
+                    backgroundColor: "white",
+                  },
+                  backdropFilter: "blur(4px)",
+                }}
+              >
+                Chỉnh sửa ảnh bìa
+              </Button>
+            </label>
+          </>
+        )}
       </Box>
 
       {/* Profile Info Section */}
-      <Box sx={{ 
-        px: 4, 
-        mb: 4,
-        display: "flex",
-        alignItems: "flex-end",
-        gap: 3
-      }}>
+      <Box
+        sx={{
+          px: 4,
+          mb: 4,
+          display: "flex",
+          alignItems: "flex-end",
+          gap: 3,
+        }}
+      >
         <Box sx={{ position: "relative", mt: -8 }}>
           <Avatar
-            src={user ? user.avatar : "/placeholder.svg?height=168&width=168"}
-            alt="Hoàng Phi"
+            src={
+              user?.avatar ? `${API_URL}${user.avatar}` : "/default-avatar.png"
+            }
+            alt={user?.fullName || "User Avatar"}
             sx={{
               width: 168,
               height: 168,
               border: "4px solid white",
-              boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
             }}
           />
-          <IconButton
-            sx={{
-              position: "absolute",
-              bottom: 8,
-              right: 8,
-              backgroundColor: "primary.main",
-              color: "white",
-              "&:hover": { backgroundColor: "primary.dark" },
-              boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-            }}
-          >
-            <CameraAlt />
-          </IconButton>
+          {(!id || id === currentUserId?.toString()) && (
+            <>
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                id="avatar-input"
+                onChange={handleAvatarChange}
+              />
+              <label htmlFor="avatar-input">
+                <IconButton
+                  component="span"
+                  disabled={isUploading}
+                  sx={{
+                    position: "absolute",
+                    bottom: 8,
+                    right: 8,
+                    backgroundColor: "primary.main",
+                    color: "white",
+                    "&:hover": { backgroundColor: "primary.dark" },
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                  }}
+                >
+                  {isUploading ? (
+                    <CircularProgress size={24} color="inherit" />
+                  ) : (
+                    <CameraAlt />
+                  )}
+                </IconButton>
+              </label>
+            </>
+          )}
         </Box>
-        
+
         <Box sx={{ flex: 1 }}>
           <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
-           {user ? user.fullName :  "Người dùng"}
+            {user ? user.fullName : "Người dùng"}
           </Typography>
-          <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 2 }}>
-          
-          </Typography>
+          <Typography
+            variant="subtitle1"
+            color="text.secondary"
+            sx={{ mb: 2 }}
+          ></Typography>
           <Box sx={{ display: "flex", gap: 2 }}>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<Edit />}
-              sx={{ 
-                borderRadius: "20px",
-                px: 3,
-                textTransform: "none",
-                fontWeight: "medium"
-              }}
-            >
-              Chỉnh sửa trang cá nhân
-            </Button>
-         
+            {(!id || id === currentUserId?.toString()) && (
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<Edit />}
+                onClick={handleEdit}
+                sx={{
+                  borderRadius: "20px",
+                  px: 3,
+                  textTransform: "none",
+                  fontWeight: "medium",
+                }}
+              >
+                Chỉnh sửa trang cá nhân
+              </Button>
+            )}
           </Box>
         </Box>
       </Box>
 
       {/* Tabs Section */}
-      <Box sx={{ 
-        borderBottom: 1, 
-        borderColor: "divider",
-        mb: 4,
-        px: 4
-      }}>
+      <Box
+        sx={{
+          borderBottom: 1,
+          borderColor: "divider",
+          mb: 4,
+          px: 4,
+        }}
+      >
         <Tabs
           value={tabValue}
           onChange={handleTabChange}
@@ -243,9 +469,6 @@ const ProfileUI = () => {
           <Tab label="Bài viết" />
           <Tab label="Giới thiệu" />
           <Tab label="Bạn bè" />
-          <Tab label="Ảnh" />
-          <Tab label="Video" />
-          <Tab label="Reels" />
         </Tabs>
       </Box>
 
@@ -254,527 +477,571 @@ const ProfileUI = () => {
         <Grid container spacing={3} sx={{ px: 4 }}>
           {/* Left Sidebar */}
           <Grid item xs={12} md={5} lg={4}>
-          <Card sx={{ 
+            <Card
+              sx={{
                 borderRadius: "12px",
                 mb: 3,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
-              }}>
-                <CardContent>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center', 
-                    mb: 2.5 
-                  }}>
-                    <Typography variant="h6" sx={{ 
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+              }}
+            >
+              <CardContent>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 2.5,
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    sx={{
                       fontWeight: 600,
                       fontSize: "1.1rem",
-                      color: "#1a237e"
-                    }}>
-                      Giới thiệu
-                    </Typography>
-                    {!isEditing ? (
-                      <IconButton 
-                        onClick={handleEdit} 
+                      color: "#1a237e",
+                    }}
+                  >
+                    Giới thiệu
+                  </Typography>
+                  {(!id || id === currentUserId?.toString()) &&
+                    (!isEditing ? (
+                      <IconButton
+                        onClick={handleEdit}
                         size="small"
-                        sx={{ 
+                        sx={{
                           color: "primary.main",
-                          '&:hover': {
-                            backgroundColor: 'rgba(25, 118, 210, 0.04)'
-                          }
+                          "&:hover": {
+                            backgroundColor: "rgba(25, 118, 210, 0.04)",
+                          },
                         }}
                       >
                         <Edit sx={{ fontSize: 18 }} />
                       </IconButton>
                     ) : (
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <Button 
-                          onClick={handleSave} 
-                          variant="contained" 
+                      <Box sx={{ display: "flex", gap: 1 }}>
+                        <Button
+                          onClick={handleSave}
+                          variant="contained"
                           size="small"
-                          sx={{ 
-                            textTransform: 'none',
+                          sx={{
+                            textTransform: "none",
                             px: 2,
                             py: 0.5,
-                            borderRadius: '8px',
-                            fontSize: '0.875rem'
+                            borderRadius: "8px",
+                            fontSize: "0.875rem",
                           }}
                         >
                           Lưu
                         </Button>
-                        <Button 
-                          onClick={handleCancel} 
-                          variant="outlined" 
+                        <Button
+                          onClick={handleCancel}
+                          variant="outlined"
                           size="small"
-                          sx={{ 
-                            textTransform: 'none',
+                          sx={{
+                            textTransform: "none",
                             px: 2,
                             py: 0.5,
-                            borderRadius: '8px',
-                            fontSize: '0.875rem'
+                            borderRadius: "8px",
+                            fontSize: "0.875rem",
                           }}
                         >
                           Hủy
                         </Button>
                       </Box>
-                    )}
-                  </Box>
+                    ))}
+                </Box>
 
-                  {loading ? (
-                    <Typography variant="body2" color="text.secondary">
-                      Đang tải...
-                    </Typography>
-                  ) : (
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-                      <Box>
-                        {isEditing ? (
-                          <TextareaAutosize
-                            minRows={3}
-                            value={editedInfo.introduction}
-                            onChange={handleChange('introduction')}
-                            style={{
-                              width: '100%',
-                              padding: '10px 12px',
-                              borderRadius: '8px',
-                              border: '1px solid #e0e0e0',
-                              fontSize: '0.9rem',
-                              fontFamily: 'inherit',
-                              resize: 'vertical',
-                              marginTop: '8px'
-                            }}
-                            placeholder="Viết giới thiệu về bản thân..."
-                          />
-                        ) : (
-                          <Typography 
-                            variant="body2" 
-                            sx={{ 
-                              color: userInfo.introduction ? '#2c3e50' : '#94a3b8',
-                              whiteSpace: 'pre-wrap',
-                              lineHeight: 1.6
-                            }}
-                          >
-                            {userInfo.introduction || "Chưa có thông tin giới thiệu"}
-                          </Typography>
-                        )}
-                      </Box>
-
-                      <Box>
-                        <Typography 
-                          variant="subtitle2" 
-                          sx={{ 
-                            color: '#475569',
-                            mb: 0.5,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1
+                {loading ? (
+                  <Typography variant="body2" color="text.secondary">
+                    Đang tải...
+                  </Typography>
+                ) : (
+                  <Box
+                    sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}
+                  >
+                    <Box>
+                      {isEditing ? (
+                        <TextareaAutosize
+                          minRows={3}
+                          value={editedInfo.introduction}
+                          onChange={handleChange("introduction")}
+                          style={{
+                            width: "100%",
+                            padding: "10px 12px",
+                            borderRadius: "8px",
+                            border: "1px solid #e0e0e0",
+                            fontSize: "0.9rem",
+                            fontFamily: "inherit",
+                            resize: "vertical",
+                            marginTop: "8px",
+                          }}
+                          placeholder="Viết giới thiệu về bản thân..."
+                        />
+                      ) : (
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: userInfo.introduction
+                              ? "#2c3e50"
+                              : "#94a3b8",
+                            whiteSpace: "pre-wrap",
+                            lineHeight: 1.6,
                           }}
                         >
-                          <span style={{ fontSize: '16px' }}>🎓</span> Học vấn
+                          {userInfo.introduction ||
+                            "Chưa có thông tin giới thiệu"}
                         </Typography>
-                        {isEditing ? (
-                          <Autocomplete
-                            freeSolo
-                            value={editedInfo.education === null ? '' : editedInfo.education}
-                            onChange={(event, newValue) => {
-                              setEditedInfo({
-                                ...editedInfo,
-                                education: newValue === null ? '' : newValue
-                              });
-                            }}
-                            onInputChange={(event, newInputValue) => {
-                              setEditedInfo({
-                                ...editedInfo,
-                                education: newInputValue || ''
-                              });
-                            }}
-                            options={educationLevels}
-                            renderInput={(params) => (
-                              <TextField
-                                {...params}
-                                variant="outlined"
-                                size="small"
-                                placeholder="Nhập hoặc chọn trình độ học vấn"
-                                sx={{
-                                  '& .MuiOutlinedInput-root': {
-                                    borderRadius: '8px',
-                                    fontSize: '0.9rem',
-                                    backgroundColor: '#fff'
-                                  }
-                                }}
-                              />
-                            )}
-                          />
-                        ) : (
-                          <Typography 
-                            variant="body2" 
-                            sx={{ 
-                              color: userInfo.education ? '#2c3e50' : '#94a3b8',
-                              whiteSpace: 'pre-wrap',
-                              lineHeight: 1.6
-                            }}
-                          >
-                            {userInfo.education || "Chưa có thông tin học vấn"}
-                          </Typography>
-                        )}
-                      </Box>
-
-                      <Box>
-                        <Typography 
-                          variant="subtitle2" 
-                          sx={{ 
-                            color: '#475569',
-                            mb: 0.5,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1
-                          }}
-                        >
-                          <span style={{ fontSize: '16px' }}>📍</span> Nơi ở hiện tại
-                        </Typography>
-                        {isEditing ? (
-                          <Autocomplete
-                            freeSolo
-                            value={editedInfo.location}
-                            onChange={(event, newValue) => {
-                              setEditedInfo({
-                                ...editedInfo,
-                                location: newValue
-                              });
-                            }}
-                            options={vietnamProvinces}
-                            renderInput={(params) => (
-                              <TextField
-                                {...params}
-                                variant="outlined"
-                                size="small"
-                                placeholder="Nhập hoặc chọn tỉnh thành"
-                                sx={{
-                                  '& .MuiOutlinedInput-root': {
-                                    borderRadius: '8px',
-                                    fontSize: '0.9rem',
-                                    backgroundColor: '#fff'
-                                  }
-                                }}
-                              />
-                            )}
-                          />
-                        ) : (
-                          <Typography 
-                            variant="body2" 
-                            sx={{ 
-                              color: userInfo.location ? '#2c3e50' : '#94a3b8',
-                              whiteSpace: 'pre-wrap',
-                              lineHeight: 1.6
-                            }}
-                          >
-                            {userInfo.location || "Chưa có thông tin nơi cư trú"}
-                          </Typography>
-                        )}
-                      </Box>
+                      )}
                     </Box>
-                  )}
-                </CardContent>
-              </Card>
+
+                    <Box>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          color: "#475569",
+                          mb: 0.5,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
+                      >
+                        <span style={{ fontSize: "16px" }}>🎓</span> Học vấn
+                      </Typography>
+                      {isEditing ? (
+                        <Autocomplete
+                          freeSolo
+                          value={
+                            editedInfo.education === null
+                              ? ""
+                              : editedInfo.education
+                          }
+                          onChange={(event, newValue) => {
+                            setEditedInfo({
+                              ...editedInfo,
+                              education: newValue === null ? "" : newValue,
+                            });
+                          }}
+                          onInputChange={(event, newInputValue) => {
+                            setEditedInfo({
+                              ...editedInfo,
+                              education: newInputValue || "",
+                            });
+                          }}
+                          options={educationLevels}
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              variant="outlined"
+                              size="small"
+                              placeholder="Nhập hoặc chọn trình độ học vấn"
+                              sx={{
+                                "& .MuiOutlinedInput-root": {
+                                  borderRadius: "8px",
+                                  fontSize: "0.9rem",
+                                  backgroundColor: "#fff",
+                                },
+                              }}
+                            />
+                          )}
+                        />
+                      ) : (
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: userInfo.education ? "#2c3e50" : "#94a3b8",
+                            whiteSpace: "pre-wrap",
+                            lineHeight: 1.6,
+                          }}
+                        >
+                          {userInfo.education || "Chưa có thông tin học vấn"}
+                        </Typography>
+                      )}
+                    </Box>
+
+                    <Box>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          color: "#475569",
+                          mb: 0.5,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
+                      >
+                        <span style={{ fontSize: "16px" }}>📍</span> Nơi ở hiện
+                        tại
+                      </Typography>
+                      {isEditing ? (
+                        <Autocomplete
+                          freeSolo
+                          value={editedInfo.location}
+                          onChange={(event, newValue) => {
+                            setEditedInfo({
+                              ...editedInfo,
+                              location: newValue,
+                            });
+                          }}
+                          options={vietnamProvinces}
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              variant="outlined"
+                              size="small"
+                              placeholder="Nhập hoặc chọn tỉnh thành"
+                              sx={{
+                                "& .MuiOutlinedInput-root": {
+                                  borderRadius: "8px",
+                                  fontSize: "0.9rem",
+                                  backgroundColor: "#fff",
+                                },
+                              }}
+                            />
+                          )}
+                        />
+                      ) : (
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: userInfo.location ? "#2c3e50" : "#94a3b8",
+                            whiteSpace: "pre-wrap",
+                            lineHeight: 1.6,
+                          }}
+                        >
+                          {userInfo.location || "Chưa có thông tin nơi cư trú"}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
           </Grid>
 
           {/* Main Content */}
           <Grid item xs={12} md={7} lg={8}>
             {/* Create Post Card */}
-            <Card sx={{ 
-              borderRadius: "16px",
-              mb: 3,
-              boxShadow: "0 2px 12px rgba(0,0,0,0.1)"
-            }}>
-              <CardContent>
-                <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-                  <Avatar src="/placeholder.svg?height=40&width=40" />
-                  <TextareaAutosize
-                    minRows={2}
-                    placeholder="Bạn đang nghĩ gì?"
-                    value={postContent}
-                    onChange={(e) => setPostContent(e.target.value)}
-                    style={{
-                      width: "100%",
-                      padding: "12px 16px",
-                      borderRadius: "20px",
-                      border: "1px solid #ddd",
-                      resize: "none",
-                      fontFamily: "inherit",
-                      fontSize: "1rem",
-                    }}
-                  />
-                </Box>
-                <Box sx={{ 
-                  display: "flex",
-                  gap: 2,
-                  borderTop: "1px solid #eee",
-                  pt: 2
-                }}>
-                  <Button
-                    startIcon={<VideoCall />}
-                    sx={{ 
-                      flex: 1,
-                      borderRadius: "20px",
-                      textTransform: "none",
-                      fontWeight: "medium"
-                    }}
-                  >
-                    Video trực tiếp
-                  </Button>
-                  <Button
-                    startIcon={<PhotoCamera />}
-                    sx={{ 
-                      flex: 1,
-                      borderRadius: "20px",
-                      textTransform: "none",
-                      fontWeight: "medium"
-                    }}
-                  >
-                    Ảnh/Video
-                  </Button>
-                  <Button
-                    startIcon={<Event />}
-                    sx={{ 
-                      flex: 1,
-                      borderRadius: "20px",
-                      textTransform: "none",
-                      fontWeight: "medium"
-                    }}
-                  >
-                    Sự kiện
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
+            <Card
+              sx={{
+                borderRadius: "16px",
+                mb: 3,
+                boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
+              }}
+            ></Card>
 
             {/* Posts */}
-           
           </Grid>
         </Grid>
       )}
 
       {tabValue === 1 && (
         <Box sx={{ px: 4 }}>
-          <Card sx={{ 
-            borderRadius: "16px",
-            boxShadow: "0 2px 12px rgba(0,0,0,0.1)"
-          }}>
-         <CardContent>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center', 
-                    mb: 2.5 
-                  }}>
-                    <Typography variant="h6" sx={{ 
-                      fontWeight: 600,
-                      fontSize: "1.1rem",
-                      color: "#1a237e"
-                    }}>
-                      Giới thiệu
-                    </Typography>
-                    {!isEditing ? (
-                      <IconButton 
-                        onClick={handleEdit} 
+          <Card
+            sx={{
+              borderRadius: "16px",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
+            }}
+          >
+            <CardContent>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 2.5,
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: "1.1rem",
+                    color: "#1a237e",
+                  }}
+                >
+                  Giới thiệu
+                </Typography>
+                {(!id || id === currentUserId?.toString()) &&
+                  (!isEditing ? (
+                    <IconButton
+                      onClick={handleEdit}
+                      size="small"
+                      sx={{
+                        color: "primary.main",
+                        "&:hover": {
+                          backgroundColor: "rgba(25, 118, 210, 0.04)",
+                        },
+                      }}
+                    >
+                      <Edit sx={{ fontSize: 18 }} />
+                    </IconButton>
+                  ) : (
+                    <Box sx={{ display: "flex", gap: 1 }}>
+                      <Button
+                        onClick={handleSave}
+                        variant="contained"
                         size="small"
-                        sx={{ 
-                          color: "primary.main",
-                          '&:hover': {
-                            backgroundColor: 'rgba(25, 118, 210, 0.04)'
-                          }
+                        sx={{
+                          textTransform: "none",
+                          px: 2,
+                          py: 0.5,
+                          borderRadius: "8px",
+                          fontSize: "0.875rem",
                         }}
                       >
-                        <Edit sx={{ fontSize: 18 }} />
-                      </IconButton>
+                        Lưu
+                      </Button>
+                      <Button
+                        onClick={handleCancel}
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                          textTransform: "none",
+                          px: 2,
+                          py: 0.5,
+                          borderRadius: "8px",
+                          fontSize: "0.875rem",
+                        }}
+                      >
+                        Hủy
+                      </Button>
+                    </Box>
+                  ))}
+              </Box>
+
+              {loading ? (
+                <Typography variant="body2" color="text.secondary">
+                  Đang tải...
+                </Typography>
+              ) : (
+                <Box
+                  sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}
+                >
+                  <Box>
+                    {isEditing ? (
+                      <TextareaAutosize
+                        minRows={3}
+                        value={editedInfo.introduction}
+                        onChange={handleChange("introduction")}
+                        style={{
+                          width: "100%",
+                          padding: "10px 12px",
+                          borderRadius: "8px",
+                          border: "1px solid #e0e0e0",
+                          fontSize: "0.9rem",
+                          fontFamily: "inherit",
+                          resize: "vertical",
+                          marginTop: "8px",
+                        }}
+                        placeholder="Viết giới thiệu về bản thân..."
+                      />
                     ) : (
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <Button 
-                          onClick={handleSave} 
-                          variant="contained" 
-                          size="small"
-                          sx={{ 
-                            textTransform: 'none',
-                            px: 2,
-                            py: 0.5,
-                            borderRadius: '8px',
-                            fontSize: '0.875rem'
-                          }}
-                        >
-                          Lưu
-                        </Button>
-                        <Button 
-                          onClick={handleCancel} 
-                          variant="outlined" 
-                          size="small"
-                          sx={{ 
-                            textTransform: 'none',
-                            px: 2,
-                            py: 0.5,
-                            borderRadius: '8px',
-                            fontSize: '0.875rem'
-                          }}
-                        >
-                          Hủy
-                        </Button>
-                      </Box>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: userInfo.introduction ? "#2c3e50" : "#94a3b8",
+                          whiteSpace: "pre-wrap",
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        {userInfo.introduction ||
+                          "Chưa có thông tin giới thiệu"}
+                      </Typography>
                     )}
                   </Box>
 
-                  {loading ? (
-                    <Typography variant="body2" color="text.secondary">
-                      Đang tải...
+                  <Box>
+                    <Typography
+                      variant="subtitle2"
+                      sx={{
+                        color: "#475569",
+                        mb: 0.5,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                      }}
+                    >
+                      <span style={{ fontSize: "16px" }}>🎓</span> Học vấn
                     </Typography>
-                  ) : (
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-                      <Box>
-                        {isEditing ? (
-                          <TextareaAutosize
-                            minRows={3}
-                            value={editedInfo.introduction}
-                            onChange={handleChange('introduction')}
-                            style={{
-                              width: '100%',
-                              padding: '10px 12px',
-                              borderRadius: '8px',
-                              border: '1px solid #e0e0e0',
-                              fontSize: '0.9rem',
-                              fontFamily: 'inherit',
-                              resize: 'vertical',
-                              marginTop: '8px'
+                    {isEditing ? (
+                      <Autocomplete
+                        freeSolo
+                        value={
+                          editedInfo.education === null
+                            ? ""
+                            : editedInfo.education
+                        }
+                        onChange={(event, newValue) => {
+                          setEditedInfo({
+                            ...editedInfo,
+                            education: newValue === null ? "" : newValue,
+                          });
+                        }}
+                        onInputChange={(event, newInputValue) => {
+                          setEditedInfo({
+                            ...editedInfo,
+                            education: newInputValue || "",
+                          });
+                        }}
+                        options={educationLevels}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            variant="outlined"
+                            size="small"
+                            placeholder="Nhập hoặc chọn trình độ học vấn"
+                            sx={{
+                              "& .MuiOutlinedInput-root": {
+                                borderRadius: "8px",
+                                fontSize: "0.9rem",
+                                backgroundColor: "#fff",
+                              },
                             }}
-                            placeholder="Viết giới thiệu về bản thân..."
                           />
-                        ) : (
-                          <Typography 
-                            variant="body2" 
-                            sx={{ 
-                              color: userInfo.introduction ? '#2c3e50' : '#94a3b8',
-                              whiteSpace: 'pre-wrap',
-                              lineHeight: 1.6
-                            }}
-                          >
-                            {userInfo.introduction || "Chưa có thông tin giới thiệu"}
-                          </Typography>
                         )}
-                      </Box>
+                      />
+                    ) : (
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: userInfo.education ? "#2c3e50" : "#94a3b8",
+                          whiteSpace: "pre-wrap",
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        {userInfo.education || "Chưa có thông tin học vấn"}
+                      </Typography>
+                    )}
+                  </Box>
 
-                      <Box>
-                        <Typography 
-                          variant="subtitle2" 
-                          sx={{ 
-                            color: '#475569',
-                            mb: 0.5,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1
-                          }}
-                        >
-                          <span style={{ fontSize: '16px' }}>🎓</span> Học vấn
-                        </Typography>
-                        {isEditing ? (
-                          <Autocomplete
-                            freeSolo
-                            value={editedInfo.education === null ? '' : editedInfo.education}
-                            onChange={(event, newValue) => {
-                              setEditedInfo({
-                                ...editedInfo,
-                                education: newValue === null ? '' : newValue
-                              });
+                  <Box>
+                    <Typography
+                      variant="subtitle2"
+                      sx={{
+                        color: "#475569",
+                        mb: 0.5,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                      }}
+                    >
+                      <span style={{ fontSize: "16px" }}>📍</span> Nơi ở hiện
+                      tại
+                    </Typography>
+                    {isEditing ? (
+                      <Autocomplete
+                        freeSolo
+                        value={editedInfo.location}
+                        onChange={(event, newValue) => {
+                          setEditedInfo({
+                            ...editedInfo,
+                            location: newValue,
+                          });
+                        }}
+                        options={vietnamProvinces}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            variant="outlined"
+                            size="small"
+                            placeholder="Nhập hoặc chọn tỉnh thành"
+                            sx={{
+                              "& .MuiOutlinedInput-root": {
+                                borderRadius: "8px",
+                                fontSize: "0.9rem",
+                                backgroundColor: "#fff",
+                              },
                             }}
-                            onInputChange={(event, newInputValue) => {
-                              setEditedInfo({
-                                ...editedInfo,
-                                education: newInputValue || ''
-                              });
-                            }}
-                            options={educationLevels}
-                            renderInput={(params) => (
-                              <TextField
-                                {...params}
-                                variant="outlined"
-                                size="small"
-                                placeholder="Nhập hoặc chọn trình độ học vấn"
-                                sx={{
-                                  '& .MuiOutlinedInput-root': {
-                                    borderRadius: '8px',
-                                    fontSize: '0.9rem',
-                                    backgroundColor: '#fff'
-                                  }
-                                }}
-                              />
-                            )}
                           />
-                        ) : (
-                          <Typography 
-                            variant="body2" 
-                            sx={{ 
-                              color: userInfo.education ? '#2c3e50' : '#94a3b8',
-                              whiteSpace: 'pre-wrap',
-                              lineHeight: 1.6
-                            }}
-                          >
-                            {userInfo.education || "Chưa có thông tin học vấn"}
-                          </Typography>
                         )}
-                      </Box>
-
-                      <Box>
-                        <Typography 
-                          variant="subtitle2" 
-                          sx={{ 
-                            color: '#475569',
-                            mb: 0.5,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1
-                          }}
-                        >
-                          <span style={{ fontSize: '16px' }}>📍</span> Nơi ở hiện tại
-                        </Typography>
-                        {isEditing ? (
-                          <Autocomplete
-                            freeSolo
-                            value={editedInfo.location}
-                            onChange={(event, newValue) => {
-                              setEditedInfo({
-                                ...editedInfo,
-                                location: newValue
-                              });
-                            }}
-                            options={vietnamProvinces}
-                            renderInput={(params) => (
-                              <TextField
-                                {...params}
-                                variant="outlined"
-                                size="small"
-                                placeholder="Nhập hoặc chọn tỉnh thành"
-                                sx={{
-                                  '& .MuiOutlinedInput-root': {
-                                    borderRadius: '8px',
-                                    fontSize: '0.9rem',
-                                    backgroundColor: '#fff'
-                                  }
-                                }}
-                              />
-                            )}
-                          />
-                        ) : (
-                          <Typography 
-                            variant="body2" 
-                            sx={{ 
-                              color: userInfo.location ? '#2c3e50' : '#94a3b8',
-                              whiteSpace: 'pre-wrap',
-                              lineHeight: 1.6
-                            }}
-                          >
-                            {userInfo.location || "Chưa có thông tin nơi cư trú"}
-                          </Typography>
-                        )}
-                      </Box>
-                    </Box>
-                  )}
-                </CardContent>
+                      />
+                    ) : (
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: userInfo.location ? "#2c3e50" : "#94a3b8",
+                          whiteSpace: "pre-wrap",
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        {userInfo.location || "Chưa có thông tin nơi cư trú"}
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
+              )}
+            </CardContent>
           </Card>
+        </Box>
+      )}
+
+      {tabValue === 2 && (
+        <Box sx={{ p: 4 }}>
+          <Typography
+            variant="h6"
+            sx={{ mb: 3, color: "#1a237e", fontWeight: 600 }}
+          >
+            Bạn bè ({friends.length})
+          </Typography>
+          <Grid container spacing={2}>
+            {friends.map((friend) => (
+              <Grid item xs={12} sm={6} md={4} lg={3} key={friend.id}>
+                <Paper
+                  elevation={1}
+                  sx={{
+                    p: 2,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    textAlign: "center",
+                    borderRadius: "12px",
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      transform: "translateY(-4px)",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                    },
+                  }}
+                >
+                  <Avatar
+                    src={friend.avatar}
+                    alt={friend.fullName}
+                    sx={{
+                      width: 100,
+                      height: 100,
+                      mb: 2,
+                      border: "3px solid #fff",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                    }}
+                  />
+                  <Typography
+                    variant="subtitle1"
+                    sx={{
+                      fontWeight: 600,
+                      color: "#2c3e50",
+                      mb: 1,
+                    }}
+                  >
+                    {friend.fullName}
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    sx={{
+                      textTransform: "none",
+                      borderRadius: "8px",
+                      bgcolor: "primary.main",
+                      "&:hover": {
+                        bgcolor: "primary.dark",
+                      },
+                    }}
+                    onClick={() => navigate(`/profile/${friend.id}`)}
+                  >
+                    Xem trang cá nhân
+                  </Button>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
         </Box>
       )}
     </Container>
