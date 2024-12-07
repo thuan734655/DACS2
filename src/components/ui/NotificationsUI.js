@@ -104,13 +104,41 @@ const NotificationsUI = ({ user, data }) => {
 
   // Show all notifications regardless of tab
   const allNotifications = notifications;
+  const unreadCount = allNotifications.filter(n => !n.read).length;
   console.log('Rendering notifications:', allNotifications);
+
+  const getNotificationMessage = (notification) => {
+    const { type, senderName, data = {} } = notification;
+    const { reaction, postTitle, shareText } = data;
+
+    switch (type) {
+      case 'postLiked':
+        return `${senderName} đã thả ${reaction || 'thích'} bài viết "${postTitle || 'của bạn'}"`;
+      case 'postComment':
+        return `${senderName} đã bình luận về bài viết "${postTitle || 'của bạn'}": "${data.commentText || ''}"`;
+      case 'postShared':
+        return `${senderName} đã chia sẻ bài viết "${postTitle || 'của bạn'}"${shareText ? ` với lời nhắn: "${shareText}"` : ''}`;
+      case 'friendRequest':
+        return `${senderName} đã gửi lời mời kết bạn đến bạn`;
+      case 'friendAccept':
+        return `${senderName} đã chấp nhận lời mời kết bạn của bạn`;
+      default:
+        return `${senderName} đã tương tác với bài viết của bạn`;
+    }
+  };
 
   return (
     <div className="mx-auto bg-white rounded-xl shadow-lg p-4 w-[90%] max-w-5xl min-h-[400px] transition-all duration-300">
       {/* Header */}
       <div className="flex justify-between items-center mb-6 px-2">
-        <h2 className="text-xl font-semibold text-gray-800">Thông báo ({allNotifications.length})</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-xl font-semibold text-gray-800">Thông báo</h2>
+          {unreadCount > 0 && (
+            <span className="bg-blue-500 text-white text-sm px-2 py-0.5 rounded-full">
+              {unreadCount} chưa đọc
+            </span>
+          )}
+        </div>
         <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
           <FaEllipsisH className="text-gray-500 w-5 h-5" />
         </button>
@@ -157,14 +185,7 @@ const NotificationsUI = ({ user, data }) => {
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <p className={`text-sm ${!notification.read ? 'text-gray-900 font-medium' : 'text-gray-600'} line-clamp-2`}>
-                  {notification.message || `${notification.senderName} đã ${
-                    notification.type === 'postLiked' ? 'thích' :
-                    notification.type === 'postComment' ? 'bình luận về' :
-                    notification.type === 'postShared' ? 'chia sẻ' :
-                    notification.type === 'friendRequest' ? 'gửi lời mời kết bạn' :
-                    notification.type === 'friendAccept' ? 'chấp nhận lời mời kết bạn' :
-                    'tương tác với'
-                  } bài viết của bạn`}
+                  {getNotificationMessage(notification)}
                 </p>
                 <span className="text-xs text-gray-400 mt-1 block">
                   {formatDistanceToNow(new Date(notification.createdAt || Date.now()), {
