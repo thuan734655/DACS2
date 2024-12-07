@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FaUserPlus, FaUserFriends, FaUserClock, FaTimes, FaCheck } from 'react-icons/fa';
 import { getSuggestedFriends, getFriendRequests, respondToFriendRequest, sendFriendRequest, getFriendsList } from '../../services/userService';
 import { toast } from 'react-toastify';
+
 const FriendsUI = () => {
   const [activeTab, setActiveTab] = useState('friends'); // 'requests' or 'suggestions'
   const [friendRequests, setFriendRequests] = useState([]);
@@ -9,22 +10,22 @@ const FriendsUI = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
- 
+
   // Mock data for friend requests
-  
+
   useEffect(() => {
     const loadFriendsData = async () => {
       if (!user) return;
-      
+
       setIsLoading(true);
       try {
         const [requestsData, suggestionsData] = await Promise.all([
           getFriendRequests(),
           getSuggestedFriends()
         ]);
-        
+
         console.log('Friend requests data:', requestsData);
-        
+
         if (!Array.isArray(suggestionsData)) {
           throw new Error("Invalid suggestions data");
         }
@@ -49,39 +50,52 @@ const FriendsUI = () => {
   }, []);
   const handleFriendRequest = async (requester_id, accept) => {
     try {
-      setIsLoading(true); // Thêm loading state khi xử lý
-      
+      setIsLoading(true);
+
       console.log('Xử lý lời mời kết bạn:', {
         requester_id,
         action: accept ? 'Chấp nhận' : 'Từ chối'
       });
+
+      // Immediately update UI for rejection
+      if (!accept) {
+        setFriendRequests(prevRequests =>
+          prevRequests.filter(request => request.requester_id !== requester_id)
+        );
+      }
 
       // Gọi API xử lý phản hồi
       await respondToFriendRequest(requester_id, accept);
 
       // Cập nhật UI và hiển thị thông báo
       toast.success(
-        accept 
-          ? "Đã chấp nhận lời mời kết bạn thành công" 
+        accept
+          ? "Đã chấp nhận lời mời kết bạn thành công"
           : "Đã từ chối lời mời kết bạn"
       );
-      
-      // Cập nhật lại danh sách lời mời và gợi ý kết bạn
-      const [updatedRequests, updatedSuggestions] = await Promise.all([
-        getFriendRequests(),
-        getSuggestedFriends()
-      ]);
 
-      console.log('Danh sách lời mời sau khi cập nhật:', updatedRequests);
-      
-      // Cập nhật state
-      setFriendRequests(updatedRequests);
-      setSuggestedFriends(updatedSuggestions);
+      // Chỉ cập nhật lại danh sách nếu chấp nhận kết bạn
+      if (accept) {
+        const [updatedRequests, updatedSuggestions] = await Promise.all([
+          getFriendRequests(),
+          getSuggestedFriends()
+        ]);
+
+        setFriendRequests(updatedRequests);
+        setSuggestedFriends(updatedSuggestions);
+      }
 
     } catch (error) {
       console.error('Lỗi khi xử lý lời mời kết bạn:', error);
-      const errorMessage = error.response?.data?.message || 
-        (accept 
+
+      // Restore original friend requests list if API call fails
+      if (!accept) {
+        const updatedRequests = await getFriendRequests();
+        setFriendRequests(updatedRequests);
+      }
+
+      const errorMessage = error.response?.data?.message ||
+        (accept
           ? "Không thể chấp nhận lời mời kết bạn. Vui lòng thử lại sau."
           : "Không thể từ chối lời mời kết bạn. Vui lòng thử lại sau."
         );
@@ -116,7 +130,7 @@ const FriendsUI = () => {
         friendRequests.map(request => {
           // Thêm log để debug
           console.log('Request data:', request);
-          
+
           return (
             <div key={request.id} className="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-lg">
               <img
@@ -127,39 +141,39 @@ const FriendsUI = () => {
               <div className="flex-grow">
                 <h4 className="font-medium">{request.fullName}</h4>
                 <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleFriendRequest(request.requester_id, true)}
-                      disabled={isLoading}
-                      className={`px-4 py-2 bg-blue-500 text-white rounded-lg 
-                        ${!isLoading ? 'hover:bg-blue-600' : 'opacity-75 cursor-not-allowed'}
-                        text-sm flex items-center transition-colors`}
-                    >
-                      {isLoading ? (
-                        <span className="flex items-center">
-                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Đang xử lý...
-                        </span>
-                      ) : (
-                        <>
-                          <FaCheck className="mr-2" />
-                          Chấp nhận
-                        </>
-                      )}
-                    </button>
-                    <button
-                      onClick={() => handleFriendRequest(request.requester_id, false)}
-                      disabled={isLoading}
-                      className={`px-4 py-2 bg-gray-200 text-gray-700 rounded-lg 
-                        ${!isLoading ? 'hover:bg-gray-300' : 'opacity-75 cursor-not-allowed'}
-                        text-sm flex items-center transition-colors`}
-                    >
-                      {!isLoading && <FaTimes className="mr-2" />}
-                      Từ chối
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => handleFriendRequest(request.requester_id, true)}
+                    disabled={isLoading}
+                    className={`px-4 py-2 bg-blue-500 text-white rounded-lg 
+                      ${!isLoading ? 'hover:bg-blue-600' : 'opacity-75 cursor-not-allowed'}
+                      text-sm flex items-center transition-colors`}
+                  >
+                    {isLoading ? (
+                      <span className="flex items-center">
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Đang xử lý...
+                      </span>
+                    ) : (
+                      <>
+                        <FaCheck className="mr-2" />
+                        Chấp nhận
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handleFriendRequest(request.requester_id, false)}
+                    disabled={isLoading}
+                    className={`px-4 py-2 bg-gray-200 text-gray-700 rounded-lg 
+                      ${!isLoading ? 'hover:bg-gray-300' : 'opacity-75 cursor-not-allowed'}
+                      text-sm flex items-center transition-colors`}
+                  >
+                    {!isLoading && <FaTimes className="mr-2" />}
+                    Từ chối
+                  </button>
+                </div>
               </div>
             </div>
           );
@@ -167,7 +181,8 @@ const FriendsUI = () => {
       )}
     </div>
   );
-console.log(suggestedFriends, 'suggestedFriends');
+
+  console.log(suggestedFriends, 'suggestedFriends');
 
   const renderSuggestedFriends = () => {
     if (isLoading) {
@@ -226,9 +241,6 @@ console.log(suggestedFriends, 'suggestedFriends');
       </div>
     );
   };
-
-
-
 
   return (
     <div className="bg-white rounded-lg shadow-lg h-full">
