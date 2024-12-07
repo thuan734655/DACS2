@@ -1,80 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { FaThumbsUp, FaComment, FaUserPlus, FaShare } from 'react-icons/fa';
+import { FaThumbsUp, FaComment, FaUserPlus, FaShare, FaEllipsisH } from 'react-icons/fa';
 import NotificationDetailUI from './NotificationDetailUI';
 import socket from '../../services/socket';
+import { formatDistanceToNow } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 const NotificationsUI = ({ user, data }) => {
   const [selectedNotification, setSelectedNotification] = useState(null);
-  const [notifications, setNotifications] = useState(() => {
-    // Create default notifications with random users
-    const defaultUsers = [
-      { fullName: "Nguyễn Văn A", avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=user1" },
-      { fullName: "Trần Thị B", avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=user2" },
-      { fullName: "Lê Văn C", avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=user3" },
-      { fullName: "Phạm Thị D", avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=user4" },
-      { fullName: "Hoàng Văn E", avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=user5" },
-      { fullName: "Vũ Thị F", avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=user6" },
-      { fullName: "Đặng Văn G", avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=user7" },
-      { fullName: "Mai Thị H", avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=user8" }
-    ];
+  const [notifications, setNotifications] = useState([]);
+  const [selectedTab, setSelectedTab] = useState('all');
+  const idUser = user?.idUser;
 
-    // Create different types of notifications
-    const createSampleContent = (originalNotification, index) => {
-      const randomUser = defaultUsers[Math.floor(Math.random() * defaultUsers.length)];
-      const notificationTypes = ['postShared', 'postLiked', 'postComment', 'friendRequest', 'taggedComment'];
-      const type = notificationTypes[index % notificationTypes.length];
-
-      let content = {
-        postTitle: "",
-        shareText: "",
-        user: randomUser
-      };
-
-      content.postTitle = "Bài viết đã được chia sẻ";
-      content.shareText = `${randomUser.fullName} đã chia sẻ bài viết của bạn`;
-      return {
-        ...originalNotification,
-        type,
-        data: content,
-        toggle: false
-      };
-    };
-
-    // If we have notifications from server, use their structure but replace content
-    if (data.notifications && Array.isArray(data.notifications)) {
-      return data.notifications.map((notification, index) => 
-        createSampleContent(notification, index)
-      );
-    }
-
-    // Fallback to 5 notifications if no server data
-    return Array(0).fill(null).map((_, index) => ({
-      id: `default-${index}`,
-      type: 'postShared',
-      read: false,
-      toggle: false,
-      timestamp: new Date(Date.now() - index * 60000).toISOString(),
-      ...createSampleContent({}, index)
-    }));
-  });
-  const [idUser, setIdUser] = useState(
-    JSON.parse(localStorage.getItem("user"))?.idUser || ""
-  );
-
-  // Hàm nhận và xử lý thông báo từ socket
+  // Existing socket logic
   useEffect(() => {
-    // Lắng nghe sự kiện thông báo mới từ server
     const getNotifications = () => {
       socket.emit('getNotifications', { idUser });
 
       socket.on('notifications', ({ notifications: serverNotifications }) => {
         if (Array.isArray(serverNotifications)) {
-          // Initialize toggle property for each notification
           const notificationsWithToggle = serverNotifications.map(notification => ({
             ...notification,
             toggle: false
           }));
-          // Merge with existing default notifications
           setNotifications(prevNotifications => {
             const defaultNotifications = prevNotifications.filter(n => n.id.startsWith('default-'));
             return [...notificationsWithToggle, ...defaultNotifications];
@@ -84,7 +31,6 @@ const NotificationsUI = ({ user, data }) => {
         }
       });
 
-      // Lắng nghe sự kiện thông báo mới và thêm vào danh sách
       socket.on('notification', (notification) => {
         setNotifications((prevNotifications) => [{
           ...notification,
@@ -95,14 +41,12 @@ const NotificationsUI = ({ user, data }) => {
 
     getNotifications();
 
-    // Cleanup để hủy lắng nghe sự kiện khi component unmount
     return () => {
       socket.off('notifications');
       socket.off('notification');
     };
   }, [idUser]);
 
-  // Hàm lấy biểu tượng cho từng loại thông báo
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'postShared':
@@ -119,12 +63,16 @@ const NotificationsUI = ({ user, data }) => {
     }
   };
 
-  // Hàm xử lý khi người dùng click vào một thông báo
   const handleNotificationClick = (notification) => {
     setSelectedNotification(notification);
+    if (!notification.read) {
+      socket.emit('markNotificationAsRead', {
+        notificationId: notification.id,
+        idUser
+      });
+    }
   };
 
-  // Nếu có thông báo được chọn, hiển thị chi tiết thông báo
   if (selectedNotification) {
     return (
       <NotificationDetailUI
@@ -134,41 +82,120 @@ const NotificationsUI = ({ user, data }) => {
     );
   }
 
+  const filteredNotifications = selectedTab === 'unread' 
+    ? notifications.filter(n => !n.read)
+    : notifications;
+
   return (
-    <div className="bg-gray-50 min-h-full">
-      <div className="container mx-auto px-4 py-6">
-        <h2 className="text-2xl font-semibold mb-6">Thông báo</h2>
+    <div className="bg-white rounded-lg shadow-lg p-4 max-w-md w-full">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">Thông báo</h2>
+        <FaEllipsisH className="text-gray-500 cursor-pointer" />
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-4 mb-4 border-b">
+        <button
+          className={`pb-2 px-2 ${selectedTab === 'all' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500'}`}
+          onClick={() => setSelectedTab('all')}
+        >
+          Tất cả
+        </button>
+        <button
+          className={`pb-2 px-2 ${selectedTab === 'unread' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500'}`}
+          onClick={() => setSelectedTab('unread')}
+        >
+          Chưa đọc
+        </button>
+      </div>
+
+      {/* Previous Notifications Section */}
+      <div className="mb-4">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm text-gray-500">Trước đó</span>
+          <button className="text-sm text-blue-500 hover:underline">
+            Xem tất cả
+          </button>
+        </div>
+
+        {/* Notifications List */}
         <div className="space-y-4">
-          {notifications.length === 0 ? (
-            <p>Không có thông báo nào.</p>
-          ) : (
-            notifications.map((notification, index) => (
-              <div
-                key={index}
-                className={`bg-white rounded-lg p-4 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors ${
-                  !notification.read ? 'border-l-4 border-blue-500' : ''
-                }`}
-                onClick={() => handleNotificationClick(notification)}
-              >
-                <div className="flex items-start space-x-4">
-                  <div className="p-3 bg-gray-100 rounded-full">
-                    {getNotificationIcon(notification.type)} {/* Hiển thị biểu tượng */}
-                  </div>
-                  <div className="flex-grow">
-                    <h3 className={`font-semibold ${!notification.read ? 'text-black' : 'text-gray-600'}`}>
-                      {notification.data.postTitle || 'Tiêu đề bài viết'} {/* Hiển thị tiêu đề */}
-                    </h3>
-                    <p className={`${!notification.read ? 'text-gray-800' : 'text-gray-500'}`}>
-                      {notification.data.shareText || 'Nội dung chia sẻ'} {/* Hiển thị nội dung chia sẻ */}
-                    </p>
-                    <p className="text-gray-400 text-sm mt-2">
-                      {new Date(notification.timestamp).toLocaleString('vi-VN')} {/* Thời gian thông báo */}
-                    </p>
-                  </div>
-                </div>
+          {filteredNotifications.map((notification) => (
+            <div
+              key={notification.id}
+              className="flex items-start gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer relative"
+              onClick={() => handleNotificationClick(notification)}
+            >
+              {/* Avatar or Icon */}
+              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center relative">
+                {notification.senderAvatar ? (
+                  <img
+                    src={notification.senderAvatar}
+                    alt=""
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                ) : (
+                  getNotificationIcon(notification.type)
+                )}
+                {!notification.read && (
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+                )}
               </div>
-            ))
-          )}
+
+              {/* Content */}
+              <div className="flex-1">
+                <p className="text-sm text-gray-700">
+                  {notification.message || `${notification.senderName} đã ${
+                    notification.type === 'postLiked' ? 'thích' :
+                    notification.type === 'postComment' ? 'bình luận về' :
+                    notification.type === 'postShared' ? 'chia sẻ' :
+                    notification.type === 'friendRequest' ? 'gửi lời mời kết bạn' :
+                    notification.type === 'friendAccept' ? 'chấp nhận lời mời kết bạn' :
+                    'tương tác với'
+                  } bài viết của bạn`}
+                </p>
+                <span className="text-xs text-gray-500">
+                  {formatDistanceToNow(new Date(notification.createdAt || Date.now()), {
+                    addSuffix: true,
+                    locale: vi
+                  })}
+                </span>
+
+                {/* Friend Request Actions */}
+                {notification.type === 'friendRequest' && !notification.read && (
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      className="px-4 py-1 bg-blue-500 text-white rounded-md text-sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        socket.emit('acceptFriendRequest', {
+                          notificationId: notification.id,
+                          userId: idUser,
+                          friendId: notification.senderId
+                        });
+                      }}
+                    >
+                      Xác nhận
+                    </button>
+                    <button
+                      className="px-4 py-1 bg-gray-200 text-gray-700 rounded-md text-sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        socket.emit('declineFriendRequest', {
+                          notificationId: notification.id,
+                          userId: idUser,
+                          friendId: notification.senderId
+                        });
+                      }}
+                    >
+                      Xóa
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
