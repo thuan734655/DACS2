@@ -5,7 +5,6 @@ import SocialPost from './SocialPost';
 const NotificationDetailUI = ({ notification, onBack }) => {
   const [relatedContent, setRelatedContent] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
   // Mock function to fetch related content
   const fetchRelatedContent = async (type, id) => {
     // Simulating API call

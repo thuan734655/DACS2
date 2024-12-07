@@ -8,7 +8,6 @@ import { vi } from 'date-fns/locale';
 const NotificationsUI = ({ user, data }) => {
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [notifications, setNotifications] = useState([]);
-  const [selectedTab, setSelectedTab] = useState('all');
   const idUser = user?.idUser;
 
   useEffect(() => {
