@@ -110,20 +110,56 @@ const NotificationsUI = ({ user, data }) => {
   const getNotificationMessage = (notification) => {
     const { type, senderName, data = {} } = notification;
     const { reaction, postTitle, shareText } = data;
+    const postName = postTitle ? `"${postTitle}"` : 'bài viết của bạn';
+
+    // Định dạng nội dung comment để hiển thị ngắn gọn
+    const formatCommentText = (text) => {
+      if (!text) return '';
+      return text.length > 50 ? `${text.substring(0, 50)}...` : text;
+    };
 
     switch (type) {
-      case 'postLiked':
-        return `${senderName} đã thả ${reaction || 'thích'} bài viết "${postTitle || 'của bạn'}"`;
-      case 'postComment':
-        return `${senderName} đã bình luận về bài viết "${postTitle || 'của bạn'}": "${data.commentText || ''}"`;
-      case 'postShared':
-        return `${senderName} đã chia sẻ bài viết "${postTitle || 'của bạn'}"${shareText ? ` với lời nhắn: "${shareText}"` : ''}`;
-      case 'friendRequest':
-        return `${senderName} đã gửi lời mời kết bạn đến bạn`;
-      case 'friendAccept':
-        return `${senderName} đã chấp nhận lời mời kết bạn của bạn`;
+      case 'POST_REACTION':
+        if (reaction === 'like') return `${senderName} đã thích ${postName}`;
+        if (reaction === 'love') return `${senderName} đã thả tim ${postName}`;
+        if (reaction === 'haha') return `${senderName} cảm thấy hài hước về ${postName}`;
+        if (reaction === 'wow') return `${senderName} đã ngạc nhiên về ${postName}`;
+        if (reaction === 'sad') return `${senderName} cảm thấy buồn về ${postName}`;
+        if (reaction === 'angry') return `${senderName} cảm thấy phẫn nộ về ${postName}`;
+        return `${senderName} đã bày tỏ cảm xúc về ${postName}`;
+
+      case 'POST_COMMENT':
+        return `${senderName} đã bình luận trong ${postName}`;
+
+      case 'POST_SHARE':
+        if (shareText) {
+          const formattedShare = formatCommentText(shareText);
+          return `${senderName} đã chia sẻ ${postName} và nói "${formattedShare}"`;
+        }
+        return `${senderName} đã chia sẻ ${postName} lên tường của họ`;
+
+      case 'FRIEND_REQUEST':
+        return `${senderName} đã gửi cho bạn một lời mời kết bạn`;
+
+      case 'FRIEND_ACCEPT':
+        return `${senderName} đã đồng ý kết bạn với bạn. Các bạn giờ đã là bạn bè!`;
+
+      case 'POST_REPLY_TO_REPLY':
+        return `${senderName} đã trả lời bình luận của bạn `;
+
+      case 'POST_REPLY_COMMENT':
+        return `${senderName} đã trả lời bình luận của bạn `;
+
       default:
-        return `${senderName} đã tương tác với bài viết của bạn`;
+        const friendlyType = type
+          .toLowerCase()
+          .replace('post_', '')
+          .replace('comment_', '')
+          .replace('friend_', '')
+          .replace('group_', '')
+          .replace('reply_to_', '')
+          .replace('_', ' ');
+        return `${senderName} đã ${friendlyType} trong ${postName}`;
     }
   };
 
