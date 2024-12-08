@@ -10,8 +10,7 @@ const FriendsUI = () => {
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
  
-  // Mock data for friend requests
-  
+
   useEffect(() => {
     const loadFriendsData = async () => {
       if (!user) return;
@@ -41,7 +40,6 @@ const FriendsUI = () => {
     loadFriendsData();
   }, [user]);
   useEffect(() => {
-    // Lấy dữ liệu từ localStorage
     const userData = localStorage.getItem("user");
     if (userData) {
       setUser(JSON.parse(userData));
@@ -49,15 +47,18 @@ const FriendsUI = () => {
   }, []);
   const handleFriendRequest = async (requester_id, accept) => {
     try {
-      setIsLoading(true); // Thêm loading state khi xử lý
-      
-      console.log('Xử lý lời mời kết bạn:', {
-        requester_id,
-        action: accept ? 'Chấp nhận' : 'Từ chối'
+      setIsLoading(true); 
+
+     //Cập nhật lại danh sách lời mời
+     if(!accept) {
+      setFriendRequests((prev) => {
+        const updatedRequests = prev.filter((request) => request.requester_id !== requester_id);
+        return updatedRequests;
       });
+     }
 
       // Gọi API xử lý phản hồi
-      await respondToFriendRequest(requester_id, accept);
+       respondToFriendRequest(requester_id, accept);
 
       // Cập nhật UI và hiển thị thông báo
       toast.success(
@@ -66,18 +67,17 @@ const FriendsUI = () => {
           : "Đã từ chối lời mời kết bạn"
       );
       
-      // Cập nhật lại danh sách lời mời và gợi ý kết bạn
-      const [updatedRequests, updatedSuggestions] = await Promise.all([
-        getFriendRequests(),
-        getSuggestedFriends()
-      ]);
+      // // Cập nhật lại danh sách lời mời và gợi ý kết bạn
+      // const [updatedRequests, updatedSuggestions] = await Promise.all([
+      //   getFriendRequests(),
+      //   getSuggestedFriends()
+      // ]);
 
-      console.log('Danh sách lời mời sau khi cập nhật:', updatedRequests);
+      // console.log('Danh sách lời mời sau khi cập nhật:', updatedRequests);
       
-      // Cập nhật state
-      setFriendRequests(updatedRequests);
-      setSuggestedFriends(updatedSuggestions);
-
+      // // Cập nhật state
+      // setFriendRequests(updatedRequests);
+      // setSuggestedFriends(updatedSuggestions);
     } catch (error) {
       console.error('Lỗi khi xử lý lời mời kết bạn:', error);
       const errorMessage = error.response?.data?.message || 
