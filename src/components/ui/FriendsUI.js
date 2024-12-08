@@ -50,12 +50,11 @@ const FriendsUI = () => {
       setIsLoading(true); 
 
      //Cập nhật lại danh sách lời mời
-     if(!accept) {
       setFriendRequests((prev) => {
         const updatedRequests = prev.filter((request) => request.requester_id !== requester_id);
         return updatedRequests;
       });
-     }
+     
 
       // Gọi API xử lý phản hồi
        respondToFriendRequest(requester_id, accept);

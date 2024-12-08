@@ -149,7 +149,19 @@ const NotificationsUI = ({ user, data }) => {
       case 'POST_REPLY_COMMENT':
         return `${senderName} đã trả lời bình luận của bạn `;
 
+      case 'POST_REPLY_REPLY':
+        return `${senderName} đã trả lời bình luận của bạn `;
+        
+      case 'FRIEND_REQUEST_ACCEPTED':
+        return `${senderName} đã chấp nhận lời mời kết bạn của bạn `;
+
+      case 'FRIEND_REQUEST_DENY':
+        return `${senderName} đã từ chối lời mời kết bạn của bạn `;
+
+  
+        
       default:
+        console.log('Unknown notification type:', type);
         const friendlyType = type
           .toLowerCase()
           .replace('post_', '')
