@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { FaUserPlus, FaUserFriends, FaUserClock, FaTimes, FaCheck } from 'react-icons/fa';
 import { getSuggestedFriends, getFriendRequests, respondToFriendRequest, sendFriendRequest, getFriendsList } from '../../services/userService';
-import { toast } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 const FriendsUI = () => {
   const [activeTab, setActiveTab] = useState('friends'); // 'requests' or 'suggestions'
   const [friendRequests, setFriendRequests] = useState([]);
@@ -9,7 +11,6 @@ const FriendsUI = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
- 
 
   useEffect(() => {
     const loadFriendsData = async () => {
@@ -49,42 +50,51 @@ const FriendsUI = () => {
     try {
       setIsLoading(true); 
 
-     //Cập nhật lại danh sách lời mời
+      //Cập nhật lại danh sách lời mời
       setFriendRequests((prev) => {
         const updatedRequests = prev.filter((request) => request.requester_id !== requester_id);
         return updatedRequests;
       });
-     
 
       // Gọi API xử lý phản hồi
-       respondToFriendRequest(requester_id, accept);
+      await respondToFriendRequest(requester_id, accept);
 
-      // Cập nhật UI và hiển thị thông báo
-      toast.success(
-        accept 
-          ? "Đã chấp nhận lời mời kết bạn thành công" 
-          : "Đã từ chối lời mời kết bạn"
-      );
-      
-      // // Cập nhật lại danh sách lời mời và gợi ý kết bạn
-      // const [updatedRequests, updatedSuggestions] = await Promise.all([
-      //   getFriendRequests(),
-      //   getSuggestedFriends()
-      // ]);
+      // Hiển thị thông báo thành công
+      if (accept) {
+        toast.success("Đã chấp nhận lời mời kết bạn thành công!", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      } else {
+        toast.info("Đã từ chối lời mời kết bạn!", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      }
 
-      // console.log('Danh sách lời mời sau khi cập nhật:', updatedRequests);
-      
-      // // Cập nhật state
-      // setFriendRequests(updatedRequests);
-      // setSuggestedFriends(updatedSuggestions);
     } catch (error) {
       console.error('Lỗi khi xử lý lời mời kết bạn:', error);
-      const errorMessage = error.response?.data?.message || 
-        (accept 
+      toast.error(
+        accept 
           ? "Không thể chấp nhận lời mời kết bạn. Vui lòng thử lại sau."
-          : "Không thể từ chối lời mời kết bạn. Vui lòng thử lại sau."
-        );
-      toast.error(errorMessage);
+          : "Không thể từ chối lời mời kết bạn. Vui lòng thử lại sau.",
+        {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        }
+      );
     } finally {
       setIsLoading(false);
     }
@@ -230,7 +240,19 @@ console.log(suggestedFriends, 'suggestedFriends');
 
 
   return (
-    <div className="bg-white rounded-lg shadow-lg h-full">
+    <div className="bg-white rounded-lg shadow-lg h-full relative">
+      <ToastContainer 
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       {/* Navigation Tabs */}
       <div className="flex border-b">
         <button
