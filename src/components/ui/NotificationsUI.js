@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FaThumbsUp, FaComment, FaUserPlus, FaShare, FaEllipsisH } from 'react-icons/fa';
+import { FaThumbsUp, FaComment, FaUserPlus, FaShare, FaEllipsisH, FaTrash } from 'react-icons/fa';
 import NotificationDetailUI from './NotificationDetailUI';
 import socket from '../../services/socket';
 import { formatDistanceToNow } from 'date-fns';
@@ -201,9 +201,7 @@ const NotificationsUI = ({ user, data }) => {
             </span>
           )}
         </div>
-        <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-          <FaEllipsisH className="text-gray-500 w-5 h-5" />
-        </button>
+       
       </div>
 
       {/* Notifications List */}
@@ -288,13 +286,14 @@ const NotificationsUI = ({ user, data }) => {
                   </div>
                 )}
                 <button
-                  className="px-4 py-1.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors absolute top-2 right-2"
+                  className="p-2 hover:bg-red-100 text-red-500 hover:text-red-600 rounded-full transition-all duration-200 absolute top-2 right-2"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleDeleteNotification(notification.id);
                   }}
+                  title="Xóa thông báo"
                 >
-                  Xóa thông báo
+                  <FaTrash className="w-4 h-4" />
                 </button>
               </div>
             </div>
