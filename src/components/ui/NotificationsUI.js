@@ -19,6 +19,7 @@ const NotificationsUI = ({ user, data }) => {
         if (Array.isArray(serverNotifications)) {
           const notificationsWithToggle = serverNotifications
             .map(notification => ({
+
               ...notification,
               toggle: false
             }))
@@ -49,6 +50,12 @@ const NotificationsUI = ({ user, data }) => {
           read: false
         }, ...prevNotifications]);
       });
+
+      // Add socket listener for error handling during deletion
+      socket.on('errorDeleteNotification', ({ message }) => {
+        console.error('Error deleting notification:', message);
+        // You can add toast notification or other error handling here
+      });
     };
 
     getNotifications();
@@ -56,8 +63,17 @@ const NotificationsUI = ({ user, data }) => {
     return () => {
       socket.off('notifications');
       socket.off('notification');
+      socket.off('errorDeleteNotification');
     };
   }, [idUser]);
+
+  const handleDeleteNotification = (idNotification) => {
+    socket.emit('deteleNotificaiton', { idNotification });
+    // Optimistically remove the notification from the UI
+    setNotifications(prevNotifications =>
+      prevNotifications.filter(notification => notification.id !== idNotification)
+    );
+  };
 
   const getNotificationIcon = (type) => {
     switch (type) {
@@ -82,7 +98,7 @@ const NotificationsUI = ({ user, data }) => {
         notificationId: notification.id,
         idUser
       });
-      
+
       // Update local state to mark as read
       setNotifications(prevNotifications =>
         prevNotifications.map(n =>
@@ -151,15 +167,14 @@ const NotificationsUI = ({ user, data }) => {
 
       case 'POST_REPLY_REPLY':
         return `${senderName} đã trả lời bình luận của bạn `;
-        
+
       case 'FRIEND_REQUEST_ACCEPTED':
         return `${senderName} đã chấp nhận lời mời kết bạn của bạn `;
 
       case 'FRIEND_REQUEST_DENY':
         return `${senderName} đã từ chối lời mời kết bạn của bạn `;
 
-  
-        
+
       default:
         console.log('Unknown notification type:', type);
         const friendlyType = type
@@ -272,6 +287,15 @@ const NotificationsUI = ({ user, data }) => {
                     </button>
                   </div>
                 )}
+                <button
+                  className="px-4 py-1.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors absolute top-2 right-2"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteNotification(notification.id);
+                  }}
+                >
+                  Xóa thông báo
+                </button>
               </div>
             </div>
           ))
