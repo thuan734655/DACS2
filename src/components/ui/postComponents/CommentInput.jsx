@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Send, ImageIcon, Smile, X } from "lucide-react";
 import EmojiPicker from "emoji-picker-react";
-import io from "socket.io-client";
-
-const socket = io("http://localhost:5000");
+import socket from "../../../services/socket";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const SUPPORTED_FORMATS = ["image/jpeg", "image/png", "video/mp4"]; // Allowed formats

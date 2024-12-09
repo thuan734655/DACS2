@@ -139,7 +139,7 @@ const loadUserData = async () => {
             groupedLikes: post.groupedLikes || [],
             commentCount: post.commentCount || 0,
             infoUserList: {
-              [post.idUser]: user
+              [post.idUser]: post.infoUserList[post.idUser]
             }
           };
           

@@ -2,9 +2,7 @@ import React, { useEffect, useState } from "react";
 import CommentInput from "./CommentInput";
 import CommentList from "./CommentList";
 import PostContent from "./PostContent";
-import io from "socket.io-client";
-
-const socket = io("http://localhost:5000");
+import socket from "../../../services/socket";
 
 const SubPost = ({ postId, user, post, setShowSubPost, setCommentCount }) => {
   const [commentsList, setCommentsList] = useState([]);

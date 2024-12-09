@@ -1,9 +1,7 @@
 import {React, useState, useEffect} from 'react';
-import io from "socket.io-client";
+import socket from "../../services/socket";
 import SocialPost from './SocialPost';
 import { FaArrowLeft, FaUserFriends, FaCheck, FaTimes, FaUserPlus, FaUser } from 'react-icons/fa';
-
-const socket = io("http://localhost:5000");
 
 const NotificationDetailUI = ({notification, onBack}) => {
   const user = JSON.parse(localStorage.getItem("user")); 

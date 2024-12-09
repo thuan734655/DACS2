@@ -9,6 +9,7 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
   const [textColor, setTextColor] = useState("#000000");
   const [backgroundColor, setBackgroundColor] = useState("#ffffff");
   const [user, setUser] = useState(null)
+  const [privacy, setPrivacy] = useState("public");
   const handleClose = () => {
     setFormCreatePostVisible(false);
     setPostText("");
@@ -71,6 +72,7 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
         toggle: false, // Initialize toggle state
         groupedLikes: [],
         commentCount: 0,
+        privacy: privacy
       };
 
       // Emit post data through WebSocket
@@ -100,7 +102,7 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-white rounded-lg w-full max-w-[500px] shadow-xl">
         <div className="relative border-b p-4">
-          <h1 className="text-xl font-semibold text-center">Tạo Post</h1>
+          <h1 className="text-xl font-semibold text-center">Tạo bài viết</h1>
           <button
             onClick={handleClose}
             className="absolute right-4 top-4 p-1 hover:bg-gray-100 rounded-full"
@@ -113,19 +115,30 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
         {/* User Info */}
         <div className="p-4 flex items-center gap-2">
           <img
-            src={user?.avatar || "/placeholder.svg?height=40&width=40"}
-            alt="User avatar"
+            src={user?.avatar || "https://via.placeholder.com/40"}
+            alt=""
             className="w-10 h-10 rounded-full"
           />
           <div>
             <div className="font-semibold">{user?.fullName || "Loading..."}</div>
+            <select 
+              id="privacy" 
+              name="privacy"
+              value={privacy}
+              onChange={(e) => setPrivacy(e.target.value)}
+              className="mt-1 text-sm bg-gray-100 border-0 rounded-md py-1 px-3 text-gray-600 hover:bg-gray-200 transition-colors cursor-pointer focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            >
+              <option value="public">🌎 Công khai</option>
+              <option value="friends">👥 Bạn bè</option>
+              <option value="private">🔒 Chỉ mình tôi</option>
+            </select>
           </div>
         </div>
 
         {/* Post Input */}
         <div className="p-4">
           <textarea
-            placeholder="What's on your mind?"
+            placeholder="Bạn đang nghĩ gì thế?"
             value={postText}
             onChange={(e) => setPostText(e.target.value)}
             style={{ color: textColor, backgroundColor }}
@@ -136,7 +149,7 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
         {/* Color Options */}
         <div className="p-4 flex gap-4">
           <div>
-            <label>Text Color: </label>
+            <label>Màu chữ: </label>
             <input
               className="cursor-pointer"
               type="color"
@@ -145,7 +158,7 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
             />
           </div>
           <div>
-            <label>Background Color: </label>
+            <label>Màu nền: </label>
             <input
               className="cursor-pointer"
               type="color"
@@ -158,8 +171,8 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
         {/* Media Upload Area */}
         <div className="mx-4 border rounded-lg p-4">
           <div className="text-center">
-            <div className="font-semibold">Add Photo/Video</div>
-            <div className="text-sm text-gray-500">or drag and drop</div>
+            <div className="font-semibold">Thêm ảnh/video</div>
+            <div className="text-sm text-gray-500">Kéo/Thả</div>
             <label
               htmlFor="file-upload"
               className="inline-flex items-center justify-center w-10 h-10 bg-gray-100 rounded-full mb-2 cursor-pointer"
@@ -232,10 +245,10 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
                     d="M4 12c0 4.418 3.582 8 8 8s8-3.582 8-8H4z"
                   />
                 </svg>
-                Posting...
+                Đang tạo bài viết, vui lòng chờ ...
               </span>
             ) : (
-              "Post"
+              "Đăng"
             )}
           </button>
         </div>
