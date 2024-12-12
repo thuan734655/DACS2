@@ -10,6 +10,7 @@ import CommentInput from "./CommentInput";
 import Replies from "./Replies";
 import socket from "../../../services/socket";
 import { formatTimestamp } from "../../../utils/timeFormat";
+import { useToast } from "../../../context/ToastContext";
 
 function CommentList({
   commentsList,
@@ -18,14 +19,13 @@ function CommentList({
   setCommentsList,
   setCommentCount,
 }) {
+  const { showToast } = useToast();
   const [activeId, setActiveId] = useState(null);
   const [openReplies, setOpenReplies] = useState({});
   const [contentReport, setContentReport] = useState("");
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [selectedReason, setSelectedReason] = useState("");
   const [reportingCommentId, setReportingCommentId] = useState(null);
-  const [alertMessage, setAlertMessage] = useState(null);
-  const [alertType, setAlertType] = useState(""); // success hoặc error
 
   const predefinedReasons = [
     "Nội dung không phù hợp",
@@ -38,9 +38,7 @@ function CommentList({
     const reason = contentReport || selectedReason;
 
     if (!reason) {
-      setAlertMessage("Vui lòng chọn hoặc nhập lý do báo cáo!");
-      setAlertType("error");
-      setTimeout(() => setAlertMessage(null), 3000); // Ẩn sau 3 giây
+      showToast("Vui lòng chọn hoặc nhập lý do báo cáo!", "error");
       return;
     }
 
@@ -51,7 +49,7 @@ function CommentList({
     };
 
     socket.emit("report", content);
-
+    showToast("Báo cáo bình luận thành công!", "success");
     setShowReportDialog(false);
     setContentReport("");
     setSelectedReason("");
@@ -142,13 +140,10 @@ function CommentList({
 
     const handleResponse = (data) => {
       if (data.success) {
-        setAlertMessage("Báo cáo bình luận thành công!");
-        setAlertType("success");
+        showToast("Báo cáo bình luận thành công!", "success");
       } else {
-        setAlertMessage("Lỗi khi báo cáo bình luận!");
-        setAlertType("error");
+        showToast("Lỗi khi báo cáo bình luận!", "error");
       }
-      setTimeout(() => setAlertMessage(null), 3000); // Ẩn sau 3 giây
     };
 
     socket.on("responseReportComment", handleResponse);
@@ -171,15 +166,6 @@ function CommentList({
 
   return (
     <div className="space-y-4">
-      {alertMessage && (
-        <div
-          className={`fixed top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-lg text-white ${
-            alertType === "success" ? "bg-green-500" : "bg-red-500"
-          }`}
-        >
-          {alertMessage}
-        </div>
-      )}
       {sortedComments.map(
         ({
           idUser,

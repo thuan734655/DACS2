@@ -1,7 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Check, X, AlertCircle, Info } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Check, X, AlertCircle, Info } from "lucide-react";
 
-const ToastNotification = ({ message, type = 'success', duration = 3000, onClose }) => {
+const ToastNotification = ({
+  message,
+  type = "success",
+  duration = 3000,
+  onClose,
+}) => {
   const [isVisible, setIsVisible] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
 
@@ -12,7 +17,7 @@ const ToastNotification = ({ message, type = 'success', duration = 3000, onClose
         setIsVisible(false);
         if (onClose) onClose();
       }, 300);
-    }, duration); 
+    }, duration);
 
     return () => clearTimeout(timer);
   }, [duration, onClose]);
@@ -21,29 +26,29 @@ const ToastNotification = ({ message, type = 'success', duration = 3000, onClose
 
   const getToastStyles = () => {
     switch (type) {
-      case 'success':
+      case "success":
         return {
-          bg: 'bg-emerald-500',
+          bg: "bg-emerald-500",
           icon: Check,
-          shadow: 'shadow-emerald-500/20'
+          shadow: "shadow-emerald-500/20",
         };
-      case 'error':
+      case "error":
         return {
-          bg: 'bg-red-500',
+          bg: "bg-red-500",
           icon: AlertCircle,
-          shadow: 'shadow-red-500/20'
+          shadow: "shadow-red-500/20",
         };
-      case 'info':
+      case "info":
         return {
-          bg: 'bg-blue-500',
+          bg: "bg-blue-500",
           icon: Info,
-          shadow: 'shadow-blue-500/20'
+          shadow: "shadow-blue-500/20",
         };
       default:
         return {
-          bg: 'bg-gray-500',
+          bg: "bg-gray-500",
           icon: Info,
-          shadow: 'shadow-gray-500/20'
+          shadow: "shadow-gray-500/20",
         };
     }
   };
@@ -51,13 +56,15 @@ const ToastNotification = ({ message, type = 'success', duration = 3000, onClose
   const { bg, icon: Icon, shadow } = getToastStyles();
 
   return (
-    <div 
+    <div
       className={`
         fixed top-4 right-4 z-50 
         flex items-center ${bg} text-white 
         px-4 py-3 rounded-lg shadow-lg ${shadow}
         transform transition-all duration-300 ease-in-out
-        ${isExiting ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'}
+        ${
+          isExiting ? "translate-x-full opacity-0" : "translate-x-0 opacity-100"
+        }
         hover:scale-102 hover:shadow-xl
       `}
     >

@@ -29,11 +29,6 @@ class SocketService {
       console.log('Socket connected:', this.socket.id);
       this.isConnecting = false;
       this.reconnectAttempts = 0;
-      
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (user?.idUser) {
-        this.socket.emit('authenticate', user.idUser); // Emit authenticate event
-      }
     });
 
     this.socket.on('disconnect', () => {

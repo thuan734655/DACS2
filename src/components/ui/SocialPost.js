@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ThumbsUp, MessageCircle, Share2 } from "lucide-react";
 import socket from "../../services/socket";
-import { useToast } from '../../context/ToastContext';
+import { useToast } from "../../context/ToastContext";
 import EmojiPickerComponent from "./postComponents/EmojiPickerComponent";
 import PostContent from "./postComponents/PostContent";
 import SubPost from "./postComponents/SubPost";
@@ -9,8 +9,10 @@ import SubPost from "./postComponents/SubPost";
 function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
   const { showToast } = useToast();
   const [shareCount, setShareCount] = useState(post.shares || 0);
-  const [previousShareCount, setPreviousShareCount] = useState(post.shares || 0);
-  const [shareUpdateAnimation, setShareUpdateAnimation] = useState('');
+  const [previousShareCount, setPreviousShareCount] = useState(
+    post.shares || 0
+  );
+  const [shareUpdateAnimation, setShareUpdateAnimation] = useState("");
   const [likeCount, setLikeCount] = useState(
     groupedLikes ? Object.values(groupedLikes).flat().length : 0
   );
@@ -27,22 +29,31 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
   const [showSubPost, setShowSubPost] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [shareText, setShareText] = useState("")
-
+  const [shareText, setShareText] = useState("");
 
   useEffect(() => {
-    const handlePostShared = ({ postId: sharedPostId, shareCount, success, error, senderId }) => {
-      if(senderId === idUser){
+    const handlePostShared = ({
+      postId: sharedPostId,
+      shareCount,
+      success,
+      error,
+      senderId,
+    }) => {
+      if (senderId === idUser) {
         if (sharedPostId === postId) {
-          console.log('[DEBUG] Received postShared event:', { sharedPostId, shareCount, success });
+          console.log("[DEBUG] Received postShared event:", {
+            sharedPostId,
+            shareCount,
+            success,
+          });
           setShareCount(shareCount);
-          
+
           if (success) {
-            showToast('Đã chia sẻ bài viết thành công!', 'success');
+            showToast("Đã chia sẻ bài viết thành công!", "success");
             setShowConfirmDialog(false);
             setIsSharing(false);
           } else if (error) {
-            showToast(`Lỗi khi chia sẻ bài viết: ${error}`, 'error');
+            showToast(`Lỗi khi chia sẻ bài viết: ${error}`, "error");
             setIsSharing(false);
           }
         }
@@ -57,33 +68,34 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
     };
   }, [postId, previousShareCount, showToast, idUser]);
 
-
   const handleShare = () => {
     if (isSharing) return; // Prevent double submission
-    
+
     if (!idUser) {
-      showToast('Vui lòng đăng nhập để chia sẻ bài viết!', 'error');
+      showToast("Vui lòng đăng nhập để chia sẻ bài viết!", "error");
       return;
     }
     setShowConfirmDialog(true);
   };
 
-
   const confirmShare = () => {
     if (isSharing) return; // Prevent double submission
-    
+
     setIsSharing(true);
-    console.log('[DEBUG] Emitting sharePost event:', { postId, idUser, shareText });
-    
-    socket.emit("sharePost", { 
+    console.log("[DEBUG] Emitting sharePost event:", {
       postId,
       idUser,
-      shareText
+      shareText,
+    });
+
+    socket.emit("sharePost", {
+      postId,
+      idUser,
+      shareText,
     });
 
     setShareText("");
   };
-
 
   const handleOutsideClick = useCallback((e) => {
     if (!e.target.closest(".reaction-picker") && !e.target.closest("button")) {
@@ -97,12 +109,10 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
     }
   }, []);
 
-
   useEffect(() => {
     document.addEventListener("click", handleOutsideClick);
     return () => document.removeEventListener("click", handleOutsideClick);
   }, [handleOutsideClick]);
-
 
   useEffect(() => {
     const handleReceiveReaction = (data) => {
@@ -121,7 +131,6 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
     };
   }, [postId]);
 
-
   const handleLike = (emoji) => {
     if (!idUser) {
       console.error("User ID not found");
@@ -134,7 +143,6 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
     setShowReactionPicker(false);
   };
 
-
   const renderEmoji = () => {
     const counts = emojiCounts || {};
     let selectedEmoji = emojiChoose;
@@ -143,13 +151,13 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
       .filter(([emoji, users]) => users && users.length > 0)
       .map(([emoji, users]) => {
         if (users) {
-          users.forEach(user => {
-            if ((user - '0') === parseInt(idUser)) {
+          users.forEach((user) => {
+            if (user - "0" === parseInt(idUser)) {
               selectedEmoji = emoji;
             }
           });
         }
-        
+
         return (
           <div
             key={emoji}
@@ -167,7 +175,6 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
 
     return emojiElements;
   };
-
 
   return (
     <div className="bg-white shadow-md rounded-lg p-4 mb-4" id={postId}>
@@ -219,12 +226,12 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
         <div className="flex-1 flex justify-center">
           <button
             className={`flex items-center gap-2 text-gray-600 hover:text-red-500 transition-all duration-200 transform w-full justify-center ${
-              isSharing ? 'scale-125' : ''
+              isSharing ? "scale-125" : ""
             }`}
             onClick={handleShare}
             disabled={isSharing}
           >
-            <Share2 className={`h-5 w-5 ${isSharing ? 'animate-pulse' : ''}`} />
+            <Share2 className={`h-5 w-5 ${isSharing ? "animate-pulse" : ""}`} />
             <span className={shareUpdateAnimation}>{shareCount}</span>
           </button>
         </div>

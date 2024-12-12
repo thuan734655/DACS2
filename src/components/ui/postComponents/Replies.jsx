@@ -7,7 +7,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import CommentInput from "./CommentInput";
-import { toast } from "react-toastify";
+import { useToast } from "../../../context/ToastContext";
 import socket from "../../../services/socket";
 
 const Replies = ({
@@ -20,6 +20,7 @@ const Replies = ({
   activeId,
   depth = 0,
 }) => {
+  const { showToast } = useToast();
   const [openReplies, setOpenReplies] = useState({});
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [contentReport, setContentReport] = useState("");
@@ -44,7 +45,7 @@ const Replies = ({
     const reason = contentReport || selectedReason;
 
     if (!reason) {
-      alert("Vui lòng chọn hoặc nhập lý do báo cáo!");
+      showToast("Vui lòng chọn hoặc nhập lý do báo cáo!", "error");
       return;
     }
 
@@ -55,7 +56,7 @@ const Replies = ({
     };
 
     socket.emit("report", content);
-
+    showToast("Báo cáo phản hồi thành công!", "success");
     setShowReportDialog(false);
     setContentReport("");
     setSelectedReason("");
@@ -70,9 +71,9 @@ const Replies = ({
   useEffect(() => {
     const handleResponse = (data) => {
       if (data.success) {
-        alert("Báo cáo phản hồi thành công!");
+        showToast("Báo cáo phản hồi thành công!", "success");
       } else {
-        alert("Lỗi khi báo cáo phản hồi!");
+        showToast("Lỗi khi báo cáo phản hồi!", "error");
       }
     };
 
@@ -81,7 +82,7 @@ const Replies = ({
     return () => {
       socket.off("responseReportReply", handleResponse);
     };
-  }, []);
+  }, [showToast]);
 
   return (
     <div className={`${depth < 5 ? "ml-4" : "reset-ml"} mt-2`}>
