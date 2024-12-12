@@ -55,7 +55,6 @@ const HandleLoginController = async (
       const fp = await FingerprintJS.load();
       const result = await fp.get();
       visitorId = result.visitorId;
-      console.log("Visitor ID:", visitorId);
     } catch (fingerprintError) {
       console.error("FingerprintJS error:", fingerprintError);
       alert("Unable to generate device fingerprint. Please try again later.");
