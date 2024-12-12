@@ -1,3 +1,14 @@
+import {React, useState, useEffect} from 'react';
+import socket from "../../services/socket";
+import SocialPost from './SocialPost';
+import { FaArrowLeft, FaUserFriends, FaCheck, FaTimes, FaUserPlus, FaUser } from 'react-icons/fa';
+
+const NotificationDetailUI = ({notification, onBack}) => {
+  const user = JSON.parse(localStorage.getItem("user")); 
+  const [isPost, setIsPost] = useState( notification.type === 'POST_REACTION' || notification.type === 'POST_COMMENT' ||  notification.type === 'POST_REPLY_COMMENT' || notification.type === 'POST_REPLY_TO_REPLY' ||notification.type === 'POST_SHARE');
+  const [isFriendRequest, setIsFriendRequest] = useState(notification.type === 'FRIEND_REQUEST' || notification.type === 'FRIEND_REQUEST_ACCEPTED' || notification.type === 'FRIEND_REQUEST_DENY');
+  const [dataNotification, setDataNotification] = useState({});
+  const [isLoad, setLoad] = useState(true);
 import React, { useState, useEffect } from 'react';
 import { FaArrowLeft, FaThumbsUp, FaComment, FaUserPlus, FaShare } from 'react-icons/fa';
 import SocialPost from './SocialPost';
@@ -88,6 +99,119 @@ const NotificationDetailUI = ({ notification, onBack }) => {
     switch (relatedContent.type) {
       case 'post':
         return (
+          <div className="bg-white rounded-lg shadow-sm p-8 max-w-2xl mx-auto">
+            <div className="relative">
+              {/* Success animation container */}
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-32 h-32">
+                <div className="absolute inset-0 bg-green-100 rounded-full animate-ping opacity-75"></div>
+                <div className="absolute inset-0 bg-green-200 rounded-full animate-pulse"></div>
+              </div>
+              
+              {/* Profile pictures */}
+              <div className="relative z-10 flex justify-center items-center mb-6">
+                {/* First user */}
+                <div className="transform -translate-x-4 transition-transform hover:scale-105">
+                  {avatarUrl ? (
+                    <img 
+                      src={avatarUrl} 
+                      alt={senderName}
+                      className="w-20 h-20 rounded-full border-4 border-white shadow-lg object-cover"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 bg-gradient-to-r from-green-400 to-green-600 rounded-full border-4 border-white shadow-lg flex items-center justify-center">
+                      <FaUser className="text-3xl text-white" />
+                    </div>
+                  )}
+                </div>
+                
+                {/* Connection icon */}
+                <div className="z-20 mx-2 bg-white rounded-full p-2 shadow-lg">
+                  <FaUserFriends className="text-2xl text-green-500 animate-bounce" />
+                </div>
+                
+                {/* Second user */}
+                <div className="transform translate-x-4 transition-transform hover:scale-105">
+                  <div className="w-20 h-20 bg-gradient-to-r from-green-400 to-green-600 rounded-full border-4 border-white shadow-lg flex items-center justify-center">
+                    <FaUser className="text-3xl text-white" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center space-y-4">
+                <div className="inline-flex items-center justify-center space-x-2">
+                  <h2 className="text-2xl font-bold text-gray-800">
+                    Đã trở thành bạn bè
+                  </h2>
+                  <FaCheck className="text-green-500 text-2xl animate-bounce" />
+                </div>
+                
+                <p className="text-lg text-gray-600">
+                  Bạn và {" "}
+                  <span className="font-semibold text-green-600 hover:text-green-700 transition-colors cursor-pointer">
+                    {senderName}
+                  </span>
+                  {" "}đã trở thành bạn bè
+                </p>
+                
+                {/* Animated success line */}
+                <div className="relative h-8 my-6">
+                  <div className="absolute inset-x-0 top-1/2 transform -translate-y-1/2">
+                    <div className="h-1 bg-gradient-to-r from-green-200 via-green-400 to-green-200 rounded animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 'FRIEND_REQUEST_DENY':
+        return (
+          <div className="bg-white rounded-lg shadow-sm p-8 max-w-2xl mx-auto">
+            <div className="relative">
+              {/* Deny animation container */}
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-32 h-32">
+                <div className="absolute inset-0 bg-red-100 rounded-full animate-ping opacity-75"></div>
+                <div className="absolute inset-0 bg-red-200 rounded-full animate-pulse"></div>
+              </div>
+              
+              {/* Profile picture */}
+              <div className="relative z-10 flex justify-center mb-6">
+                {avatarUrl ? (
+                  <img 
+                    src={avatarUrl} 
+                    alt={senderName}
+                    className="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover filter grayscale"
+                  />
+                ) : (
+                  <div className="w-24 h-24 bg-gradient-to-r from-red-400 to-red-600 rounded-full border-4 border-white shadow-lg flex items-center justify-center">
+                    <FaUser className="text-4xl text-white" />
+                  </div>
+                )}
+              </div>
+
+              <div className="text-center space-y-4">
+                <div className="inline-flex items-center justify-center space-x-2">
+                  <h2 className="text-2xl font-bold text-gray-800">
+                    Lời mời kết bạn đã bị từ chối
+                  </h2>
+                  <FaTimes className="text-red-500 text-2xl animate-bounce" />
+                </div>
+                
+                <p className="text-lg text-gray-600">
+                  <span className="font-semibold text-red-600 hover:text-red-700 transition-colors cursor-pointer">
+                    {senderName}
+                  </span>
+                  {" "}đã từ chối lời mời kết bạn của bạn
+                </p>
+                
+                {/* Animated deny line */}
+                <div className="relative h-8 my-6">
+                  <div className="absolute inset-x-0 top-1/2 transform -translate-y-1/2">
+                    <div className="h-1 bg-gradient-to-r from-red-200 via-red-400 to-red-200 rounded animate-pulse"></div>
+                  </div>
+                  <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-45">
+                    <FaTimes className="text-2xl text-red-500 animate-bounce" />
+                  </div>
           <div className="mt-4">
             <h3 className="font-semibold text-lg mb-2">Bài viết liên quan</h3>
             <SocialPost post={relatedContent.data} />
@@ -124,12 +248,28 @@ const NotificationDetailUI = ({ notification, onBack }) => {
             </div>
           </div>
         );
+      
       default:
+        return null;
         return null;
     }
   };
 
   return (
+    <div className="bg-white">
+      <div className="bg-white shadow-sm border-b sticky top-0 z-50">
+        <div className="max-w-screen-xl mx-auto">
+          <div className="flex items-center h-14 px-4">
+            <button 
+              onClick={onBack}
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg text-blue-600 hover:bg-blue-50 transition-all duration-200 font-medium"
+            >
+              <FaArrowLeft className="text-lg" />
+              <span>Quay lại thông báo</span>
+            </button>
+          </div>
+        </div>
+      </div>
     <div className="bg-gray-50 min-h-full">
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10">
@@ -172,6 +312,17 @@ const NotificationDetailUI = ({ notification, onBack }) => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
             <p className="mt-4 text-gray-500">Đang tải nội dung liên quan...</p>
           </div>
+        )}
+        {isPost && !isLoad && (
+          <SocialPost 
+            postId={dataNotification.post.postId} 
+            post={dataNotification.post} 
+            user={user} 
+            groupedLikes={dataNotification.groupedLikes} 
+            commentCountDefault={dataNotification.commentCount}
+          />
+        )}
+        {isFriendRequest && !isLoad && getFriendRequestContent()}
         ) : (
           renderRelatedContent()
         )}

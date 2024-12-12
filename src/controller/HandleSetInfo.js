@@ -10,7 +10,7 @@ const handleSetInfo = async (email, password) => {
 
         // Lấy dữ liệu phản hồi từ server
         const data = response.data;
-
+        console.log(data);
         // Nếu phản hồi thành công, thực hiện các hành động tiếp theo
         if (response.status === 200) {
             // Ví dụ: xử lý dữ liệu hoặc cập nhật state
