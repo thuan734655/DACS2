@@ -9,14 +9,14 @@ function MediaPreview({ mediaUrls }) {
               url.endsWith(".mp4") ? (
                 <video
                   key={index}
-                  src={"http://localhost:5000" + url}
+                  src={"https://dacs2-server-5.onrender.com" + url}
                   controls
                   className="w-full h-auto rounded-lg"
                 />
               ) : (
                 <img
                   key={index}
-                  src={"http://localhost:5000" + url}
+                  src={"https://dacs2-server-5.onrender.com" + url}
                   alt={`Media ${index}`}
                   className="w-full h-auto rounded-lg"
                 />

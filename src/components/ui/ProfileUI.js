@@ -29,7 +29,7 @@ import {
   updateUserInfo,
 } from "../../services/userService";
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://dacs2-server-5.onrender.com";
 const ProfileUI = () => {
   const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(0);

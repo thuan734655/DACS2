@@ -3,7 +3,7 @@ import MediaPreview from "./MediaPreview";
 import { X, MoreHorizontal, Globe, Users, Lock } from "lucide-react";
 import { useToast } from "../../../context/ToastContext";
 import socket from "../../../services/socket.js";
-const API_URL = "http://localhost:5000";
+const API_URL = "https://dacs2-server-5.onrender.com";
 function PostContent({ post, user, isComment = false, onClose }) {
   const [showMenu, setShowMenu] = useState(false);
   const [contentReport, setContentReport] = useState("");

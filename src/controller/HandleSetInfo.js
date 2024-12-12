@@ -3,7 +3,7 @@ import axios from "axios";
 const handleSetInfo = async (email, password) => {
     try {
         // Gửi yêu cầu POST đến API
-        const response = await axios.post("http://localhost:5000/set-info", {
+        const response = await axios.post("https://dacs2-server-5.onrender.com/set-info", {
             email,
             password
         });

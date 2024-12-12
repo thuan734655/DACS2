@@ -112,13 +112,13 @@ const Replies = ({
                 key={index}
                 controls
                 className="w-full rounded-lg mt-2"
-                src={"http://localhost:5000" + fileUrl}
+                src={"https://dacs2-server-5.onrender.com" + fileUrl}
               />
             ) : (
               <img
                 key={index}
                 className="w-full rounded-lg mt-2"
-                src={"http://localhost:5000" + fileUrl}
+                src={"https://dacs2-server-5.onrender.com" + fileUrl}
                 alt="Comment media"
               />
             )
