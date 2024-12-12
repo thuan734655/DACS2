@@ -9,7 +9,6 @@ import {
 import CommentInput from "./CommentInput";
 import Replies from "./Replies";
 import socket from "../../../services/socket";
-import { toast } from "react-toastify";
 import { formatTimestamp } from "../../../utils/timeFormat";
 
 function CommentList({
@@ -25,6 +24,9 @@ function CommentList({
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [selectedReason, setSelectedReason] = useState("");
   const [reportingCommentId, setReportingCommentId] = useState(null);
+  const [alertMessage, setAlertMessage] = useState(null);
+  const [alertType, setAlertType] = useState(""); // success hoặc error
+
   const predefinedReasons = [
     "Nội dung không phù hợp",
     "Spam hoặc lừa đảo",
@@ -36,10 +38,9 @@ function CommentList({
     const reason = contentReport || selectedReason;
 
     if (!reason) {
-      toast.error("Vui lòng chọn hoặc nhập lý do báo cáo!", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      setAlertMessage("Vui lòng chọn hoặc nhập lý do báo cáo!");
+      setAlertType("error");
+      setTimeout(() => setAlertMessage(null), 3000); // Ẩn sau 3 giây
       return;
     }
 
@@ -141,24 +142,13 @@ function CommentList({
 
     const handleResponse = (data) => {
       if (data.success) {
-        toast.success("Báo cáo bình luận thành công!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
+        setAlertMessage("Báo cáo bình luận thành công!");
+        setAlertType("success");
       } else {
-        toast.error("Lỗi khi báo cáo bình luận!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
+        setAlertMessage("Lỗi khi báo cáo bình luận!");
+        setAlertType("error");
       }
+      setTimeout(() => setAlertMessage(null), 3000); // Ẩn sau 3 giây
     };
 
     socket.on("responseReportComment", handleResponse);
@@ -181,6 +171,15 @@ function CommentList({
 
   return (
     <div className="space-y-4">
+      {alertMessage && (
+        <div
+          className={`fixed top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-lg text-white ${
+            alertType === "success" ? "bg-green-500" : "bg-red-500"
+          }`}
+        >
+          {alertMessage}
+        </div>
+      )}
       {sortedComments.map(
         ({
           idUser,
@@ -236,14 +235,6 @@ function CommentList({
             </div>
 
             <div className="flex gap-4 ml-10">
-              <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900">
-                {emojiChoose || (
-                  <React.Fragment>
-                    <ThumbsUp className="h-4 w-4" />
-                    <span>Thích</span>
-                  </React.Fragment>
-                )}
-              </button>
               <button
                 className="flex items-center gap-1 text-gray-600 hover:text-gray-900"
                 onClick={() => handleToggleCommentInput(commentId)}
@@ -312,8 +303,7 @@ function CommentList({
       )}
       {showReportDialog && (
         <div className="fixed inset-0 flex items-center justify-center z-500">
-          <div className="absolute inset-0 bg-black opacity-50"></div>
-          <div className="bg-white p-4 rounded-lg w-96 max-w-full mx-4 z-10">
+          <div className="bg-zinc-700 p-4 rounded-lg w-96 max-w-full mx-4 z-10">
             <h2 className="text-lg font-bold mb-4">Báo cáo bình luận</h2>
             <select
               className="w-full p-2 mb-4 border rounded"
