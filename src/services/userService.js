@@ -3,7 +3,9 @@ import axiosAPI from "./configAxios.js";
 export const getUserProfile = async () => {
   try {
     const response = await axiosAPI.get("/api/users/profile");
+    console.log("Get user info response:", response.data); // Log để debug
     return response.data || null;
+    
   } catch (error) {
     console.error("Lỗi khi lấy thông tin người dùng:", error);
     return null;
@@ -24,22 +26,24 @@ export const getFriendRequests = async () => {
   try {
     const userData = localStorage.getItem("user");
     const currentUser = JSON.parse(userData);
-    const response = await axiosAPI.get(`/api/users/${currentUser.idUser}/friend-requests`);
-    
+    const response = await axiosAPI.get(
+      `/api/users/${currentUser.idUser}/friend-requests`
+    );
+
     // Log chi tiết danh sách người gửi lời mời
-    console.log('=== Danh sách lời mời kết bạn ===');
+    console.log("=== Danh sách lời mời kết bạn ===");
     response.data.forEach((request, index) => {
       console.log(`${index + 1}. Người gửi:`, {
         ID: request.requester_id,
-        'Họ tên': request.fullName,
-        'Ngày sinh': request.dateOfBirth,
-        'Bạn chung': request.mutualFriends || 0,
-        'Avatar': request.avatar
+        "Họ tên": request.fullName,
+        "Ngày sinh": request.dateOfBirth,
+        "Bạn chung": request.mutualFriends || 0,
+        Avatar: request.avatar,
       });
     });
-    console.log('Tổng số lời mời:', response.data.length);
-    console.log('================================');
-    
+    console.log("Tổng số lời mời:", response.data.length);
+    console.log("================================");
+
     return response.data;
   } catch (error) {
     console.error("Lỗi khi lấy danh sách lời mời kết bạn:", error);
@@ -51,18 +55,18 @@ export const respondToFriendRequest = async (requester_id, accept) => {
   try {
     const userData = localStorage.getItem("user");
     const currentUser = JSON.parse(userData);
-    
+
     // Log để debug
-    console.log('Sending response with data:', {
+    console.log("Sending response with data:", {
       requester_id,
-      accept
+      accept,
     });
 
     const response = await axiosAPI.post(
       `/api/users/${currentUser.idUser}/respond-friend-request`,
       {
-        requester_id: requester_id,  // Đổi tên key thành requester_id
-        accept
+        requester_id: requester_id, // Đổi tên key thành requester_id
+        accept,
       }
     );
     return response.data;
@@ -80,10 +84,12 @@ export const getSuggestedFriends = async (limit = 10) => {
     }
 
     const { idUser } = JSON.parse(userData);
-    
+
     // Gọi API với userId trong path thay vì params
-    const response = await axiosAPI.get(`/api/users/${idUser}/suggested-friends?limit=${limit}`);
-   
+    const response = await axiosAPI.get(
+      `/api/users/${idUser}/suggested-friends?limit=${limit}`
+    );
+
     return response.data || [];
   } catch (error) {
     console.error("Lỗi khi lấy gợi ý kết bạn:", error);
@@ -92,10 +98,12 @@ export const getSuggestedFriends = async (limit = 10) => {
 };
 export const sendFriendRequest = async (userId, requesterId) => {
   try {
-    const response = await axiosAPI.post(`/api/users/${userId}/send-friend-request`, {
-      requesterId: requesterId  // Thêm requesterId vào body
-      
-    });
+    const response = await axiosAPI.post(
+      `/api/users/${userId}/send-friend-request`,
+      {
+        requesterId: requesterId, // Thêm requesterId vào body
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Lỗi khi gửi lời mời kết bạn:", error);
@@ -106,7 +114,9 @@ export const getFriendCount = async () => {
   try {
     const userData = localStorage.getItem("user");
     const currentUser = JSON.parse(userData);
-    const response = await axiosAPI.get(`/api/users/${currentUser.idUser}/friends/count`);
+    const response = await axiosAPI.get(
+      `/api/users/${currentUser.idUser}/friends/count`
+    );
     return response.data;
   } catch (error) {
     console.error("Lỗi khi lấy số lượng bạn bè:", error);
@@ -117,16 +127,16 @@ export const searchUsersByName = async (fullName) => {
   try {
     const userData = localStorage.getItem("user");
     const currentUser = JSON.parse(userData);
-    
+
     // Gọi API tìm kiếm người dùng theo fullName
     const response = await axiosAPI.get(`/api/users/search-by-name`, {
       params: {
         fullName: fullName,
-        currentUserId: currentUser.idUser
-      }
+        currentUserId: currentUser.idUser,
+      },
     });
 
-    console.log('Kết quả tìm kiếm theo tên:', response.data);
+    console.log("Kết quả tìm kiếm theo tên:", response.data);
     return response.data;
   } catch (error) {
     console.error("Lỗi khi tìm kiếm người dùng:", error);
@@ -140,5 +150,79 @@ export const getFriendsList = async (idUser) => {
   } catch (error) {
     console.error("Lỗi khi lấy danh sách bạn bè:", error);
     return [];
+  }
+};
+export const getUserInfo = async (userId) => {
+  try {
+    const response = await axiosAPI.get(`/api/users/${userId}/info`);
+    return (
+      response.data || {
+        introduction: "",
+        education: "",
+        location: "",
+      }
+    );
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin:", error);
+    return {
+      introduction: "",
+      education: "",
+      location: "",
+    };
+  }
+};
+
+export const updateUserInfo = async (userId, info) => {
+  try {
+    const response = await axiosAPI.put(`/api/users/${userId}/info`, info);
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi cập nhật thông tin:", error);
+    throw error;
+  }
+};
+export const updateUserAvatar = async (formData) => {
+  try {
+    const userId = formData.get("userId");
+    console.log("Sending request to update avatar for user:", userId);
+
+    const response = await axiosAPI.post(
+      `/api/users/${userId}/update-avatar`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    console.log("Server response:", response);
+    return response;  // Trả về toàn bộ response thay vì response.data
+  } catch (error) {
+    console.error("API Error:", error.response || error);
+    throw error;
+  }
+};
+
+export const updateUserCover = async (formData) => {
+  try {
+    const userId = formData.get("userId");
+    console.log("Sending request to update cover for user:", userId);
+
+    const response = await axiosAPI.post(
+      `/api/users/${userId}/update-cover`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    console.log("Server response:", response);
+    return response;  // Trả về toàn bộ response thay vì response.data
+  } catch (error) {
+    console.error("API Error:", error.response || error);
+    throw error;
   }
 };

@@ -1,14 +1,18 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ThumbsUp, MessageCircle, Share2 } from "lucide-react";
 import socket from "../../services/socket";
-import { ToastContainer, toast } from 'react-toastify';
+import { useToast } from '../../context/ToastContext';
 import 'react-toastify/dist/ReactToastify.css';
 import EmojiPickerComponent from "./postComponents/EmojiPickerComponent";
 import PostContent from "./postComponents/PostContent";
 import SubPost from "./postComponents/SubPost";
+import { toast } from "react-toastify";
 
 function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
+  const { showToast } = useToast();
   const [shareCount, setShareCount] = useState(post.shares || 0);
+  const [previousShareCount, setPreviousShareCount] = useState(post.shares || 0);
+  const [shareUpdateAnimation, setShareUpdateAnimation] = useState('');
   const [likeCount, setLikeCount] = useState(
     groupedLikes ? Object.values(groupedLikes).flat().length : 0
   );
@@ -25,7 +29,8 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
   const [showSubPost, setShowSubPost] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [shareText, setShareText] = useState("");
+  const [shareText, setShareText] = useState("")
+
 
   useEffect(() => {
     const handlePostShared = ({ postId: sharedPostId, shareCount, success, error,senderId }) => {
@@ -67,24 +72,19 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
     return () => {
       socket.off("postShared", handlePostShared);
     };
-  }, [postId]);
+  }, [postId, previousShareCount, showToast]);
+
 
   const handleShare = () => {
     if (isSharing) return; // Prevent double submission
     
     if (!idUser) {
-      toast.error('Vui lòng đăng nhập để chia sẻ bài viết!', {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      showToast('Vui lòng đăng nhập để chia sẻ bài viết!', 'error');
       return;
     }
     setShowConfirmDialog(true);
   };
+
 
   const confirmShare = () => {
     if (isSharing) return; // Prevent double submission
@@ -95,11 +95,12 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
     socket.emit("sharePost", { 
       postId,
       idUser,
-      shareText 
+      shareText
     });
 
     setShareText("");
   };
+
 
   const handleOutsideClick = useCallback((e) => {
     if (!e.target.closest(".reaction-picker") && !e.target.closest("button")) {
@@ -113,10 +114,12 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
     }
   }, []);
 
+
   useEffect(() => {
     document.addEventListener("click", handleOutsideClick);
     return () => document.removeEventListener("click", handleOutsideClick);
   }, [handleOutsideClick]);
+
 
   useEffect(() => {
     const handleReceiveReaction = (data) => {
@@ -136,15 +139,36 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
     };
   }, [postId]);
 
+
   const handleLike = (emoji) => {
     if (!idUser) {
       console.error("User ID not found");
       return;
     }
+
     const dataReq = { postId, emoji, idUser };
     socket.emit("newReaction", dataReq);
+
+    // Gửi thông báo khi react post
+    if (post.idUser !== idUser) {
+      const user = JSON.parse(localStorage.getItem("user"));
+      socket.emit("newNotification", {
+        userId: post.idUser,
+        notification: {
+          type: "like",
+          data: {
+            userId: idUser,
+            userName: user.displayName || user.email,
+            postId,
+            emoji
+          }
+        }
+      });
+    }
+
     setShowReactionPicker(false);
   };
+
 
   const renderEmoji = () => {
     // Đảm bảo emojiCounts là một object
@@ -179,6 +203,7 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
 
     return emojiElements;
   };
+
 
   return (
     <div className="bg-white shadow-md rounded-lg p-4 mb-4" id={postId}>
@@ -228,7 +253,7 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
         </div>
 
         <div className="flex-1 flex justify-center">
-          <button 
+          <button
             className={`flex items-center gap-2 text-gray-600 hover:text-red-500 transition-all duration-200 transform w-full justify-center ${
               isSharing ? 'scale-125' : ''
             }`}
@@ -236,7 +261,7 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
             disabled={isSharing}
           >
             <Share2 className={`h-5 w-5 ${isSharing ? 'animate-pulse' : ''}`} />
-            <span>{shareCount}</span>
+            <span className={shareUpdateAnimation}>{shareCount}</span>
           </button>
         </div>
       </div>
@@ -254,7 +279,7 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
             <h3 className="text-lg font-semibold mb-4">Chia sẻ bài viết</h3>
-            
+
             <textarea
               className="w-full p-3 border rounded-lg mb-4 min-h-[120px] resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Bạn nghĩ gì về bài viết này?"
@@ -282,7 +307,6 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
           </div>
         </div>
       )}
-      <ToastContainer />
     </div>
   );
 }

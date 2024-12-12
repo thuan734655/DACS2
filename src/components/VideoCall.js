@@ -1,11 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FaMicrophone, FaMicrophoneSlash, FaVideo, FaVideoSlash, FaPhone } from 'react-icons/fa';
+// Import trực tiếp file âm thanh
+import ringPhone from '../assets/sound/ring-phone.mp3';
+import telephoneRing from '../assets/sound/telephone-ring.mp3';
 
-const VideoCall = ({ localStream, remoteStream, onEndCall }) => {
+const VideoCall = ({ localStream, remoteStream, onEndCall, isIncomingCall }) => {
   const localVideoRef = useRef();
   const remoteVideoRef = useRef();
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+  const [isRinging, setIsRinging] = useState(false);
+  
+  // Khởi tạo Audio với đường dẫn đã import
+  const callStartAudioRef = useRef(new Audio(ringPhone));
+  const incomingCallAudioRef = useRef(new Audio(telephoneRing));
 
   useEffect(() => {
     if (localVideoRef.current && localStream) {
@@ -18,6 +26,60 @@ const VideoCall = ({ localStream, remoteStream, onEndCall }) => {
       remoteVideoRef.current.srcObject = remoteStream;
     }
   }, [remoteStream]);
+
+  useEffect(() => {
+    // Thêm xử lý lỗi khi phát âm thanh
+    const playCallStartSound = async () => {
+      try {
+        await callStartAudioRef.current.play();
+      } catch (error) {
+        console.error('Error playing call start sound:', error);
+      }
+    };
+    playCallStartSound();
+  }, []);
+
+  useEffect(() => {
+    if (isIncomingCall) {
+      const playIncomingCallSound = async () => {
+        try {
+          // Thiết lập để âm thanh lặp lại
+          incomingCallAudioRef.current.loop = true;
+          await incomingCallAudioRef.current.play();
+          setIsRinging(true);
+        } catch (error) {
+          console.error('Error playing incoming call sound:', error);
+        }
+      };
+      playIncomingCallSound();
+    }
+    
+    // Cleanup khi isIncomingCall thay đổi
+    return () => {
+      if (incomingCallAudioRef.current) {
+        incomingCallAudioRef.current.loop = false;
+        incomingCallAudioRef.current.pause();
+        incomingCallAudioRef.current.currentTime = 0;
+        setIsRinging(false);
+      }
+    };
+  }, [isIncomingCall]);
+
+  // Cleanup khi component unmount
+  useEffect(() => {
+    return () => {
+      if (callStartAudioRef.current) {
+        callStartAudioRef.current.pause();
+        callStartAudioRef.current.currentTime = 0;
+      }
+      if (incomingCallAudioRef.current) {
+        incomingCallAudioRef.current.loop = false;
+        incomingCallAudioRef.current.pause();
+        incomingCallAudioRef.current.currentTime = 0;
+        setIsRinging(false);
+      }
+    };
+  }, []);
 
   const toggleAudio = () => {
     if (localStream) {
@@ -33,6 +95,26 @@ const VideoCall = ({ localStream, remoteStream, onEndCall }) => {
       videoTrack.enabled = !videoTrack.enabled;
       setIsVideoEnabled(videoTrack.enabled);
     }
+  };
+
+  // Hàm xử lý kết thúc cuộc gọi
+  const handleEndCall = () => {
+    // Dừng âm thanh
+    if (callStartAudioRef.current) {
+      callStartAudioRef.current.pause();
+      callStartAudioRef.current.currentTime = 0;
+    }
+    
+    // Dừng âm thanh cuộc gọi đến nếu đang phát
+    if (incomingCallAudioRef.current) {
+      incomingCallAudioRef.current.loop = false;
+      incomingCallAudioRef.current.pause();
+      incomingCallAudioRef.current.currentTime = 0;
+      setIsRinging(false);
+    }
+    
+    // Gọi callback onEndCall
+    onEndCall();
   };
 
   return (
@@ -90,7 +172,7 @@ const VideoCall = ({ localStream, remoteStream, onEndCall }) => {
             {isVideoEnabled ? <FaVideo /> : <FaVideoSlash />}
           </button>
           <button
-            onClick={onEndCall}
+            onClick={handleEndCall}
             className="p-4 rounded-full bg-red-500 text-white"
           >
             <FaPhone className="transform rotate-135" />

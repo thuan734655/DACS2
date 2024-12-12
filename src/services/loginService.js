@@ -5,8 +5,21 @@ const BASE_URL = "http://localhost:5000";
 export const requestOTP = async (email) => {
   return await axios.post(`${BASE_URL}/requestOTP`, { email });
 };
-export const getInfoUser = async (idUser) => {
-  return await axios.post(`${BASE_URL}/info-user`, { idUser });
+export const getUserInfo = async (userId) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/api/users/${userId}`);
+    console.log("Get user info response:", response.data); // Log để debug
+    return {
+      data: {
+        ...response.data,
+        fullName: response.data.fullName,
+        background: response.data.background,
+        avatar: response.data.avatar
+      }
+    };
+  } catch (error) {
+    throw error;
+  }
 };
 
 export const verifyOTP = async (email, otp, infoDevice) => {
