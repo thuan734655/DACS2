@@ -3,7 +3,7 @@ import React from "react";
 const RequestOTP = ({ email, handleInputChange, handleRequestOtp, loading }) => (
   <form onSubmit={handleRequestOtp}>
     <label className="block text-gray-700 font-bold mb-2" htmlFor="otpField">
-      Enter your email
+      Nhập Email
     </label>
     <input
       type="email"
@@ -21,7 +21,7 @@ const RequestOTP = ({ email, handleInputChange, handleRequestOtp, loading }) => 
       type="submit"
       disabled={loading}
     >
-      {loading ? "Requesting OTP..." : "Request OTP"}
+      {loading ? "Đang yêu cầu OTP..." : "Yêu cầu OTP"}
     </button>
   </form>
 );
