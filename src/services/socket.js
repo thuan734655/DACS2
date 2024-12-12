@@ -17,7 +17,7 @@ class SocketService {
 
     this.isConnecting = true;
 
-    this.socket = io("http://localhost:5000", {
+    this.socket = io("https://dacs2-server-5.onrender.com", {
       transports: ['websocket'],
       reconnection: true,
       reconnectionAttempts: this.maxReconnectAttempts,
