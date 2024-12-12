@@ -213,110 +213,108 @@ const ChatUI = ({ chat, onClose }) => {
     }
   };
 
-  return (
-    <>
-      <div className="flex flex-col h-full bg-white rounded-lg shadow-lg">
-        {/* Chat Header */}
-        <div className="flex justify-between items-center p-4 border-b">
-          <div className="flex items-center space-x-3">
-            <div className="relative">
-              <img
-                src={chat.avatar}
-                alt={chat.user}
-                className="w-10 h-10 rounded-full"
-              />
-              {chat.online && (
-                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-              )}
-            </div>
-            <div>
-              <h3 className="font-semibold">{chat.user}</h3>
-              <p className="text-sm text-gray-500">
-                {chat.online ? 'Đang hoạt động' : 'Không hoạt động'}
-              </p>
-            </div>
+return (
+    <div className="flex flex-col h-full bg-white rounded-lg shadow-lg">
+      {/* Chat Header */}
+      <div className="flex justify-between items-center p-4 border-b">
+        <div className="flex items-center space-x-3">
+          <div className="relative">
+            <img
+              src={chat.avatar}
+              alt={chat.user}
+              className="w-10 h-10 rounded-full"
+            />
+            {chat.online && (
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+            )}
           </div>
-          <div className="flex items-center space-x-4">
-            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-              <FaPhone className="text-blue-500" />
-            </button>
-            <button 
-              onClick={handleVideoCall}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <FaVideo className="text-blue-500" />
-            </button>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-              <FaTimes className="text-gray-500" />
-            </button>
+          <div className="hidden sm:block">
+            <h3 className="font-semibold">{chat.user}</h3>
+            <p className="text-sm text-gray-500">
+              {chat.online ? 'Đang hoạt động' : 'Không hoạt động'}
+            </p>
           </div>
         </div>
+        <div className="flex items-center space-x-2 sm:space-x-4">
+          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+            <FaPhone className="text-blue-500" />
+          </button>
+          <button 
+            onClick={handleVideoCall}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <FaVideo className="text-blue-500" />
+          </button>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+            <FaTimes className="text-gray-500" />
+          </button>
+        </div>
+      </div>
 
-        {/* Messages */}
-        <div className="flex-1 p-4 overflow-y-auto">
-          {messages.map((msg) => (
+      {/* Messages */}
+      <div className="flex-1 p-4 overflow-y-auto">
+        {messages.map((msg) => (
+          <div
+            key={msg.id}
+            className={`flex ${msg.isSender ? 'justify-end' : 'justify-start'} mb-4`}
+          >
             <div
-              key={msg.id}
-              className={`flex ${msg.isSender ? 'justify-end' : 'justify-start'} mb-4`}
+              className={`max-w-[70%] sm:max-w-[60%] ${
+                msg.isSender
+                  ? 'bg-blue-500 text-white rounded-l-lg rounded-tr-lg'
+                  : 'bg-gray-100 rounded-r-lg rounded-tl-lg'
+              } p-3`}
             >
-              <div
-                className={`max-w-[70%] ${
-                  msg.isSender
-                    ? 'bg-blue-500 text-white rounded-l-lg rounded-tr-lg'
-                    : 'bg-gray-100 rounded-r-lg rounded-tl-lg'
-                } p-3`}
-              >
-                {renderMessageContent(msg)}
-                <span className={`text-xs ${msg.isSender ? 'text-blue-100' : 'text-gray-500'} block mt-1`}>
-                  {msg.time}
-                </span>
-              </div>
+              {renderMessageContent(msg)}
+              <span className={`text-xs ${msg.isSender ? 'text-blue-100' : 'text-gray-500'} block mt-1`}>
+                {msg.time}
+              </span>
             </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input Area */}
-        <div className="p-4 border-t">
-          {showEmojiPicker && (
-            <div className="absolute bottom-20">
-              <EmojiPicker onEmojiClick={onEmojiClick} />
-            </div>
-          )}
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <FaSmile className="text-gray-500" />
-            </button>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <FaFile className="text-gray-500" />
-            </button>
-            <input
-              type="text"
-              placeholder="Nhập tin nhắn..."
-              className="flex-1 p-2 border rounded-full focus:outline-none focus:border-blue-500"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-            />
-            <button
-              onClick={handleSendMessage}
-              className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
-            >
-              <FaPaperPlane />
-            </button>
           </div>
+        ))}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input Area */}
+      <div className="p-4 border-t">
+        {showEmojiPicker && (
+          <div className="absolute bottom-20 left-0 sm:left-auto">
+            <EmojiPicker onEmojiClick={onEmojiClick} />
+          </div>
+        )}
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <FaSmile className="text-gray-500" />
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <FaFile className="text-gray-500" />
+          </button>
+          <input
+            type="text"
+            placeholder="Nhập tin nhắn..."
+            className="flex-1 p-2 border rounded-full focus:outline-none focus:border-blue-500"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+          />
+          <button
+            onClick={handleSendMessage}
+            className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
+          >
+            <FaPaperPlane />
+          </button>
         </div>
       </div>
 
@@ -327,7 +325,7 @@ const ChatUI = ({ chat, onClose }) => {
           onEndCall={handleEndCall}
         />
       )}
-    </>
+    </div>
   );
 };
 

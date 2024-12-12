@@ -84,16 +84,16 @@ const MessagesUI = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg h-full">
-      <div className="p-4 border-b sticky top-0 bg-white z-10">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Tin nhắn</h2>
+    <div className="bg-white rounded-lg shadow-lg h-full flex flex-col">
+      <div className="p-2 sm:p-4 border-b sticky top-0 bg-white z-10">
+        <div className="flex justify-between items-center mb-2 sm:mb-4">
+          <h2 className="text-lg sm:text-xl font-semibold">Tin nhắn</h2>
           {!showInRightPanel && onClose && (
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-1 sm:p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
-              <FaTimes className="text-gray-500" />
+              <FaTimes className="text-gray-500 text-sm sm:text-base" />
             </button>
           )}
         </div>
@@ -101,14 +101,14 @@ const MessagesUI = ({
           <input
             type="text"
             placeholder="Tìm kiếm tin nhắn..."
-            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+            className="w-full pl-8 sm:pl-10 pr-4 py-1 sm:py-2 text-sm sm:text-base border rounded-lg focus:outline-none focus:border-blue-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <FaSearch className="absolute left-3 top-3 text-gray-400" />
+          <FaSearch className="absolute left-2 sm:left-3 top-2 sm:top-3 text-gray-400 text-sm sm:text-base" />
         </div>
       </div>
-      <div className="overflow-y-auto">
+      <div className="overflow-y-auto flex-grow">
         {friends
           .filter(
             (chat) =>
@@ -122,17 +122,17 @@ const MessagesUI = ({
           .map((chat, index) => (
             <div
               key={`${chat.idUser}+${index}`}
-              className={`p-4 hover:bg-gray-50 cursor-pointer ${
+              className={`p-2 sm:p-4 hover:bg-gray-50 cursor-pointer ${
                 selectedChatId === chat.idUser ? "bg-blue-50" : ""
               }`}
               onClick={() => handleChatClick(chat)}
             >
-              <div className="flex items-start space-x-3">
-                <div className="relative">
+              <div className="flex items-start space-x-2 sm:space-x-3">
+                <div className="relative flex-shrink-0">
                   <img
                     src={chat.avatar}
                     alt={chat.user}
-                    className="w-12 h-12 rounded-full"
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full"
                   />
                   {chat.online && (
                     <div className="absolute bottom-0 right-0">
@@ -140,17 +140,17 @@ const MessagesUI = ({
                     </div>
                   )}
                 </div>
-                <div className="flex-grow">
+                <div className="flex-grow min-w-0">
                   <div className="flex justify-between items-start">
-                    <span className="font-medium">{chat.user}</span>
-                    <span className="text-gray-400 text-sm">{chat.time}</span>
+                    <span className="font-medium text-sm sm:text-base truncate">{chat.user}</span>
+                    <span className="text-gray-400 text-xs sm:text-sm ml-1">{chat.time}</span>
                   </div>
-                  <p className="text-gray-600 text-sm truncate">
+                  <p className="text-gray-600 text-xs sm:text-sm truncate">
                     {chat.lastMessage}
                   </p>
                 </div>
                 {chat.unread > 0 && (
-                  <div className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  <div className="bg-blue-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center flex-shrink-0">
                     {chat.unread}
                   </div>
                 )}
@@ -161,5 +161,6 @@ const MessagesUI = ({
     </div>
   );
 };
+
 
 export default MessagesUI;

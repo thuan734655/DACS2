@@ -20,7 +20,9 @@ import {
   FaPen,
 } from "react-icons/fa";
 import socket from "../../services/socket";
+import { useUserPublicProfile } from "../../hooks/useUserPublicProfile";
 
+const API_URL = "http://localhost:5000";
 const HomePageUI = () => {
   const [formCreatePostVisible, setFormCreatePostVisible] = useState(false);
   const [listPosts, setListPosts] = useState({});
@@ -42,6 +44,8 @@ const HomePageUI = () => {
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const scrollRef = useRef(null);
   const lastScrollPositionRef = useRef(0); // New ref to store the scroll position
+
+  const { currentUser } = useUserPublicProfile();
 
   useEffect(() => {
     socket.on("notification", (notification) => {
@@ -224,8 +228,9 @@ const HomePageUI = () => {
           <div className="flex items-center space-x-4 mb-4">
             <img
               src={
-                user?.avatar ||
-                `https://api.dicebear.com/6.x/avataaars/svg?seed=${user?.username}`
+                currentUser?.avatar
+                  ? `${API_URL}${currentUser.avatar}`
+                  : `https://api.dicebear.com/6.x/avataaars/svg?seed=${currentUser.fullName}`
               }
               alt={user?.fullName}
               className="w-16 h-16 rounded-full"
@@ -234,7 +239,7 @@ const HomePageUI = () => {
               <h2 className="font-semibold text-lg">
                 {user?.fullName || "Đang tải..."}
               </h2>
-              <p className="text-gray-500">@{user?.username || "..."}</p>
+              
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4 text-center">

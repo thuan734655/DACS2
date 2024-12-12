@@ -5,7 +5,6 @@ export const getUserProfile = async () => {
     const response = await axiosAPI.get("/api/users/profile");
     console.log("Get user info response:", response.data); // Log để debug
     return response.data || null;
-    
   } catch (error) {
     console.error("Lỗi khi lấy thông tin người dùng:", error);
     return null;
@@ -172,6 +171,24 @@ export const getUserInfo = async (userId) => {
   }
 };
 
+export const getUserPublicProfile = async (userId) => {
+  const emptyData = {
+    fullName: "",
+    avatar: "",
+    background: "",
+  };
+
+  try {
+    const { data } = await axiosAPI.post(`/api/info-user`, { idUser: userId });
+
+    if (data.length === 0) return emptyData;
+    return data[0];
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin:", error);
+    return emptyData;
+  }
+};
+
 export const updateUserInfo = async (userId, info) => {
   try {
     const response = await axiosAPI.put(`/api/users/${userId}/info`, info);
@@ -197,7 +214,7 @@ export const updateUserAvatar = async (formData) => {
     );
 
     console.log("Server response:", response);
-    return response;  // Trả về toàn bộ response thay vì response.data
+    return response; // Trả về toàn bộ response thay vì response.data
   } catch (error) {
     console.error("API Error:", error.response || error);
     throw error;
@@ -220,7 +237,7 @@ export const updateUserCover = async (formData) => {
     );
 
     console.log("Server response:", response);
-    return response;  // Trả về toàn bộ response thay vì response.data
+    return response; // Trả về toàn bộ response thay vì response.data
   } catch (error) {
     console.error("API Error:", error.response || error);
     throw error;
