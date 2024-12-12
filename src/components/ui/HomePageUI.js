@@ -18,6 +18,7 @@ import {
   FaUserFriends,
   FaHome,
   FaPen,
+  FaBars,
 } from "react-icons/fa";
 import socket from "../../services/socket";
 import { useUserPublicProfile } from "../../hooks/useUserPublicProfile";
@@ -34,6 +35,7 @@ const HomePageUI = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [selectedChat, setSelectedChat] = useState(null);
   const [friendCount, setFriendCount] = useState(0);
+  const [showUserSearch, setShowUserSearch] = useState(false);
   const [idUser, setIdUser] = useState(
     JSON.parse(localStorage.getItem("user"))?.idUser || ""
   );
@@ -44,9 +46,17 @@ const HomePageUI = () => {
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const scrollRef = useRef(null);
   const lastScrollPositionRef = useRef(0); // New ref to store the scroll position
-
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { currentUser } = useUserPublicProfile();
-
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+  const menuItems = [
+    { id: 'home', icon: FaHome, label: 'Trang chủ' },
+    { id: 'notifications', icon: FaBell, label: 'Thông báo' },
+    { id: 'messages', icon: FaEnvelope, label: 'Tin nhắn' },
+    { id: 'friends', icon: FaUserFriends, label: 'Kết bạn' },
+  ];
   useEffect(() => {
     socket.on("notification", (notification) => {
       if (notification.originPostIdUser === idUser) {
@@ -56,7 +66,10 @@ const HomePageUI = () => {
         ]);
       }
     });
-
+    const handleMessageClick = () => {
+      setActiveTab("messages");
+      setShowUserSearch(true);
+    };
     socket.on("notifications", ({ notifications }) => {
       if (Array.isArray(notifications)) {
         setListNotification(notifications);
@@ -224,7 +237,7 @@ const HomePageUI = () => {
 
     return (
       <div>
-        <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
+         <div className="bg-white rounded-lg shadow-lg p-4 mb-4 hidden md:block">
           <div className="flex items-center space-x-4 mb-4">
             <img
               src={
@@ -259,61 +272,42 @@ const HomePageUI = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
-          <button
-            onClick={() => setFormCreatePostVisible(true)}
-            className="w-full flex items-center space-x-3 p-3 rounded-lg transition-colors hover:bg-gray-100"
-          >
-            <FaPen className="text-blue-500 text-xl" />
-            <span className="font-medium">Tạo bài viết mới</span>
-          </button>
-        </div>
+      <button
+        onClick={() => setFormCreatePostVisible(true)}
+        className="w-full flex items-center space-x-3 p-3 rounded-lg transition-colors hover:bg-gray-100 mb-4"
+      >
+        <FaPen className="text-blue-500 text-xl" />
+        <span className="font-medium">Tạo bài viết mới</span>
+      </button>
 
-        <div className="bg-white rounded-lg shadow-lg p-4">
-          <nav className="space-y-4">
-            <button
-              onClick={() => setActiveTab("home")}
-              className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                activeTab === "home"
-                  ? "bg-blue-50 text-blue-600"
-                  : "hover:bg-gray-100"
-              }`}
-            >
-              <FaHome className="text-blue-500 text-xl" />
-              <span className="font-medium">Trang chủ</span>
-            </button>
-            <button
-              onClick={() => setActiveTab("notifications")}
-              className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                activeTab === "notifications"
-                  ? "bg-blue-50 text-blue-600"
-                  : "hover:bg-gray-100"
-              }`}
-            >
-              <FaBell className="text-blue-500 text-xl" />
-              <span className="font-medium">Thông báo</span>
-            </button>
-            <button
-              onClick={() => setActiveTab("messages")}
-              className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                activeTab === "messages"
-                  ? "bg-blue-50 text-blue-600"
-                  : "hover:bg-gray-100"
-              }`}
-            >
-              <FaEnvelope className="text-blue-500 text-xl" />
-              <span className="font-medium">Tin nhắn</span>
-            </button>
-            <button
-              onClick={() => setActiveTab("friends")}
-              className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                activeTab === "friends"
-                  ? "bg-blue-50 text-blue-600"
-                  : "hover:bg-gray-100"
-              }`}
-            >
-              <FaUserFriends className="text-blue-500 text-xl" />
-              <span className="font-medium">Kết bạn</span>
-            </button>
+      <div className="md:hidden mb-4">
+        <button
+          onClick={toggleMobileMenu}
+          className="w-full flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-gray-100"
+        >
+          <span className="font-medium">Menu</span>
+          <FaBars className="text-blue-500 text-xl" />
+        </button>
+      </div>
+
+      <nav className={`space-y-4 ${isMobileMenuOpen ? 'block' : 'hidden md:block'}`}>
+        {menuItems.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => {
+              setActiveTab(item.id);
+              setIsMobileMenuOpen(false);
+            }}
+            className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
+              activeTab === item.id
+                ? 'bg-blue-50 text-blue-600'
+                : 'hover:bg-gray-100'
+            }`}
+          >
+            <item.icon className="text-blue-500 text-xl" />
+            <span className="font-medium">{item.label}</span>
+          </button>
+        ))}
           </nav>
         </div>
       </div>
