@@ -2,11 +2,9 @@ import React, { useState, useEffect, useCallback } from "react";
 import { ThumbsUp, MessageCircle, Share2 } from "lucide-react";
 import socket from "../../services/socket";
 import { useToast } from '../../context/ToastContext';
-import 'react-toastify/dist/ReactToastify.css';
 import EmojiPickerComponent from "./postComponents/EmojiPickerComponent";
 import PostContent from "./postComponents/PostContent";
 import SubPost from "./postComponents/SubPost";
-import { toast } from "react-toastify";
 
 function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
   const { showToast } = useToast();
@@ -33,46 +31,31 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
 
 
   useEffect(() => {
-    const handlePostShared = ({ postId: sharedPostId, shareCount, success, error,senderId }) => {
-     if(senderId === idUser){
-      if (sharedPostId === postId) {
-        console.log('[DEBUG] Received postShared event:', { sharedPostId, shareCount, success });
-        setShareCount(shareCount);
-        
-        if (success) {
-          toast.success('Đã chia sẻ bài viết thành công!', {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-          });
-          setShowConfirmDialog(false);
-          setIsSharing(false);
-        } else if (error) {
-          toast.error(`Lỗi khi chia sẻ bài viết: ${error}`, {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-          });
-          setIsSharing(false);
+    const handlePostShared = ({ postId: sharedPostId, shareCount, success, error, senderId }) => {
+      if(senderId === idUser){
+        if (sharedPostId === postId) {
+          console.log('[DEBUG] Received postShared event:', { sharedPostId, shareCount, success });
+          setShareCount(shareCount);
+          
+          if (success) {
+            showToast('Đã chia sẻ bài viết thành công!', 'success');
+            setShowConfirmDialog(false);
+            setIsSharing(false);
+          } else if (error) {
+            showToast(`Lỗi khi chia sẻ bài viết: ${error}`, 'error');
+            setIsSharing(false);
+          }
         }
       }
-     }
     };
 
-    // Clean up trước khi đăng ký event mới
     socket.off("postShared", handlePostShared);
     socket.on("postShared", handlePostShared);
 
     return () => {
       socket.off("postShared", handlePostShared);
     };
-  }, [postId, previousShareCount, showToast]);
+  }, [postId, previousShareCount, showToast, idUser]);
 
 
   const handleShare = () => {
@@ -130,7 +113,6 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
       }
     };
 
-    // Clean up trước khi đăng ký event mới
     socket.off("receiveReaction", handleReceiveReaction);
     socket.on("receiveReaction", handleReceiveReaction);
 
@@ -149,38 +131,20 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
     const dataReq = { postId, emoji, idUser };
     socket.emit("newReaction", dataReq);
 
-    // Gửi thông báo khi react post
-    if (post.idUser !== idUser) {
-      const user = JSON.parse(localStorage.getItem("user"));
-      socket.emit("newNotification", {
-        userId: post.idUser,
-        notification: {
-          type: "like",
-          data: {
-            userId: idUser,
-            userName: user.displayName || user.email,
-            postId,
-            emoji
-          }
-        }
-      });
-    }
-
     setShowReactionPicker(false);
   };
 
 
   const renderEmoji = () => {
-    // Đảm bảo emojiCounts là một object
     const counts = emojiCounts || {};
     let selectedEmoji = emojiChoose;
 
     const emojiElements = Object.entries(counts)
-      .filter(([emoji, users]) => users && users.length > 0)  // Thêm kiểm tra users
+      .filter(([emoji, users]) => users && users.length > 0)
       .map(([emoji, users]) => {
-        if (users) {  // Thêm kiểm tra users
+        if (users) {
           users.forEach(user => {
-            if ((user - '0') === parseInt(idUser)) {  // Sửa phép so sánh
+            if ((user - '0') === parseInt(idUser)) {
               selectedEmoji = emoji;
             }
           });
