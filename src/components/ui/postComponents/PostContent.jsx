@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import MediaPreview from "./MediaPreview";
 import { X, MoreHorizontal, Globe, Users, Lock } from "lucide-react";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { useToast } from "../../../context/ToastContext";
 import socket from "../../../services/socket.js";
 
 function PostContent({ post, user, isComment = false, onClose }) {
@@ -10,13 +9,14 @@ function PostContent({ post, user, isComment = false, onClose }) {
   const [contentReport, setContentReport] = useState("");
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [selectedReason, setSelectedReason] = useState("");
+  const { showToast } = useToast();
 
   useEffect(() => {
     const handleResponse = (data) => {
       if (data.success) {
-        alert("Báo cáo bài viết thành công!");
+        showToast("Báo cáo bài viết thành công!", "success");
       } else {
-        alert("Lỗi khi báo cáo bài viết!");
+        showToast("Lỗi khi báo cáo bài viết!", "error");
       }
     };
 
@@ -25,7 +25,7 @@ function PostContent({ post, user, isComment = false, onClose }) {
     return () => {
       socket.off("responseReportPost", handleResponse);
     };
-  }, []);
+  }, [showToast]);
 
   const predefinedReasons = [
     "Nội dung không phù hợp",
@@ -63,8 +63,8 @@ function PostContent({ post, user, isComment = false, onClose }) {
   const handleReport = (postId) => {
     const reason = contentReport || selectedReason;
 
-    if (!reason || reason === "") {
-      alert("Vui lòng chọn hoặc nhập lý do báo cáo!");
+    if (!reason) {
+      showToast("Vui lòng chọn hoặc nhập lý do báo cáo!", "error");
       return;
     }
 

@@ -9,9 +9,7 @@ import {
 import CommentInput from "./CommentInput";
 import Replies from "./Replies";
 import socket from "../../../services/socket";
-import { toast } from "react-toastify";
 import { formatTimestamp } from "../../../utils/timeFormat";
-import { alert } from "@material-tailwind/react";
 
 function CommentList({
   commentsList,
@@ -26,6 +24,9 @@ function CommentList({
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [selectedReason, setSelectedReason] = useState("");
   const [reportingCommentId, setReportingCommentId] = useState(null);
+  const [alertMessage, setAlertMessage] = useState(null);
+  const [alertType, setAlertType] = useState(""); // success hoặc error
+
   const predefinedReasons = [
     "Nội dung không phù hợp",
     "Spam hoặc lừa đảo",
@@ -37,7 +38,9 @@ function CommentList({
     const reason = contentReport || selectedReason;
 
     if (!reason) {
-      alert("Vui lòng chọn hoặc nhập lý do báo cáo!");
+      setAlertMessage("Vui lòng chọn hoặc nhập lý do báo cáo!");
+      setAlertType("error");
+      setTimeout(() => setAlertMessage(null), 3000); // Ẩn sau 3 giây
       return;
     }
 
@@ -139,10 +142,13 @@ function CommentList({
 
     const handleResponse = (data) => {
       if (data.success) {
-        alert("Báo cáo bình luận thành công!");
+        setAlertMessage("Báo cáo bình luận thành công!");
+        setAlertType("success");
       } else {
-        alert("Lỗi khi báo cáo bình luận!");
+        setAlertMessage("Lỗi khi báo cáo bình luận!");
+        setAlertType("error");
       }
+      setTimeout(() => setAlertMessage(null), 3000); // Ẩn sau 3 giây
     };
 
     socket.on("responseReportComment", handleResponse);
@@ -165,6 +171,15 @@ function CommentList({
 
   return (
     <div className="space-y-4">
+      {alertMessage && (
+        <div
+          className={`fixed top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-lg text-white ${
+            alertType === "success" ? "bg-green-500" : "bg-red-500"
+          }`}
+        >
+          {alertMessage}
+        </div>
+      )}
       {sortedComments.map(
         ({
           idUser,
@@ -220,14 +235,6 @@ function CommentList({
             </div>
 
             <div className="flex gap-4 ml-10">
-              <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900">
-                {emojiChoose || (
-                  <React.Fragment>
-                    <ThumbsUp className="h-4 w-4" />
-                    <span>Thích</span>
-                  </React.Fragment>
-                )}
-              </button>
               <button
                 className="flex items-center gap-1 text-gray-600 hover:text-gray-900"
                 onClick={() => handleToggleCommentInput(commentId)}

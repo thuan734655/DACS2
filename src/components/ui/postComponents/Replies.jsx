@@ -123,14 +123,6 @@ const Replies = ({
             )
           )}
           <div className="flex gap-4 ml-10">
-            <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900">
-              {emojiChoose || (
-                <>
-                  <ThumbsUp className="h-4 w-4" />
-                  <span>Thích</span>
-                </>
-              )}
-            </button>
             <button
               className="flex items-center gap-1 text-gray-600 hover:text-gray-900"
               onClick={() => handleToggleCommentInput(reply.replyId)}
