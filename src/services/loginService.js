@@ -3,23 +3,28 @@ import axios from "axios";
 const BASE_URL = "http://localhost:5000";
 
 export const requestOTP = async (email) => {
-  return await axios.post(`${BASE_URL}/requestOTP`, { email });
+  return await axios.post(`${BASE_URL}/forgotten`, { email });
 };
+
 export const getInfoUser = async (idUser) => {
   return await axios.post(`${BASE_URL}/info-user`, { idUser });
 };
 
 export const verifyOTP = async (email, otp, infoDevice) => {
   try {
-    console.log('Sending verify OTP request with:', { email, otp, infoDevice });
-    const response = await axios.post(`${BASE_URL}/verify-otp`, { email, otp, infoDevice });
-    console.log('Verify OTP response:', response);
+    console.log("Sending verify OTP request with:", { email, otp, infoDevice });
+    const response = await axios.post(`${BASE_URL}/verify-otp`, {
+      email,
+      otp,
+      infoDevice,
+    });
+    console.log("Verify OTP response:", response);
     return response;
   } catch (error) {
-    console.log('Verify OTP error:', error);
+    console.log("Verify OTP error:", error);
     if (error.response) {
-      console.log('Error response:', error.response.data);
-      console.log('Error status:', error.response.status);
+      console.log("Error response:", error.response.data);
+      console.log("Error status:", error.response.status);
     }
     throw error;
   }
@@ -55,7 +60,6 @@ export const checkMail = async (formData) => {
 export const login = async (email, password, visitorId) => {
   try {
     const responses = await axios.post(`${BASE_URL}/v1/auth/login`, {
-     
       email,
       password,
       ip: visitorId,
