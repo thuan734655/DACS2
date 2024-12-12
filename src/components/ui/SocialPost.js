@@ -3,7 +3,6 @@ import { ThumbsUp, MessageCircle, Share2 } from "lucide-react";
 import socket from "../../services/socket";
 import { useToast } from '../../context/ToastContext';
 import 'react-toastify/dist/ReactToastify.css';
-
 import EmojiPickerComponent from "./postComponents/EmojiPickerComponent";
 import PostContent from "./postComponents/PostContent";
 import SubPost from "./postComponents/SubPost";
@@ -34,9 +33,8 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
 
 
   useEffect(() => {
-    const handlePostShared = ({ postId: sharedPostId, shareCount, success, error,idUserShare }) => {
-      console.log(idUserShare,"idUserShare", idUser,"idUser")
-     if(idUserShare === idUser){
+    const handlePostShared = ({ postId: sharedPostId, shareCount, success, error,senderId }) => {
+     if(senderId === idUser){
       if (sharedPostId === postId) {
         console.log('[DEBUG] Received postShared event:', { sharedPostId, shareCount, success });
         setShareCount(shareCount);

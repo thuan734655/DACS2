@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import HeaderUI from "./HeaderUI";
 import FormCreatePost from "./FormCreatePostUI";
 import SocialPost from "./SocialPost";
@@ -7,57 +7,68 @@ import MessagesUI from "./MessagesUI";
 import ChatUI from "./ChatUI";
 import FriendsUI from "./FriendsUI";
 import UserSearchUI from "./UserSearchUI";
-import { getPosts } from "../../services/postService";
-import { getOnlineFriends, getFriendRequests,getFriendCount } from "../../services/userService";
-import { FaBell, FaEnvelope, FaUserFriends, FaHome, FaPen } from 'react-icons/fa';
+import {
+  getOnlineFriends,
+  getFriendRequests,
+  getFriendCount,
+} from "../../services/userService";
+import {
+  FaBell,
+  FaEnvelope,
+  FaUserFriends,
+  FaHome,
+  FaPen,
+} from "react-icons/fa";
 import socket from "../../services/socket";
 
 const HomePageUI = () => {
   const [formCreatePostVisible, setFormCreatePostVisible] = useState(false);
   const [listPosts, setListPosts] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
   const [onlineFriends, setOnlineFriends] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState("home");
   const [selectedChat, setSelectedChat] = useState(null);
   const [friendCount, setFriendCount] = useState(0);
   const [idUser, setIdUser] = useState(
     JSON.parse(localStorage.getItem("user"))?.idUser || ""
-  ); 
+  );
   const [listNotification, setListNotification] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [fetchedPostIds, setFetchedPostIds] = useState([]);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const scrollRef = useRef(null);
+  const lastScrollPositionRef = useRef(0); // New ref to store the scroll position
 
   useEffect(() => {
-    // Listen for new notifications
-    const handleNewNotification = (notification) => {
-      if(notification.originPostIdUser === idUser){ 
-        setListNotification((prevNotifications) => [notification, ...prevNotifications]); 
+    socket.on("notification", (notification) => {
+      if (notification.originPostIdUser === idUser) {
+        setListNotification((prevNotifications) => [
+          notification,
+          ...prevNotifications,
+        ]);
       }
-    };
+    });
 
-    // Listen for existing notifications
-    const handleExistingNotifications = ({ notifications }) => {
+    socket.on("notifications", ({ notifications }) => {
       if (Array.isArray(notifications)) {
         setListNotification(notifications);
       } else {
-        console.error('Dữ liệu không phải là mảng:', notifications);
+        console.error("Dữ liệu không phải là mảng:", notifications);
         setListNotification([]);
       }
-    };
+    });
 
-    socket.on('notification', handleNewNotification);
-    socket.on('notifications', handleExistingNotifications);
-
-    // Cleanup function
     return () => {
-      socket.off('notification', handleNewNotification);
-      socket.off('notifications', handleExistingNotifications);
+      socket.off("notification");
+      socket.off("notifications");
     };
   }, [idUser]);
 
   useEffect(() => {
-    // Lấy dữ liệu từ localStorage
     const userData = localStorage.getItem("user");
     if (userData) {
       setUser(JSON.parse(userData));
@@ -65,93 +76,142 @@ const HomePageUI = () => {
   }, []);
 
   useEffect(() => {
-    if (activeTab === 'notifications') {
-      socket.emit('getNotifications', { idUser });
+    if (activeTab === "notifications") {
+      socket.emit("getNotifications", { idUser });
     }
   }, [activeTab, idUser]);
 
-  const loadPosts = async () => {
-    try {
+  const loadPosts = useCallback(
+    (pageToLoad = 1) => {
+      if (isLoading || !hasMore) return;
       setIsLoading(true);
       setError(null);
-      const response = await getPosts();
-      if (response && response.data) {
-        setListPosts(response.data);
-        console.log(response.data);
-      } else {
-        setListPosts({});
-      }
-    } catch (error) {
-      console.error("Lỗi khi tải bài viết:", error);
-      setError("Không thể tải bài viết. Vui lòng thử lại sau.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
-  console.log(listPosts);
-const loadUserData = async () => {
+      // Always store the current scroll position before loading new posts
+      lastScrollPositionRef.current = scrollRef.current?.scrollTop || 0;
+
+      socket.emit("getPosts", idUser, fetchedPostIds, 10, pageToLoad);
+    },
+    [idUser, fetchedPostIds, isLoading, hasMore]
+  );
+
+  useEffect(() => {
+    const handleReceivePosts = ({ posts, page: receivedPage, hasMore }) => {
+      setListPosts((prevPosts) => ({
+        ...prevPosts,
+        ...posts,
+      }));
+      setPage(receivedPage);
+      setHasMore(hasMore);
+      setFetchedPostIds((prevIds) => [...prevIds, ...Object.keys(posts)]);
+      setIsLoading(false);
+      setInitialLoadComplete(true);
+
+      // Use requestAnimationFrame to ensure the DOM has updated before scrolling
+      requestAnimationFrame(() => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollTop = lastScrollPositionRef.current;
+        }
+      });
+    };
+
+    const handleError = ({ message }) => {
+      setError(message);
+      setIsLoading(false);
+    };
+
+    socket.on("receivePosts", handleReceivePosts);
+    socket.on("error", handleError);
+
+    return () => {
+      socket.off("receivePosts", handleReceivePosts);
+      socket.off("error", handleError);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (user && !initialLoadComplete) {
+      loadPosts();
+      loadUserData();
+    }
+  }, [user, initialLoadComplete, loadPosts]);
+
+  const handleScroll = useCallback(() => {
+    if (scrollRef.current && initialLoadComplete) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+      if (
+        scrollHeight - scrollTop - clientHeight < 200 &&
+        !isLoading &&
+        hasMore
+      ) {
+        loadPosts(page + 1);
+      }
+    }
+  }, [loadPosts, page, isLoading, hasMore, initialLoadComplete]);
+
+  useEffect(() => {
+    const scrollContainer = scrollRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener("scroll", handleScroll);
+      return () => scrollContainer.removeEventListener("scroll", handleScroll);
+    }
+  }, [handleScroll]);
+
+  const loadUserData = async () => {
     try {
-      const [onlineFriendsData, friendRequestsData, friendCountData] = await Promise.all([
-        getOnlineFriends(),
-        getFriendRequests(),
-        getFriendCount()
-      ]);
+      const [onlineFriendsData, friendRequestsData, friendCountData] =
+        await Promise.all([
+          getOnlineFriends(),
+          getFriendRequests(),
+          getFriendCount(),
+        ]);
 
       setOnlineFriends(onlineFriendsData);
       setFriendRequests(friendRequestsData);
       setFriendCount(friendCountData.count || 0);
-      
-      console.log('Số lượng bạn bè:', friendCountData);
     } catch (error) {
       console.error("Lỗi khi tải dữ liệu người dùng:", error);
     }
   };
+
   const handleChatSelect = (chat) => {
     setSelectedChat(chat);
   };
 
   useEffect(() => {
-    if (user) {
-      loadPosts();
-      loadUserData();
+    socket.on("receiveNewPost", ({ post }) => {
+      if (!post) return;
 
-      // Listen for new posts
-      socket.on("receiveNewPost", ({ post }) => {
-        if (!post) return;
-        
-        setListPosts(prevPosts => {
-          const newPosts = { ...prevPosts };
-          const postId = post.postId || Date.now().toString();
-          
-          // Structure the post data properly
-          newPosts[postId] = {
-            post: {
-              ...post,
-              toggle: false, // Initialize toggle state
-              text: post.text || "",
-              textColor: post.textColor || "#000000",
-              backgroundColor: post.backgroundColor || "#ffffff",
-              listFileUrl: post.listFileUrl || [],
-              comments: post.comments || [],
-              createdAt: post.createdAt || Date.now()
-            },
-            groupedLikes: post.groupedLikes || [],
-            commentCount: post.commentCount || 0,
-            infoUserList: {
-              [post.idUser]: user
-            }
-          };
-          
-          return newPosts;
-        });
+      setListPosts((prevPosts) => {
+        const newPosts = { ...prevPosts };
+        const postId = post.postId || Date.now().toString();
+
+        newPosts[postId] = {
+          post: {
+            ...post,
+            toggle: false,
+            text: post.text || "",
+            textColor: post.textColor || "#000000",
+            backgroundColor: post.backgroundColor || "#ffffff",
+            listFileUrl: post.listFileUrl || [],
+            comments: post.comments || [],
+            createdAt: post.createdAt || Date.now(),
+          },
+          groupedLikes: post.groupedLikes || [],
+          commentCount: post.commentCount || 0,
+          infoUserList: {
+            [post.idUser]: post.infoUserList[post.idUser],
+          },
+        };
+
+        return newPosts;
       });
+    });
 
-      return () => {
-        socket.off("receiveNewPost");
-      };
-    }
-  }, [user]);
+    return () => {
+      socket.off("receiveNewPost");
+    };
+  }, []);
 
   const renderLeftPanel = () => {
     if (!user) {
@@ -160,16 +220,20 @@ const loadUserData = async () => {
 
     return (
       <div>
-        {/* Profile Section */}
         <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
           <div className="flex items-center space-x-4 mb-4">
             <img
-              src={user?.avatar || `https://api.dicebear.com/6.x/avataaars/svg?seed=${user?.username}`}
+              src={
+                user?.avatar ||
+                `https://api.dicebear.com/6.x/avataaars/svg?seed=${user?.username}`
+              }
               alt={user?.fullName}
               className="w-16 h-16 rounded-full"
             />
             <div>
-              <h2 className="font-semibold text-lg">{user?.fullName || "Đang tải..."}</h2>
+              <h2 className="font-semibold text-lg">
+                {user?.fullName || "Đang tải..."}
+              </h2>
               <p className="text-gray-500">@{user?.username || "..."}</p>
             </div>
           </div>
@@ -189,7 +253,6 @@ const loadUserData = async () => {
           </div>
         </div>
 
-        {/* Create Post Button */}
         <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
           <button
             onClick={() => setFormCreatePostVisible(true)}
@@ -200,40 +263,47 @@ const loadUserData = async () => {
           </button>
         </div>
 
-        {/* Navigation Menu */}
         <div className="bg-white rounded-lg shadow-lg p-4">
           <nav className="space-y-4">
             <button
-              onClick={() => setActiveTab('home')}
+              onClick={() => setActiveTab("home")}
               className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                activeTab === 'home' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'
+                activeTab === "home"
+                  ? "bg-blue-50 text-blue-600"
+                  : "hover:bg-gray-100"
               }`}
             >
               <FaHome className="text-blue-500 text-xl" />
               <span className="font-medium">Trang chủ</span>
             </button>
             <button
-              onClick={() => setActiveTab('notifications')}
+              onClick={() => setActiveTab("notifications")}
               className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                activeTab === 'notifications' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'
+                activeTab === "notifications"
+                  ? "bg-blue-50 text-blue-600"
+                  : "hover:bg-gray-100"
               }`}
             >
               <FaBell className="text-blue-500 text-xl" />
               <span className="font-medium">Thông báo</span>
             </button>
             <button
-              onClick={() => setActiveTab('messages')}
+              onClick={() => setActiveTab("messages")}
               className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                activeTab === 'messages' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'
+                activeTab === "messages"
+                  ? "bg-blue-50 text-blue-600"
+                  : "hover:bg-gray-100"
               }`}
             >
               <FaEnvelope className="text-blue-500 text-xl" />
               <span className="font-medium">Tin nhắn</span>
             </button>
             <button
-              onClick={() => setActiveTab('friends')}
+              onClick={() => setActiveTab("friends")}
               className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                activeTab === 'friends' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'
+                activeTab === "friends"
+                  ? "bg-blue-50 text-blue-600"
+                  : "hover:bg-gray-100"
               }`}
             >
               <FaUserFriends className="text-blue-500 text-xl" />
@@ -251,7 +321,7 @@ const loadUserData = async () => {
     }
 
     switch (activeTab) {
-      case 'home':
+      case "home":
         return (
           <div>
             {formCreatePostVisible && (
@@ -261,7 +331,7 @@ const loadUserData = async () => {
                 user={user}
               />
             )}
-            {isLoading ? (
+            {isLoading && page === 1 ? (
               <div className="text-center py-4">Đang tải bài viết...</div>
             ) : error ? (
               <div className="text-center py-4 text-red-500">
@@ -285,15 +355,24 @@ const loadUserData = async () => {
                     />
                   );
                 })}
+                {isLoading && (
+                  <div className="text-center py-4">
+                    Đang tải thêm bài viết...
+                  </div>
+                )}
               </div>
             )}
           </div>
         );
-      case 'notifications':
+      case "notifications":
         return <NotificationsUI user={user} data={listNotification} />;
-      case 'messages':
+      case "messages":
         return selectedChat ? (
-          <ChatUI chat={selectedChat} onBack={() => setSelectedChat(null)} user={user} />
+          <ChatUI
+            chat={selectedChat}
+            onBack={() => setSelectedChat(null)}
+            user={user}
+          />
         ) : (
           <div className="h-full flex items-center justify-center text-gray-500">
             <div className="text-center">
@@ -302,7 +381,7 @@ const loadUserData = async () => {
             </div>
           </div>
         );
-      case 'friends':
+      case "friends":
         return <FriendsUI user={user} />;
       default:
         return null;
@@ -312,7 +391,9 @@ const loadUserData = async () => {
   if (!user) {
     return (
       <div className="h-screen flex items-center justify-center">
-        <p className="text-xl text-gray-600">Please log in to access the application.</p>
+        <p className="text-xl text-gray-600">
+          Please log in to access the application.
+        </p>
       </div>
     );
   }
@@ -321,41 +402,50 @@ const loadUserData = async () => {
     <div className="h-screen overflow-hidden">
       <HeaderUI user={user} />
       <div className="grid grid-cols-12 gap-4 px-2 py-6 h-full">
-        {/* Left Sidebar */}
         <div className="col-span-12 md:col-span-3 pt-10 overflow-y-auto">
           {renderLeftPanel()}
         </div>
 
-        {/* Main Content */}
-        <div className="col-span-12 md:col-span-6 pt-10 h-full overflow-y-auto">
+        <div
+          ref={scrollRef}
+          className="col-span-12 md:col-span-6 pt-10 h-full overflow-y-auto"
+        >
           {renderMainContent()}
         </div>
 
-        {/* Right Sidebar */}
         <div className="hidden md:block md:col-span-3 h-full overflow-y-auto pt-10 space-y-4">
-          {activeTab === 'messages' ? (
-            <MessagesUI 
-              showInRightPanel={true} 
+          {activeTab === "messages" ? (
+            <MessagesUI
+              showInRightPanel={true}
               onChatSelect={handleChatSelect}
               selectedChatId={selectedChat?.id}
               user={user}
             />
-          ) : activeTab === 'friends' ? (
+          ) : activeTab === "friends" ? (
             <UserSearchUI user={user} />
           ) : (
             <div>
-              {/* Online Friends */}
               <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="font-semibold text-lg mb-4">Bạn bè đang online</h3>
+                <h3 className="font-semibold text-lg mb-4">
+                  Bạn bè đang online
+                </h3>
                 <div className="space-y-4">
                   {onlineFriends.length === 0 ? (
-                    <div className="text-gray-500 text-center">Không có bạn bè nào đang online</div>
+                    <div className="text-gray-500 text-center">
+                      Không có bạn bè nào đang online
+                    </div>
                   ) : (
-                    onlineFriends.map(friend => (
-                      <div key={friend.id} className="flex items-center space-x-3">
+                    onlineFriends.map((friend) => (
+                      <div
+                        key={friend.id}
+                        className="flex items-center space-x-3"
+                      >
                         <div className="relative">
                           <img
-                            src={friend.avatar || `https://api.dicebear.com/6.x/avataaars/svg?seed=${friend.username}`}
+                            src={
+                              friend.avatar ||
+                              `https://api.dicebear.com/6.x/avataaars/svg?seed=${friend.username}`
+                            }
                             alt={friend.name}
                             className="w-10 h-10 rounded-full"
                           />

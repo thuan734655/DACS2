@@ -1,0 +1,148 @@
+{
+
+  "notifications": {
+    "-ODUG9hT2B1eIb69q--i": {
+      "createdAt": 1733543897556,
+      "postId": "-ODUArY4Cmy_oJV17Z8y",
+      "read": false,
+      "recipientId": 212,
+      "senderAvatar": "https://api.dicebear.com/6.x/avataaars/svg?seed=undefined",
+      "senderId": 221,
+      "senderName": "ho hehe",
+      "shareText": "",
+      "type": "POST_SHARE"
+    },
+    "-ODULAwfkeEarNgrbCJe": {
+      "content": "😂",
+      "createdAt": 1733545213338,
+      "postId": "-ODUArY4Cmy_oJV17Z8y",
+      "read": false,
+      "recipientId": 212,
+      "senderAvatar": "https://api.dicebear.com/6.x/avataaars/svg?seed=undefined",
+      "senderId": 221,
+      "senderName": "ho hehe",
+      "type": "POST_REACTION"
+    },
+    "-ODULC3qVBEvRpJIFc20": {
+      "content": "👍",
+      "createdAt": 1733545217958,
+      "postId": "-ODUArY4Cmy_oJV17Z8y",
+      "read": false,
+      "recipientId": 212,
+      "senderAvatar": "https://api.dicebear.com/6.x/avataaars/svg?seed=undefined",
+      "senderId": 221,
+      "senderName": "ho hehe",
+      "type": "POST_REACTION"
+    },
+    "-ODURuOUmTNYfuHFdD21": {
+      "commentId": "-ODURuJOQeiGSrUTaQdn",
+      "createdAt": 1733546976448,
+      "postId": "-ODUArY4Cmy_oJV17Z8y",
+      "read": false,
+      "recipientId": 212,
+      "senderAvatar": "https://api.dicebear.com/6.x/avataaars/svg?seed=undefined",
+      "senderId": 221,
+      "senderName": "ho hehe",
+      "type": "POST_COMMENT"
+    },
+    "-ODUa1VUMiEgmcYmKAuV": {
+      "commentId": "-ODUa197j-iLVyKrH7iF",
+      "createdAt": 1733549368943,
+      "postId": "-ODUArY4Cmy_oJV17Z8y",
+      "read": false,
+      "recipientId": 212,
+      "senderAvatar": "https://api.dicebear.com/6.x/avataaars/svg?seed=undefined",
+      "senderId": 221,
+      "senderName": "ho hehe",
+      "type": "POST_COMMENT"
+    },
+    "-ODUaNHWbEgCdEWAdnu8": {
+      "commentId": "-ODUaNCMeLzXSO5_Ky3w",
+      "createdAt": 1733549458161,
+      "postId": "-ODUArY4Cmy_oJV17Z8y",
+      "read": false,
+      "recipientId": 212,
+      "senderAvatar": "https://api.dicebear.com/6.x/avataaars/svg?seed=undefined",
+      "senderId": 221,
+      "senderName": "ho hehe",
+      "type": "POST_COMMENT"
+    },
+    "-ODUaSFUZoXy3_6zTWM7": {
+      "commentId": "-ODURZNDZ4IF9QpPg8Ik",
+      "createdAt": 1733549478511,
+      "postId": "-ODUArY4Cmy_oJV17Z8y",
+      "read": false,
+      "recipientId": 212,
+      "replyId": "-ODUaSBTsUqsz8d0ZDaI",
+      "senderAvatar": "https://api.dicebear.com/6.x/avataaars/svg?seed=undefined",
+      "senderId": 221,
+      "senderName": "ho hehe",
+      "type": "POST_REPLY_COMMENT"
+    },
+    "-ODUc1wvkzMZAvRqZ0hc": {
+      "createdAt": 1733549895049,
+      "parentReplyID": "-ODUaSBTsUqsz8d0ZDaI",
+      "postId": "-ODUArY4Cmy_oJV17Z8y",
+      "read": false,
+      "recipientId": 221,
+      "replyId": "-ODUc1cxETztLO1Guc2r",
+      "senderAvatar": "https://api.dicebear.com/6.x/avataaars/svg?seed=undefined",
+      "senderId": 212,
+      "senderName": "allalaa ha",
+      "type": "POST_REPLY_TO_REPLY"
+    },
+    "-ODUiFDG1NzdBFckIQL7": {
+      "commentId": "",
+      "content": "👍",
+      "createdAt": 1733551522258,
+      "parentReplyID": "",
+      "postId": "-ODUArY4Cmy_oJV17Z8y",
+      "read": false,
+      "recipientId": 212,
+      "senderAvatar": "https://api.dicebear.com/6.x/avataaars/svg?seed=undefined",
+      "senderId": 221,
+      "senderName": "ho hehe",
+      "type": "POST_REACTION"
+    },
+    "-ODUiLGK7wTnyuIszl9z": {
+      "commentId": "",
+      "content": "❤️",
+      "createdAt": 1733551547029,
+      "parentReplyID": "",
+      "postId": "-ODUArY4Cmy_oJV17Z8y",
+      "read": false,
+      "recipientId": 212,
+      "senderAvatar": "https://api.dicebear.com/6.x/avataaars/svg?seed=undefined",
+      "senderId": 221,
+      "senderName": "ho hehe",
+      "type": "POST_REACTION"
+    },
+    "-ODUiRFm7ZQQCrK-R4Wj": {
+      "commentId": "",
+      "content": "👍",
+      "createdAt": 1733551571569,
+      "parentReplyID": "",
+      "postId": "-ODUArY4Cmy_oJV17Z8y",
+      "read": false,
+      "recipientId": 212,
+      "senderAvatar": "https://api.dicebear.com/6.x/avataaars/svg?seed=undefined",
+      "senderId": 221,
+      "senderName": "ho hehe",
+      "type": "POST_REACTION"
+    },
+    "-ODUiY0YUhUZtLEH_gI-": {
+      "commentId": "",
+      "content": "",
+      "createdAt": 1733551599266,
+      "parentReplyID": "-ODUfAIBqDc9GQloTQP4",
+      "postId": "-ODUArY4Cmy_oJV17Z8y",
+      "read": false,
+      "recipientId": 212,
+      "senderAvatar": "https://api.dicebear.com/6.x/avataaars/svg?seed=undefined",
+      "senderId": 221,
+      "senderName": "ho hehe",
+      "type": "POST_REPLY_TO_REPLY"
+    }
+  }
+
+}

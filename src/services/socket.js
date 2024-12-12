@@ -6,6 +6,7 @@ class SocketService {
     this.isConnecting = false;
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
+    this.idUser =  JSON.parse(localStorage.getItem("user"))?.idUser;
   }
 
   connect() {
@@ -20,7 +21,8 @@ class SocketService {
       transports: ['websocket'],
       reconnection: true,
       reconnectionAttempts: this.maxReconnectAttempts,
-      reconnectionDelay: 1000
+      reconnectionDelay: 1000,
+      query: { idUser: this.idUser }  // Truyền idUser qua query
     });
 
     this.socket.on('connect', () => {
@@ -28,10 +30,9 @@ class SocketService {
       this.isConnecting = false;
       this.reconnectAttempts = 0;
       
-      // Authenticate after connection if user is logged in
       const user = JSON.parse(localStorage.getItem('user'));
       if (user?.idUser) {
-        this.socket.emit('authenticate', user.idUser);
+        this.socket.emit('authenticate', user.idUser); // Emit authenticate event
       }
     });
 
