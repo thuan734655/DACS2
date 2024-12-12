@@ -3,7 +3,7 @@ import MediaPreview from "./MediaPreview";
 import { X, MoreHorizontal, Globe, Users, Lock } from "lucide-react";
 import { useToast } from "../../../context/ToastContext";
 import socket from "../../../services/socket.js";
-
+const API_URL = "http://localhost:5000";
 function PostContent({ post, user, isComment = false, onClose }) {
   const [showMenu, setShowMenu] = useState(false);
   const [contentReport, setContentReport] = useState("");
@@ -88,10 +88,7 @@ function PostContent({ post, user, isComment = false, onClose }) {
       <div className="mt-4 border rounded-lg p-4 bg-gray-50">
         <div className="flex items-center mb-2">
           <img
-            src={
-              post.sharedPostContent.originalUser?.avatar ||
-              "/default-avatar.png"
-            }
+            src="https://api.dicebear.com/6.x/avataaars/svg?seed=undefined"
             alt={post.sharedPostContent.originalUser?.fullName || "User"}
             className="w-8 h-8 rounded-full mr-2"
           />
