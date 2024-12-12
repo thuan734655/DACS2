@@ -11,6 +11,7 @@ import Replies from "./Replies";
 import socket from "../../../services/socket";
 import { toast } from "react-toastify";
 import { formatTimestamp } from "../../../utils/timeFormat";
+import { alert } from "@material-tailwind/react";
 
 function CommentList({
   commentsList,
@@ -36,10 +37,7 @@ function CommentList({
     const reason = contentReport || selectedReason;
 
     if (!reason) {
-      toast.error("Vui lòng chọn hoặc nhập lý do báo cáo!", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      alert("Vui lòng chọn hoặc nhập lý do báo cáo!");
       return;
     }
 
@@ -141,23 +139,9 @@ function CommentList({
 
     const handleResponse = (data) => {
       if (data.success) {
-        toast.success("Báo cáo bình luận thành công!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
+        alert("Báo cáo bình luận thành công!");
       } else {
-        toast.error("Lỗi khi báo cáo bình luận!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
+        alert("Lỗi khi báo cáo bình luận!");
       }
     };
 
@@ -312,8 +296,7 @@ function CommentList({
       )}
       {showReportDialog && (
         <div className="fixed inset-0 flex items-center justify-center z-500">
-          <div className="absolute inset-0 bg-black opacity-50"></div>
-          <div className="bg-white p-4 rounded-lg w-96 max-w-full mx-4 z-10">
+          <div className="bg-zinc-700 p-4 rounded-lg w-96 max-w-full mx-4 z-10">
             <h2 className="text-lg font-bold mb-4">Báo cáo bình luận</h2>
             <select
               className="w-full p-2 mb-4 border rounded"

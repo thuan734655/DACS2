@@ -14,23 +14,9 @@ function PostContent({ post, user, isComment = false, onClose }) {
   useEffect(() => {
     const handleResponse = (data) => {
       if (data.success) {
-        toast.success("Báo cáo bài viết thành công!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
+        alert("Báo cáo bài viết thành công!");
       } else {
-        toast.error("Lỗi khi báo cáo bài viết!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
+        alert("Lỗi khi báo cáo bài viết!");
       }
     };
 
@@ -77,11 +63,8 @@ function PostContent({ post, user, isComment = false, onClose }) {
   const handleReport = (postId) => {
     const reason = contentReport || selectedReason;
 
-    if (!reason) {
-      toast.error("Vui lòng chọn hoặc nhập lý do báo cáo!", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+    if (!reason || reason === "") {
+      alert("Vui lòng chọn hoặc nhập lý do báo cáo!");
       return;
     }
 
@@ -91,7 +74,7 @@ function PostContent({ post, user, isComment = false, onClose }) {
       postId: postId,
     };
 
-    socket.emit("reportPost", content);
+    socket.emit("report", content);
 
     setShowReportDialog(false);
     setContentReport("");
