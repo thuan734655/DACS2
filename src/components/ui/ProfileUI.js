@@ -78,22 +78,14 @@ const ProfileUI = () => {
           const info = await getUserInfo(id);
           setUserInfo(info);
           setEditedInfo(info);
-          const response = await getUserInfo(id);
-          if (response && response.data) {
-            setUserInfo({
-              ...response.data,
-              background: response.data.background,
-              avatar: response.data.avatar
-            });
-          }
+          
           // Lấy danh sách bạn bè của người đó
           const friendsList = await getFriendsList(id);
           setFriends(
             friendsList.map((friend) => ({
               id: friend.idUser,
               fullName: friend.fullName || "Người dùng",
-              avatar:
-                friend.avatar ||
+              avatar: friend.avatar ||
                 `https://api.dicebear.com/6.x/avataaars/svg?seed=${friend.idUser}`,
             }))
           );
@@ -103,18 +95,26 @@ const ProfileUI = () => {
           if (userData) {
             const parsedUser = JSON.parse(userData);
             setUser(parsedUser);
+            
+            // Lấy thông tin chi tiết user
             const info = await getUserInfo(parsedUser.idUser);
-            setUserInfo(info);
+            setUserInfo({
+              ...info,
+              fullName: info.fullName,
+              background: info.background,
+              avatar: info.avatar
+            });
+            console.log("UserInfo:", info);
+            
             setEditedInfo(info);
-
-            // Lấy danh sách bạn bè của bản thân
+  
+            // Lấy danh sách bạn bè
             const friendsList = await getFriendsList(parsedUser.idUser);
             setFriends(
               friendsList.map((friend) => ({
                 id: friend.idUser,
-                fullName: friend.fullName || "Người dùng",
-                avatar:
-                  friend.avatar ||
+                fullName: friend.fullName || "Người dùng", 
+                avatar: friend.avatar ||
                   `https://api.dicebear.com/6.x/avataaars/svg?seed=${friend.idUser}`,
               }))
             );
@@ -126,10 +126,9 @@ const ProfileUI = () => {
         setLoading(false);
       }
     };
-
+  
     fetchData();
   }, [id]);
-
   const handleEdit = () => {
     setIsEditing(true);
   };
