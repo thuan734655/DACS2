@@ -7,7 +7,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import CommentInput from "./CommentInput";
-import { useToast } from "../../../context/ToastContext";
+import { toast } from "react-toastify";
 import socket from "../../../services/socket";
 
 const Replies = ({
@@ -20,7 +20,6 @@ const Replies = ({
   activeId,
   depth = 0,
 }) => {
-  const { showToast } = useToast();
   const [openReplies, setOpenReplies] = useState({});
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [contentReport, setContentReport] = useState("");
@@ -45,7 +44,7 @@ const Replies = ({
     const reason = contentReport || selectedReason;
 
     if (!reason) {
-      showToast("Vui lòng chọn hoặc nhập lý do báo cáo!", "error");
+      alert("Vui lòng chọn hoặc nhập lý do báo cáo!");
       return;
     }
 
@@ -71,9 +70,9 @@ const Replies = ({
   useEffect(() => {
     const handleResponse = (data) => {
       if (data.success) {
-        showToast("Báo cáo phản hồi thành công!", "success");
+        alert("Báo cáo phản hồi thành công!");
       } else {
-        showToast("Lỗi khi báo cáo phản hồi!", "error");
+        alert("Lỗi khi báo cáo phản hồi!");
       }
     };
 
@@ -82,7 +81,7 @@ const Replies = ({
     return () => {
       socket.off("responseReportReply", handleResponse);
     };
-  }, [showToast]);
+  }, []);
 
   return (
     <div className={`${depth < 5 ? "ml-4" : "reset-ml"} mt-2`}>
@@ -124,14 +123,6 @@ const Replies = ({
             )
           )}
           <div className="flex gap-4 ml-10">
-            <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900">
-              {emojiChoose || (
-                <>
-                  <ThumbsUp className="h-4 w-4" />
-                  <span>Thích</span>
-                </>
-              )}
-            </button>
             <button
               className="flex items-center gap-1 text-gray-600 hover:text-gray-900"
               onClick={() => handleToggleCommentInput(reply.replyId)}

@@ -10,7 +10,6 @@ import CommentInput from "./CommentInput";
 import Replies from "./Replies";
 import socket from "../../../services/socket";
 import { formatTimestamp } from "../../../utils/timeFormat";
-import { useToast } from "../../../context/ToastContext";
 
 function CommentList({
   commentsList,
@@ -19,7 +18,6 @@ function CommentList({
   setCommentsList,
   setCommentCount,
 }) {
-  const { showToast } = useToast();
   const [activeId, setActiveId] = useState(null);
   const [openReplies, setOpenReplies] = useState({});
   const [contentReport, setContentReport] = useState("");
@@ -40,7 +38,9 @@ function CommentList({
     const reason = contentReport || selectedReason;
 
     if (!reason) {
-      showToast("Vui lòng chọn hoặc nhập lý do báo cáo!", "error");
+      setAlertMessage("Vui lòng chọn hoặc nhập lý do báo cáo!");
+      setAlertType("error");
+      setTimeout(() => setAlertMessage(null), 3000); // Ẩn sau 3 giây
       return;
     }
 
@@ -142,10 +142,13 @@ function CommentList({
 
     const handleResponse = (data) => {
       if (data.success) {
-        showToast("Báo cáo bình luận thành công!", "success");
+        setAlertMessage("Báo cáo bình luận thành công!");
+        setAlertType("success");
       } else {
-        showToast("Lỗi khi báo cáo bình luận!", "error");
+        setAlertMessage("Lỗi khi báo cáo bình luận!");
+        setAlertType("error");
       }
+      setTimeout(() => setAlertMessage(null), 3000); // Ẩn sau 3 giây
     };
 
     socket.on("responseReportComment", handleResponse);
@@ -232,14 +235,6 @@ function CommentList({
             </div>
 
             <div className="flex gap-4 ml-10">
-              <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900">
-                {emojiChoose || (
-                  <React.Fragment>
-                    <ThumbsUp className="h-4 w-4" />
-                    <span>Thích</span>
-                  </React.Fragment>
-                )}
-              </button>
               <button
                 className="flex items-center gap-1 text-gray-600 hover:text-gray-900"
                 onClick={() => handleToggleCommentInput(commentId)}
