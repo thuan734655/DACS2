@@ -13,7 +13,12 @@ const isValidPassword = (password) => {
   return passwordRegex.test(password);
 };
 
-const HandleLoginController = async (formData, navigate, setStep, setLoading) => {
+const HandleLoginController = async (
+  formData,
+  navigate,
+  setStep,
+  setLoading
+) => {
   const { email, password } = formData;
 
   // Validate email
@@ -55,13 +60,23 @@ const HandleLoginController = async (formData, navigate, setStep, setLoading) =>
       alert("Unable to generate device fingerprint. Please try again later.");
       return;
     }
-    
+
     // API login
     let response;
     try {
-      response = await login(email, password,visitorId);
-      console.log("full data",response.data.user);
-      localStorage.setItem("user", JSON.stringify(response.data.user));     // Assuming `login` is an Axios call
+      response = await login(email, password, visitorId);
+      console.log("full data", response.data.user);
+      localStorage.setItem(
+        "user",
+        JSON.stringify(
+          response.data.user || {
+            fullName: "user",
+            avatar: "",
+            background: "",
+            idUser: "",
+          }
+        )
+      ); // Assuming `login` is an Axios call
     } catch (apiError) {
       console.error("API login error:", apiError);
       alert("Login failed. Please try again later.");
@@ -72,16 +87,11 @@ const HandleLoginController = async (formData, navigate, setStep, setLoading) =>
     const { requires2FA, active } = response.data;
 
     if (requires2FA) {
+      alert("Vui lòng xác thực 2FA!!");
       setStep(2); // Step 2 for 2FA
     } else if (active) {
       setStep(4); // Step 4 for active account
     } else {
-      // // Save user data to localStorage
-      // localStorage.setItem("user", JSON.stringify(userData));
-      // alert("Login successful!");
-      // console.log("User data:", userData);
-
-      // Navigate to homepage
       navigate("/homepage");
     }
   } catch (error) {

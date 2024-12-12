@@ -1,9 +1,16 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { ThumbsUp, MessageCircle, Flag, ChevronDown, ChevronRight } from "lucide-react";
+import {
+  ThumbsUp,
+  MessageCircle,
+  Flag,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react";
 import CommentInput from "./CommentInput";
 import Replies from "./Replies";
 import socket from "../../../services/socket";
 import { formatTimestamp } from "../../../utils/timeFormat";
+import { useToast } from "../../../context/ToastContext";
 
 function CommentList({
   commentsList,
@@ -12,33 +19,67 @@ function CommentList({
   setCommentsList,
   setCommentCount,
 }) {
-  const [activeId, setActiveId] = useState(null); // ID của comment đang mở khung nhập
-  const [openReplies, setOpenReplies] = useState({}); // Trạng thái của replies con
+  const { showToast } = useToast();
+  const [activeId, setActiveId] = useState(null);
+  const [openReplies, setOpenReplies] = useState({});
+  const [contentReport, setContentReport] = useState("");
+  const [showReportDialog, setShowReportDialog] = useState(false);
+  const [selectedReason, setSelectedReason] = useState("");
+  const [reportingCommentId, setReportingCommentId] = useState(null);
 
-  // Toggle input field for comment reply
-  const handleToggleCommentInput = (id) => {
-    setActiveId((current) => (current === id ? null : id)); // Toggle active ID
+  const predefinedReasons = [
+    "Nội dung không phù hợp",
+    "Spam hoặc lừa đảo",
+    "Bài viết chứa thông tin sai lệch",
+    "Nội dung bạo lực hoặc xúc phạm",
+  ];
+
+  const handleReport = (commentId) => {
+    const reason = contentReport || selectedReason;
+
+    if (!reason) {
+      showToast("Vui lòng chọn hoặc nhập lý do báo cáo!", "error");
+      return;
+    }
+
+    const content = {
+      reason: reason,
+      type: "COMMENT",
+      commentId: commentId,
+    };
+
+    socket.emit("report", content);
+    showToast("Báo cáo bình luận thành công!", "success");
+    setShowReportDialog(false);
+    setContentReport("");
+    setSelectedReason("");
+    setReportingCommentId(null);
   };
 
-  // Toggle replies visibility
+  const openReportDialog = (commentId) => {
+    setReportingCommentId(commentId);
+    setShowReportDialog(true);
+  };
+
+  const handleToggleCommentInput = (id) => {
+    setActiveId((current) => (current === id ? null : id));
+  };
+
   const toggleReplies = (replyId) => {
     setOpenReplies((prev) => ({
       ...prev,
-      [replyId]: !prev[replyId], // Đảo trạng thái hiện tại của replyId
+      [replyId]: !prev[replyId],
     }));
   };
 
-  // Helper function to find and update nested replies
   const updateNestedReplies = (comments, replyId, newReply) => {
     return comments.map((comment) => {
       if (comment.replyId === replyId) {
-        // If this is the target reply, add the new reply to its replies array
         return {
           ...comment,
           replies: [...(comment.replies || []), newReply],
         };
       } else if (comment.replies && comment.replies.length > 0) {
-        // If this comment has replies, recursively search them
         return {
           ...comment,
           replies: updateNestedReplies(comment.replies, replyId, newReply),
@@ -48,9 +89,7 @@ function CommentList({
     });
   };
 
-  // Update the comment list when new comment or reply is received
   useEffect(() => {
-    // Listen for new comments
     socket.on("receiveComment", ({ newComment }) => {
       if (newComment && newComment.postId === postId) {
         setCommentsList((prevComments) => [
@@ -61,7 +100,6 @@ function CommentList({
       }
     });
 
-    // Listen for new replies to comments
     socket.on("receiveReplyToComment", ({ commentId, newReply }) => {
       if (newReply) {
         setCommentsList((prevComments) => {
@@ -79,7 +117,6 @@ function CommentList({
       }
     });
 
-    // Listen for replies to replies
     socket.on("receiveReplyToReply", ({ replyId, newReply }) => {
       if (newReply) {
         setCommentsList((prevComments) => {
@@ -87,7 +124,11 @@ function CommentList({
             if (comment.replies && comment.replies.length > 0) {
               return {
                 ...comment,
-                replies: updateNestedReplies(comment.replies, replyId, newReply),
+                replies: updateNestedReplies(
+                  comment.replies,
+                  replyId,
+                  newReply
+                ),
               };
             }
             return comment;
@@ -97,14 +138,24 @@ function CommentList({
       }
     });
 
+    const handleResponse = (data) => {
+      if (data.success) {
+        showToast("Báo cáo bình luận thành công!", "success");
+      } else {
+        showToast("Lỗi khi báo cáo bình luận!", "error");
+      }
+    };
+
+    socket.on("responseReportComment", handleResponse);
+
     return () => {
+      socket.off("responseReportComment", handleResponse);
       socket.off("receiveComment");
       socket.off("receiveReplyToComment");
       socket.off("receiveReplyToReply");
     };
   }, [postId, setCommentsList, setCommentCount]);
 
-  // Sort comments by timestamp in descending order (newest first)
   const sortedComments = useMemo(() => {
     return [...commentsList].sort((a, b) => {
       const timestampA = new Date(a.timestamp || 0).getTime();
@@ -116,9 +167,21 @@ function CommentList({
   return (
     <div className="space-y-4">
       {sortedComments.map(
-        ({ idUser, replyId, commentId, user = [], text, fileUrls, replies, timestamp }) => (
-          <div key={replyId || commentId} className="comment-thread" id={commentId}>
-            {/* Hiển thị comment chính */}
+        ({
+          idUser,
+          replyId,
+          commentId,
+          user = [],
+          text,
+          fileUrls,
+          replies,
+          timestamp,
+        }) => (
+          <div
+            key={replyId || commentId}
+            className="comment-thread"
+            id={commentId}
+          >
             <div className="flex items-start gap-2 mb-2">
               <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
                 <img
@@ -139,13 +202,13 @@ function CommentList({
                         key={index}
                         controls
                         className="w-full rounded-lg mt-2"
-                        src={"http://localhost:5000" + fileUrl}
+                        src={"https://dacs2-server-4.onrender.com" + fileUrl}
                       />
                     ) : (
                       <img
                         key={index}
                         className="w-full rounded-lg mt-2"
-                        src={"http://localhost:5000" + fileUrl}
+                        src={"https://dacs2-server-4.onrender.com" + fileUrl}
                         alt="Comment media"
                       />
                     )
@@ -157,16 +220,7 @@ function CommentList({
               </div>
             </div>
 
-            {/* Nút hành động */}
             <div className="flex gap-4 ml-10">
-              <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900">
-                {emojiChoose || (
-                  <React.Fragment>
-                    <ThumbsUp className="h-4 w-4" />
-                    <span>Thích</span>
-                  </React.Fragment>
-                )}
-              </button>
               <button
                 className="flex items-center gap-1 text-gray-600 hover:text-gray-900"
                 onClick={() => handleToggleCommentInput(commentId)}
@@ -174,7 +228,10 @@ function CommentList({
                 <MessageCircle className="h-4 w-4" />
                 <span>Trả lời</span>
               </button>
-              <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900">
+              <button
+                className="flex items-center gap-1 text-gray-600 hover:text-gray-900"
+                onClick={() => openReportDialog(commentId)}
+              >
                 <Flag className="h-4 w-4" />
                 <span>Báo cáo</span>
               </button>
@@ -198,7 +255,6 @@ function CommentList({
               )}
             </div>
 
-            {/* Hiển thị khung nhập nếu comment đang được active */}
             {activeId === commentId && (
               <div className="ml-10 mt-2">
                 <CommentInput
@@ -214,7 +270,6 @@ function CommentList({
               </div>
             )}
 
-            {/* Hiển thị replies khi được mở */}
             {openReplies[commentId] && replies?.length > 0 && (
               <div className="ml-10">
                 <Replies
@@ -231,6 +286,45 @@ function CommentList({
             )}
           </div>
         )
+      )}
+      {showReportDialog && (
+        <div className="fixed inset-0 flex items-center justify-center z-500">
+          <div className="bg-zinc-700 p-4 rounded-lg w-96 max-w-full mx-4 z-10">
+            <h2 className="text-lg font-bold mb-4">Báo cáo bình luận</h2>
+            <select
+              className="w-full p-2 mb-4 border rounded"
+              value={selectedReason}
+              onChange={(e) => setSelectedReason(e.target.value)}
+            >
+              <option value="">Chọn lý do</option>
+              {predefinedReasons.map((reason, index) => (
+                <option key={index} value={reason}>
+                  {reason}
+                </option>
+              ))}
+            </select>
+            <textarea
+              className="w-full p-2 mb-4 border rounded"
+              placeholder="Hoặc nhập lý do khác..."
+              value={contentReport}
+              onChange={(e) => setContentReport(e.target.value)}
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                className="px-4 py-2 bg-gray-200 rounded"
+                onClick={() => setShowReportDialog(false)}
+              >
+                Hủy
+              </button>
+              <button
+                className="px-4 py-2 bg-red-500 text-white rounded"
+                onClick={() => handleReport(reportingCommentId)}
+              >
+                Báo cáo
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
