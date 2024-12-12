@@ -5,7 +5,7 @@ let socket = null;
 export const initializeSocket = () => {
   if (!socket) {
     // Replace with your server URL
-    socket = io('http://localhost:5000', {
+    socket = io('https://dacs2-server-4.onrender.com', {
       transports: ['websocket'],
       autoConnect: true,
       reconnection: true,

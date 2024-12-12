@@ -35,7 +35,7 @@ const ProfileUI = () => {
   const [user, setUser] = useState(null);
   const [friends, setFriends] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
-  const API_URL = "http://localhost:5000";
+  const API_URL = "https://dacs2-server-4.onrender.com";
   const { id } = useParams();
   const [userInfo, setUserInfo] = useState({
     introduction: "",
