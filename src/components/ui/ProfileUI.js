@@ -1,11 +1,4 @@
-import { useEffect, useState } from "react";
-import {
-  getUserInfo,
-  updateUserInfo,
-  getFriendsList,
-  updateUserCover,
-  updateUserAvatar,
-} from "../../services/userService";
+import { CameraAlt, Edit } from "@mui/icons-material";
 import {
   Autocomplete,
   Avatar,
@@ -24,18 +17,24 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { CameraAlt, Edit } from "@mui/icons-material";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useUserPublicProfile } from "../../hooks/useUserPublicProfile";
 import socket from "../../services/socket";
+import {
+  getFriendsList,
+  getUserInfo,
+  updateUserAvatar,
+  updateUserCover,
+  updateUserInfo,
+} from "../../services/userService";
 
+const API_URL = "http://localhost:5000";
 const ProfileUI = () => {
   const navigate = useNavigate();
-  const [currentUserId, setCurrentUserId] = useState(null);
   const [tabValue, setTabValue] = useState(0);
-  const [user, setUser] = useState(null);
   const [friends, setFriends] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
-  const API_URL = "http://localhost:5000";
   const { id } = useParams();
   const [userInfo, setUserInfo] = useState({
     introduction: "",
@@ -49,86 +48,35 @@ const ProfileUI = () => {
     education: "",
     location: "",
   });
+
+  const { currentUser, reload, currentUserId, isOwner } =
+    useUserPublicProfile(id);
+
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
+
   useEffect(() => {
-    // Lấy dữ liệu từ localStorage
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      const parsedUser = JSON.parse(userData);
-      setUser(parsedUser);
-      setUser(JSON.parse(userData));
-      setCurrentUserId(parsedUser.idUser);
-      const fetchUserInfo = async () => {
-        const info = await getUserInfo(parsedUser.idUser);
-        setUserInfo(info);
-        setEditedInfo(info);
-        setLoading(false);
-      };
-      fetchUserInfo();
-    }
-  }, []);
-  // Add useEffect for fetching friends
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if (id) {
-          // Xem profile người khác
-          const info = await getUserInfo(id);
-          setUserInfo(info);
-          setEditedInfo(info);
-          
-          // Lấy danh sách bạn bè của người đó
-          const friendsList = await getFriendsList(id);
-          setFriends(
-            friendsList.map((friend) => ({
-              id: friend.idUser,
-              fullName: friend.fullName || "Người dùng",
-              avatar: friend.avatar ||
-                `https://api.dicebear.com/6.x/avataaars/svg?seed=${friend.idUser}`,
-            }))
-          );
-        } else {
-          // Xem profile bản thân
-          const userData = localStorage.getItem("user");
-          if (userData) {
-            const parsedUser = JSON.parse(userData);
-            setUser(parsedUser);
-            
-            // Lấy thông tin chi tiết user
-            const info = await getUserInfo(parsedUser.idUser);
-            setUserInfo({
-              ...info,
-              fullName: info.fullName,
-              background: info.background,
-              avatar: info.avatar
-            });
-            console.log("UserInfo:", info);
-            
-            setEditedInfo(info);
-  
-            // Lấy danh sách bạn bè
-            const friendsList = await getFriendsList(parsedUser.idUser);
-            setFriends(
-              friendsList.map((friend) => ({
-                id: friend.idUser,
-                fullName: friend.fullName || "Người dùng", 
-                avatar: friend.avatar ||
-                  `https://api.dicebear.com/6.x/avataaars/svg?seed=${friend.idUser}`,
-              }))
-            );
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    fetchData();
-  }, [id]);
+    getUserInfo(currentUserId).then((info) => {
+      setUserInfo(info);
+      setEditedInfo(info);
+      setLoading(false);
+    });
+
+    // Lấy danh sách bạn bè của người đó
+    getFriendsList(currentUserId).then((friendsList) => {
+      setFriends(
+        friendsList.map((friend) => ({
+          id: friend.idUser,
+          fullName: friend.fullName || "Người dùng",
+          avatar:
+            friend.avatar ||
+            `https://api.dicebear.com/6.x/avataaars/svg?seed=${friend.idUser}`,
+        }))
+      );
+    });
+  }, [currentUserId]);
+
   const handleEdit = () => {
     setIsEditing(true);
   };
@@ -141,7 +89,7 @@ const ProfileUI = () => {
   const handleSave = async () => {
     try {
       setLoading(true);
-      await updateUserInfo(user.idUser, editedInfo);
+      await updateUserInfo(currentUser.idUser, editedInfo);
       setUserInfo(editedInfo);
       setIsEditing(false);
     } catch (error) {
@@ -244,10 +192,7 @@ const ProfileUI = () => {
 
         await updateUserAvatar(formData);
         socket.on("updateAvatar", ({ userId, avatarPath }) => {
-          setUser((prev) => ({
-            ...prev,
-            avatar: avatarPath,
-          }));
+          reload();
 
           const userData = JSON.parse(localStorage.getItem("user"));
           userData.avatar = avatarPath;
@@ -270,18 +215,14 @@ const ProfileUI = () => {
         formData.append("userId", currentUserId);
 
         await updateUserCover(formData);
-        
+
         socket.on("updateCover", ({ userId, coverPath }) => {
-          setUser((prev) => ({
-            ...prev,
-            background: coverPath,
-          }));
+          reload();
 
           const userData = JSON.parse(localStorage.getItem("user"));
           userData.background = coverPath;
           localStorage.setItem("user", JSON.stringify(userData));
         });
-
       } catch (error) {
         console.error("Error updating cover photo:", error);
       }
@@ -303,8 +244,8 @@ const ProfileUI = () => {
       >
         <img
           src={
-            user?.background
-              ? `${API_URL}${user.background}`
+            currentUser?.background
+              ? `${API_URL}${currentUser.background}`
               : "/default-background.png"
           }
           alt="Cover"
@@ -314,7 +255,7 @@ const ProfileUI = () => {
             objectFit: "cover",
           }}
         />
-        {(!id || id === currentUserId?.toString()) && (
+        {isOwner && (
           <>
             <input
               type="file"
@@ -360,9 +301,11 @@ const ProfileUI = () => {
         <Box sx={{ position: "relative", mt: -8 }}>
           <Avatar
             src={
-              user?.avatar ? `${API_URL}${user.avatar}` : "/default-avatar.png"
+              currentUser?.avatar
+                ? `${API_URL}${currentUser.avatar}`
+                : "/default-avatar.png"
             }
-            alt={user?.fullName || "User Avatar"}
+            alt={currentUser?.fullName || "User Avatar"}
             sx={{
               width: 168,
               height: 168,
@@ -370,7 +313,7 @@ const ProfileUI = () => {
               boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
             }}
           />
-          {(!id || id === currentUserId?.toString()) && (
+          {isOwner && (
             <>
               <input
                 type="file"
@@ -406,7 +349,7 @@ const ProfileUI = () => {
 
         <Box sx={{ flex: 1 }}>
           <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
-            {user ? user.fullName : "Người dùng"}
+            {currentUser ? currentUser.fullName : "Người dùng"}
           </Typography>
           <Typography
             variant="subtitle1"
@@ -414,7 +357,7 @@ const ProfileUI = () => {
             sx={{ mb: 2 }}
           ></Typography>
           <Box sx={{ display: "flex", gap: 2 }}>
-            {(!id || id === currentUserId?.toString()) && (
+            {isOwner && (
               <Button
                 variant="contained"
                 color="primary"
@@ -495,7 +438,7 @@ const ProfileUI = () => {
                   >
                     Giới thiệu
                   </Typography>
-                  {(!id || id === currentUserId?.toString()) &&
+                  {isOwner &&
                     (!isEditing ? (
                       <IconButton
                         onClick={handleEdit}
@@ -753,7 +696,7 @@ const ProfileUI = () => {
                 >
                   Giới thiệu
                 </Typography>
-                {(!id || id === currentUserId?.toString()) &&
+                {isOwner &&
                   (!isEditing ? (
                     <IconButton
                       onClick={handleEdit}
