@@ -239,7 +239,7 @@ const HomePageUI = () => {
               <h2 className="font-semibold text-lg">
                 {user?.fullName || "Đang tải..."}
               </h2>
-              <p className="text-gray-500">@{user?.username || "..."}</p>
+              
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4 text-center">
