@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import MediaPreview from "./MediaPreview";
-import { X, MoreHorizontal } from "lucide-react";
+import { X, MoreHorizontal, Globe, Users, Lock } from "lucide-react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import socket from "../../../services/socket.js";
@@ -57,6 +57,20 @@ function PostContent({ post, user, isComment = false, onClose }) {
     } catch (error) {
       console.error("Error formatting date:", error);
       return "Không có thời gian";
+    }
+  };
+
+  const getPrivacyIcon = (privacy) => {
+    console.log(privacy, post);
+    switch (privacy) {
+      case "public":
+        return <Globe className="h-4 w-4 text-gray-500" />;
+      case "friends":
+        return <Users className="h-4 w-4 text-gray-500" />;
+      case "private":
+        return <Lock className="h-4 w-4 text-gray-500" />;
+      default:
+        return null;
     }
   };
 
@@ -139,18 +153,23 @@ function PostContent({ post, user, isComment = false, onClose }) {
           />
           <div>
             <h3 className="font-semibold">{user?.fullName || "User"}</h3>
-            {!isComment && post.isShared && (
-              <div className="text-sm text-gray-500">
+            <div className="flex items-center text-sm text-gray-500">
+              {!isComment && post.isShared && (
                 <p>
                   Đã chia sẻ lúc: {formatDate(post.sharedAt || post.createdAt)}
                 </p>
+              )}
+              {!isComment && !post.isShared && (
+                <p>
+                  Đã đăng lúc: {formatDate(post.createdAt || post.sharedAt)}
+                </p>
+              )}
+              <span className="mx-1">·</span>
+              <div className="flex items-center">
+                {getPrivacyIcon(post.privacy)}
+                <span className="ml-1 capitalize">{post.privacy}</span>
               </div>
-            )}
-            {!isComment && !post.isShared && (
-              <p className="text-sm text-gray-500">
-                Đã đăng lúc: {formatDate(post.createdAt || post.sharedAt)}
-              </p>
-            )}
+            </div>
           </div>
         </div>
         <div className="flex items-center space-x-5">
