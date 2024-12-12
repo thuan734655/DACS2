@@ -72,7 +72,7 @@ function PostContent({ post, user, isComment = false, onClose }) {
     }
 
     const content = {
-      content: reason,
+      reason: reason,
       type: "POST",
       postId: postId,
     };
@@ -153,23 +153,33 @@ function PostContent({ post, user, isComment = false, onClose }) {
             )}
           </div>
         </div>
-
-        <div className="relative">
-          <button
-            onClick={() => setShowMenu(!showMenu)}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <MoreHorizontal className="h-5 w-5 text-gray-500" />
-          </button>
-          {showMenu && (
-            <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-md z-10">
-              <button
-                onClick={() => setShowReportDialog(true)}
-                className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-              >
-                Báo cáo bài viết
-              </button>
-            </div>
+        <div className="flex items-center space-x-5">
+          <div className="relative">
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <MoreHorizontal className="h-5 w-5 text-gray-500" />
+            </button>
+            {showMenu && (
+              <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-md z-10">
+                <button
+                  onClick={() => setShowReportDialog(true)}
+                  className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Báo cáo bài viết
+                </button>
+              </div>
+            )}
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label="Close"
+            >
+              <X className="h-5 w-5 text-gray-500" />
+            </button>
           )}
         </div>
       </div>
