@@ -3,6 +3,7 @@ import MediaPreview from "./MediaPreview";
 import { X, MoreHorizontal, Globe, Users, Lock } from "lucide-react";
 import { useToast } from "../../../context/ToastContext";
 import socket from "../../../services/socket.js";
+import { menu } from "@material-tailwind/react";
 
 function PostContent({ post, isComment = false, onClose }) {
   const [showMenu, setShowMenu] = useState(false);
@@ -24,10 +25,10 @@ function PostContent({ post, isComment = false, onClose }) {
     };
 
     const handlePrivacyPost = ({ privacy, success }) => {
+      setShowMenu(false);
       if (success) {
         showToast("Đã thay đổi quyền riêng tư bài viết thành công!", "success");
         setPrivacy(privacy);
-        console.log(privacy, "change");
       } else {
         showToast("Lỗi khi thay đổi quyền riêng tư bài viết!", "error");
       }
@@ -75,7 +76,7 @@ function PostContent({ post, isComment = false, onClose }) {
     }
   };
   const handlePrivacyPost = (newPrivacy) => {
-    console.log(newPrivacy);
+    setShowMenu(false);
     socket.emit("SetPrivacyPost", {
       postId: post.postId,
       privacy: newPrivacy,
@@ -194,12 +195,14 @@ function PostContent({ post, isComment = false, onClose }) {
                 >
                   Báo cáo bài viết
                 </button>
-                <button
-                  onClick={() => setShowPrivacyDialog(true)}
-                  className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  Chỉnh sửa quyền riêng tư
-                </button>
+                {user.idUser === post.idUser && (
+                  <button
+                    onClick={() => setShowPrivacyDialog(true)}
+                    className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Chỉnh sửa quyền riêng tư
+                  </button>
+                )}
               </div>
             )}
           </div>
