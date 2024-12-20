@@ -3,7 +3,6 @@ import MediaPreview from "./MediaPreview";
 import { X, MoreHorizontal, Globe, Users, Lock } from "lucide-react";
 import { useToast } from "../../../context/ToastContext";
 import socket from "../../../services/socket.js";
-import { menu } from "@material-tailwind/react";
 
 function PostContent({ post, isComment = false, onClose }) {
   const [showMenu, setShowMenu] = useState(false);
@@ -11,8 +10,11 @@ function PostContent({ post, isComment = false, onClose }) {
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [selectedReason, setSelectedReason] = useState("");
   const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState(post.content);
   const { showToast } = useToast();
   const [privacy, setPrivacy] = useState(post.privacy);
+  const [content, setContent] = useState(post.text);
   const user = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
@@ -34,12 +36,26 @@ function PostContent({ post, isComment = false, onClose }) {
       }
     };
 
+    const handleContentUpdate = ({ postId, text, success }) => {
+    if(postId === post.postId){
+      if (success) {
+        showToast("Đã cập nhật nội dung bài viết thành công!", "success");
+        setContent(text);
+        setIsEditing(false);
+      } else {
+        showToast("Lỗi khi cập nhật nội dung bài viết!", "error");
+      }
+    };
+  }
+
     socket.on("responseReportPost", handleResponse);
     socket.on("responsePrivacyPost", handlePrivacyPost);
+    socket.on("responseContentPost", handleContentUpdate);
 
     return () => {
       socket.off("responseReportPost", handleResponse);
       socket.off("responsePrivacyPost", handlePrivacyPost);
+      socket.off("responseContentPost", handleContentUpdate);
     };
   }, [showToast]);
 
@@ -103,6 +119,24 @@ function PostContent({ post, isComment = false, onClose }) {
     setShowReportDialog(false);
     setContentReport("");
     setSelectedReason("");
+  };
+
+  const handleEditContent = () => {
+    setIsEditing(true);
+    setShowMenu(false);
+  };
+
+  const handleSaveContent = () => {
+    socket.emit("setContentPost", {
+      postId: post.postId,
+      text: editedContent,
+      idUser: user.idUser,
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditedContent(content);
   };
 
   const renderSharedContent = () => {
@@ -203,6 +237,14 @@ function PostContent({ post, isComment = false, onClose }) {
                     Chỉnh sửa quyền riêng tư
                   </button>
                 )}
+                {user.idUser === post.idUser && (
+                  <button
+                    onClick={handleEditContent}
+                    className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Chỉnh sửa nội dung
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -225,15 +267,47 @@ function PostContent({ post, isComment = false, onClose }) {
             ? "white"
             : post.backgroundColor || "white",
           color: post.isShared ? "black" : post.textColor || "black",
+          padding: "1rem",
         }}
       >
-        {post.text && <p className="whitespace-pre-wrap mb-4">{post.text}</p>}
+        <p className="whitespace-pre-wrap mb-4">{content || ""}</p>
 
         {!post.isShared && post.mediaUrls && post.mediaUrls.length > 0 && (
           <MediaPreview mediaUrls={post.mediaUrls} />
         )}
 
         {post.isShared && renderSharedContent()}
+      </div>
+
+      <div className="mt-2">
+        {isEditing ? (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
+              <h3 className="text-lg font-semibold mb-4">Chỉnh sửa bài viết</h3>
+              <textarea
+                value={editedContent}
+                onChange={(e) => setEditedContent(e.target.value)}
+                placeholder="Nhập nội dung bài viết"
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows="6"
+              />
+              <div className="flex justify-end space-x-2 mt-4">
+                <button
+                  onClick={handleCancelEdit}
+                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleSaveContent}
+                  className="px-4 py-2 text-sm text-white bg-blue-500 hover:bg-blue-600 rounded-md"
+                >
+                  Lưu thay đổi
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {showReportDialog && (
