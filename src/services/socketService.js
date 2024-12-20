@@ -1,28 +1,28 @@
-import io from 'socket.io-client';
+import io from "socket.io-client";
 
 let socket = null;
 
 export const initializeSocket = () => {
   if (!socket) {
     // Replace with your server URL
-    socket = io('https://dacs2-server-4.onrender.com', {
-      transports: ['websocket'],
+    socket = io("http://localhost:5000", {
+      transports: ["websocket"],
       autoConnect: true,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
     });
 
-    socket.on('connect', () => {
-      console.log('Socket connected successfully');
+    socket.on("connect", () => {
+      console.log("Socket connected successfully");
     });
 
-    socket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
+    socket.on("connect_error", (error) => {
+      console.error("Socket connection error:", error);
     });
 
-    socket.on('disconnect', (reason) => {
-      console.log('Socket disconnected:', reason);
+    socket.on("disconnect", (reason) => {
+      console.log("Socket disconnected:", reason);
     });
   }
   return socket;

@@ -4,12 +4,15 @@ import { X, MoreHorizontal, Globe, Users, Lock } from "lucide-react";
 import { useToast } from "../../../context/ToastContext";
 import socket from "../../../services/socket.js";
 
-function PostContent({ post, user, isComment = false, onClose }) {
+function PostContent({ post, isComment = false, onClose }) {
   const [showMenu, setShowMenu] = useState(false);
   const [contentReport, setContentReport] = useState("");
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [selectedReason, setSelectedReason] = useState("");
+  const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
   const { showToast } = useToast();
+  const [privacy, setPrivacy] = useState(post.privacy);
+  const user = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
     const handleResponse = (data) => {
@@ -20,10 +23,22 @@ function PostContent({ post, user, isComment = false, onClose }) {
       }
     };
 
+    const handlePrivacyPost = ({ privacy, success }) => {
+      if (success) {
+        showToast("Đã thay đổi quyền riêng tư bài viết thành công!", "success");
+        setPrivacy(privacy);
+        console.log(privacy, "change");
+      } else {
+        showToast("Lỗi khi thay đổi quyền riêng tư bài viết!", "error");
+      }
+    };
+
     socket.on("responseReportPost", handleResponse);
+    socket.on("responsePrivacyPost", handlePrivacyPost);
 
     return () => {
       socket.off("responseReportPost", handleResponse);
+      socket.off("responsePrivacyPost", handlePrivacyPost);
     };
   }, [showToast]);
 
@@ -59,7 +74,15 @@ function PostContent({ post, user, isComment = false, onClose }) {
         return null;
     }
   };
-
+  const handlePrivacyPost = (newPrivacy) => {
+    console.log(newPrivacy);
+    socket.emit("SetPrivacyPost", {
+      postId: post.postId,
+      privacy: newPrivacy,
+      idUser: user.idUser,
+    });
+    setShowPrivacyDialog(false);
+  };
   const handleReport = (postId) => {
     const reason = contentReport || selectedReason;
 
@@ -149,8 +172,8 @@ function PostContent({ post, user, isComment = false, onClose }) {
               )}
               <span className="mx-1">·</span>
               <div className="flex items-center">
-                {getPrivacyIcon(post.privacy)}
-                <span className="ml-1 capitalize">{post.privacy}</span>
+                {getPrivacyIcon(privacy)}
+                <span className="ml-1 capitalize">{privacy}</span>
               </div>
             </div>
           </div>
@@ -170,6 +193,12 @@ function PostContent({ post, user, isComment = false, onClose }) {
                   className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
                 >
                   Báo cáo bài viết
+                </button>
+                <button
+                  onClick={() => setShowPrivacyDialog(true)}
+                  className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Chỉnh sửa quyền riêng tư
                 </button>
               </div>
             )}
@@ -249,6 +278,61 @@ function PostContent({ post, user, isComment = false, onClose }) {
                 className="bg-blue-500 text-white px-4 py-2 rounded-md"
               >
                 Gửi báo cáo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showPrivacyDialog && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-lg font-semibold mb-4">
+              Chỉnh sửa quyền riêng tư
+            </h2>
+            <div className="space-y-3">
+              <button
+                onClick={() => handlePrivacyPost("public")}
+                className="flex items-center w-full p-3 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <Globe className="h-5 w-5 mr-3 text-gray-500" />
+                <div className="text-left">
+                  <p className="font-medium">Công khai</p>
+                  <p className="text-sm text-gray-500">
+                    Mọi người đều có thể xem
+                  </p>
+                </div>
+              </button>
+              <button
+                onClick={() => handlePrivacyPost("friends")}
+                className="flex items-center w-full p-3 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <Users className="h-5 w-5 mr-3 text-gray-500" />
+                <div className="text-left">
+                  <p className="font-medium">Bạn bè</p>
+                  <p className="text-sm text-gray-500">
+                    Chỉ bạn bè mới có thể xem
+                  </p>
+                </div>
+              </button>
+              <button
+                onClick={() => handlePrivacyPost("private")}
+                className="flex items-center w-full p-3 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <Lock className="h-5 w-5 mr-3 text-gray-500" />
+                <div className="text-left">
+                  <p className="font-medium">Chỉ mình tôi</p>
+                  <p className="text-sm text-gray-500">
+                    Chỉ bạn mới có thể xem
+                  </p>
+                </div>
+              </button>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setShowPrivacyDialog(false)}
+                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md"
+              >
+                Hủy
               </button>
             </div>
           </div>

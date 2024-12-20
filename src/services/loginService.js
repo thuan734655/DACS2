@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "https://dacs2-server-4.onrender.com";
+const BASE_URL = "http://localhost:5000";
 
 export const requestOTP = async (email) => {
   return await axios.post(`${BASE_URL}/forgotten`, { email });
@@ -14,8 +14,8 @@ export const getUserInfo = async (userId) => {
         ...response.data,
         fullName: response.data.fullName,
         background: response.data.background,
-        avatar: response.data.avatar
-      }
+        avatar: response.data.avatar,
+      },
     };
   } catch (error) {
     throw error;

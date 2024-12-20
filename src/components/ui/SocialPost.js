@@ -178,7 +178,7 @@ function SocialPost({ postId, post, user, groupedLikes, commentCountDefault }) {
 
   return (
     <div className="bg-white shadow-md rounded-lg p-4 mb-4" id={postId}>
-      <PostContent post={post} user={user} />
+      <PostContent post={post} />
       <div className="mt-3 flex items-center justify-between text-sm text-gray-500">
         <div className="flex items-center gap-1">{renderEmoji()}</div>
         <div className="flex items-center gap-3">

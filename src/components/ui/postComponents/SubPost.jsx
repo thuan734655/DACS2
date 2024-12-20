@@ -4,7 +4,7 @@ import CommentList from "./CommentList";
 import PostContent from "./PostContent";
 import socket from "../../../services/socket";
 
-const SubPost = ({ postId, user, post, setShowSubPost, setCommentCount }) => {
+const SubPost = ({ postId, post, setShowSubPost, setCommentCount }) => {
   const [commentsList, setCommentsList] = useState([]);
   const [loading, setLoading] = useState(true); // Loading state to track comments fetching
 console.log(postId ,"posf")
@@ -32,7 +32,6 @@ console.log(postId ,"posf")
       {/* Displaying PostContent */}
       <PostContent
         post={post}
-        user={user}
         isComment={true}
         onClose={() => setShowSubPost(false)}
         iconX={true}

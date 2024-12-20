@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const configAxios = {
-  baseURL: "https://dacs2-server-4.onrender.com",
+  baseURL: "http://localhost:5000",
   header: {
     "Content-Type": "application/json",
   },
@@ -9,7 +9,7 @@ const configAxios = {
 
 const axiosAPI = axios.create(configAxios);
 
-axiosAPI.interceptors.response.use( 
+axiosAPI.interceptors.response.use(
   (res) => res.data,
   (err) => Promise.reject(err)
 );
