@@ -4,7 +4,7 @@ import { X, MoreHorizontal, Globe, Users, Lock } from "lucide-react";
 import { useToast } from "../../../context/ToastContext";
 import socket from "../../../services/socket.js";
 
-function PostContent({ post, isComment = false, onClose }) {
+function PostContent({ post, postUser, isComment = false, onClose }) {
   const [showMenu, setShowMenu] = useState(false);
   const [contentReport, setContentReport] = useState("");
   const [showReportDialog, setShowReportDialog] = useState(false);
@@ -16,7 +16,7 @@ function PostContent({ post, isComment = false, onClose }) {
   const [privacy, setPrivacy] = useState(post.privacy);
   const [content, setContent] = useState(post.text);
   const user = JSON.parse(localStorage.getItem("user"));
-
+  console.log(postUser, "postUser");
   useEffect(() => {
     const handleResponse = (data) => {
       if (data.success) {
@@ -37,16 +37,16 @@ function PostContent({ post, isComment = false, onClose }) {
     };
 
     const handleContentUpdate = ({ postId, text, success }) => {
-    if(postId === post.postId){
-      if (success) {
-        showToast("Đã cập nhật nội dung bài viết thành công!", "success");
-        setContent(text);
-        setIsEditing(false);
-      } else {
-        showToast("Lỗi khi cập nhật nội dung bài viết!", "error");
+      if (postId === post.postId) {
+        if (success) {
+          showToast("Đã cập nhật nội dung bài viết thành công!", "success");
+          setContent(text);
+          setIsEditing(false);
+        } else {
+          showToast("Lỗi khi cập nhật nội dung bài viết!", "error");
+        }
       }
     };
-  }
 
     socket.on("responseReportPost", handleResponse);
     socket.on("responsePrivacyPost", handlePrivacyPost);
@@ -188,12 +188,12 @@ function PostContent({ post, isComment = false, onClose }) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
           <img
-            src={user?.avatar || "/default-avatar.png"}
-            alt={user?.fullName || "User"}
+            src={postUser?.avatar || "/default-avatar.png"}
+            alt={postUser?.fullName || "User"}
             className="w-10 h-10 rounded-full mr-3"
           />
           <div>
-            <h3 className="font-semibold">{user?.fullName || "User"}</h3>
+            <h3 className="font-semibold">{postUser?.fullName || "User"}</h3>
             <div className="flex items-center text-sm text-gray-500">
               {!isComment && post.isShared && (
                 <p>
@@ -280,7 +280,7 @@ function PostContent({ post, isComment = false, onClose }) {
       </div>
 
       <div className="mt-2">
-        {isEditing ? (
+        {user.idUser === post.idUser && isEditing ? (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
               <h3 className="text-lg font-semibold mb-4">Chỉnh sửa bài viết</h3>
@@ -360,7 +360,7 @@ function PostContent({ post, isComment = false, onClose }) {
           </div>
         </div>
       )}
-      {showPrivacyDialog && (
+      {user.idUser === post.idUser && showPrivacyDialog && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-lg font-semibold mb-4">

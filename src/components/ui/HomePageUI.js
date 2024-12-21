@@ -105,6 +105,7 @@ const HomePageUI = () => {
         ...prevPosts,
         ...posts,
       }));
+      console.log(posts, "posts");
       setPage(receivedPage);
       setHasMore(hasMore);
       setFetchedPostIds((prevIds) => [...prevIds, ...Object.keys(posts)]);
@@ -354,7 +355,7 @@ const HomePageUI = () => {
                       groupedLikes={postData.groupedLikes}
                       commentCountDefault={postData.commentCount}
                       post={postData.post}
-                      user={postData.infoUserList[postData.post.idUser]}
+                      postUser={postData.infoUserList[postData.post.idUser]}
                       currentUser={user}
                     />
                   );

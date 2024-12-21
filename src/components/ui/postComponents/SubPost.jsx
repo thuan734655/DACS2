@@ -4,10 +4,16 @@ import CommentList from "./CommentList";
 import PostContent from "./PostContent";
 import socket from "../../../services/socket";
 
-const SubPost = ({ postId, post, setShowSubPost, setCommentCount }) => {
+const SubPost = ({
+  postId,
+  post,
+  postUser,
+  setShowSubPost,
+  setCommentCount,
+}) => {
   const [commentsList, setCommentsList] = useState([]);
   const [loading, setLoading] = useState(true); // Loading state to track comments fetching
-console.log(postId ,"posf")
+  console.log(postId, "posf");
   useEffect(() => {
     // Emit event to fetch all comments for the post
     socket.emit("getCommentsAll", { postId });
@@ -32,6 +38,7 @@ console.log(postId ,"posf")
       {/* Displaying PostContent */}
       <PostContent
         post={post}
+        postUser={postUser}
         isComment={true}
         onClose={() => setShowSubPost(false)}
         iconX={true}
