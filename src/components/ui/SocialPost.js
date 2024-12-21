@@ -6,13 +6,7 @@ import EmojiPickerComponent from "./postComponents/EmojiPickerComponent";
 import PostContent from "./postComponents/PostContent";
 import SubPost from "./postComponents/SubPost";
 
-function SocialPost({
-  postId,
-  post,
-  postUser,
-  groupedLikes,
-  commentCountDefault,
-}) {
+function SocialPost({ postId, post, postUser, groupedLikes, commentCountDefault }) {
   const { showToast } = useToast();
   const [shareCount, setShareCount] = useState(post.shares || 0);
   const [previousShareCount, setPreviousShareCount] = useState(
@@ -36,6 +30,7 @@ function SocialPost({
   const [isSharing, setIsSharing] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [shareText, setShareText] = useState("");
+
   useEffect(() => {
     const handlePostShared = ({
       postId: sharedPostId,
@@ -244,6 +239,7 @@ function SocialPost({
 
       {showSubPost && (
         <SubPost
+          postId={postId}
           post={post}
           postUser={postUser}
           setShowSubPost={setShowSubPost}
