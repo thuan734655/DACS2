@@ -102,10 +102,9 @@ const HomePageUI = () => {
   useEffect(() => {
     const handleReceivePosts = ({ posts, page: receivedPage, hasMore }) => {
       setListPosts((prevPosts) => ({
-        ...prevPosts,
         ...posts,
+        ...prevPosts,
       }));
-      console.log(posts, "posts");
       setPage(receivedPage);
       setHasMore(hasMore);
       setFetchedPostIds((prevIds) => [...prevIds, ...Object.keys(posts)]);
@@ -140,6 +139,47 @@ const HomePageUI = () => {
       loadUserData();
     }
   }, [user, initialLoadComplete, loadPosts]);
+
+  useEffect(() => {
+    socket.on("receiveNewPost", ({ post }) => {
+      if (!post) return;
+
+      setListPosts((prevPosts) => {
+        const newPosts = { ...prevPosts };
+        const postId = post.postId || Date.now().toString();
+
+        newPosts[postId] = {
+          post: {
+            ...post,
+            toggle: false,
+            text: post.text || "",
+            textColor: post.textColor || "#000000",
+            backgroundColor: post.backgroundColor || "#ffffff",
+            listFileUrl: post.listFileUrl || [],
+            comments: post.comments || [],
+            createdAt: post.createdAt || Date.now(),
+          },
+          groupedLikes: post.groupedLikes || [],
+          commentCount: post.commentCount || 0,
+          infoUserList: {
+            [post.idUser]: post.infoUserList[post.idUser],
+          },
+        };
+
+        // Tạo một object mới với post mới ở đầu
+        return {
+          [postId]: newPosts[postId],
+          ...prevPosts,
+        };
+      });
+
+      setFetchedPostIds((prevIds) => [post.postId, ...prevIds]);
+    });
+
+    return () => {
+      socket.off("receiveNewPost");
+    };
+  }, []);
 
   const handleScroll = useCallback(() => {
     if (scrollRef.current && initialLoadComplete) {

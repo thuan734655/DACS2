@@ -12,6 +12,7 @@ function PostContent({ post, postUser, isComment = false, onClose }) {
   const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(post.content);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { showToast } = useToast();
   const [privacy, setPrivacy] = useState(post.privacy);
   const [content, setContent] = useState(post.text);
@@ -48,14 +49,27 @@ function PostContent({ post, postUser, isComment = false, onClose }) {
       }
     };
 
+    const handleDeletePost = ({ postId, success }) => {
+      if (postId === post.postId) {
+        if (success) {
+          showToast("Đã xóa bài viết thành công!", "success");
+          if (onClose) onClose();
+        } else {
+          showToast("Lỗi khi xóa bài viết!", "error");
+        }
+      }
+    };
+
     socket.on("responseReportPost", handleResponse);
     socket.on("responsePrivacyPost", handlePrivacyPost);
     socket.on("responseContentPost", handleContentUpdate);
+    socket.on("responseDeletePost", handleDeletePost);
 
     return () => {
       socket.off("responseReportPost", handleResponse);
       socket.off("responsePrivacyPost", handlePrivacyPost);
       socket.off("responseContentPost", handleContentUpdate);
+      socket.off("responseDeletePost", handleDeletePost);
     };
   }, [showToast]);
 
@@ -100,6 +114,24 @@ function PostContent({ post, postUser, isComment = false, onClose }) {
     });
     setShowPrivacyDialog(false);
   };
+
+  const handleDeletePost = () => {
+    setShowMenu(false);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    socket.emit("deletePost", {
+      postId: post.postId,
+      idUser: user.idUser,
+    });
+    setShowDeleteDialog(false);
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteDialog(false);
+  };
+
   const handleReport = (postId) => {
     const reason = contentReport || selectedReason;
 
@@ -243,6 +275,14 @@ function PostContent({ post, postUser, isComment = false, onClose }) {
                     className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
                   >
                     Chỉnh sửa nội dung
+                  </button>
+                )}
+                {user.idUser === post.idUser && (
+                  <button
+                    onClick={handleDeletePost}
+                    className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Xóa bài viết
                   </button>
                 )}
               </div>
@@ -410,6 +450,30 @@ function PostContent({ post, postUser, isComment = false, onClose }) {
                 className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md"
               >
                 Hủy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showDeleteDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-[400px] rounded-lg bg-white p-6 shadow-lg">
+            <h3 className="mb-4 text-lg font-semibold">Xác nhận xóa</h3>
+            <p className="mb-6 text-gray-600">
+              Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={cancelDelete}
+                className="rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600"
+              >
+                Xóa
               </button>
             </div>
           </div>
