@@ -4,7 +4,7 @@ import { LogOut, User, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { searchUsersByName } from "../../services/userService";
 
-const HeaderUI = () => {
+const HeaderUI = (isAdmin) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -100,13 +100,15 @@ const HeaderUI = () => {
           >
             <User className="w-5 h-5 text-gray-600" />
           </button>
-          <button
-            className="p-2 hover:bg-gray-100 rounded-full w-10 h-10 flex items-center justify-center bg-gray-50 border border-gray-200 transition-colors duration-200"
-            title="Admin Settings"
-            onClick={() => navigate("/admin")}
-          >
-            <Settings className="w-5 h-5 text-gray-600" />
-          </button>
+          {isAdmin.isAdmin === 1 && (
+            <button
+              className="p-2 hover:bg-gray-100 rounded-full w-10 h-10 flex items-center justify-center bg-gray-50 border border-gray-200 transition-colors duration-200"
+              title="Admin Settings"
+              onClick={() => navigate("/admin")}
+            >
+              <Settings className="w-5 h-5 text-gray-600" />
+            </button>
+          )}
           <button
             className="p-2 hover:bg-gray-100 rounded-full w-10 h-10 flex items-center justify-center bg-gray-50 border border-gray-200 transition-colors duration-200"
             title="Đăng xuất"

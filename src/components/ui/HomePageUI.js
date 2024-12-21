@@ -28,15 +28,12 @@ const HomePageUI = () => {
   const [listPosts, setListPosts] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
   const [onlineFriends, setOnlineFriends] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
   const [activeTab, setActiveTab] = useState("home");
   const [selectedChat, setSelectedChat] = useState(null);
   const [friendCount, setFriendCount] = useState(0);
-  const [idUser, setIdUser] = useState(
-    JSON.parse(localStorage.getItem("user"))?.idUser || ""
-  );
   const [listNotification, setListNotification] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -44,7 +41,7 @@ const HomePageUI = () => {
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const scrollRef = useRef(null);
   const lastScrollPositionRef = useRef(0); // New ref to store the scroll position
-
+  const idUser = user?.idUser;
   const { currentUser } = useUserPublicProfile();
 
   useEffect(() => {
@@ -445,7 +442,7 @@ const HomePageUI = () => {
 
   return (
     <div className="h-screen overflow-hidden">
-      <HeaderUI user={user} />
+      <HeaderUI isAdmin={user.isAdmin} />
       <div className="grid grid-cols-12 gap-4 px-2 py-6 h-full">
         <div className="col-span-12 md:col-span-3 pt-10 overflow-y-auto">
           {renderLeftPanel()}
