@@ -3,8 +3,12 @@ import MediaPreview from "./MediaPreview";
 import { X, MoreHorizontal, Globe, Users, Lock } from "lucide-react";
 import { useToast } from "../../../context/ToastContext";
 import socket from "../../../services/socket.js";
-
-function PostContent({ post, postUser, isComment = false, onClose }) {
+import { useUserPublicProfile } from "../../../hooks/useUserPublicProfile.js";
+const API_URL = "http://localhost:5000";
+function PostContent({ post, user, isComment = false, onClose }) {
+  const { currentUser, reload, currentUserId, isOwner } =
+    useUserPublicProfile(post?.idUser);
+    
   const [showMenu, setShowMenu] = useState(false);
   const [contentReport, setContentReport] = useState("");
   const [showReportDialog, setShowReportDialog] = useState(false);
@@ -14,10 +18,9 @@ function PostContent({ post, postUser, isComment = false, onClose }) {
   const [editedContent, setEditedContent] = useState(post.content);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { showToast } = useToast();
-  const [privacy, setPrivacy] = useState(post.privacy);
-  const [content, setContent] = useState(post.text);
-  const user = JSON.parse(localStorage.getItem("user"));
-  console.log(postUser, "postUser");
+  
+    console.log("post content",post);
+    
   useEffect(() => {
     const handleResponse = (data) => {
       if (data.success) {
@@ -178,10 +181,7 @@ function PostContent({ post, postUser, isComment = false, onClose }) {
       <div className="mt-4 border rounded-lg p-4 bg-gray-50">
         <div className="flex items-center mb-2">
           <img
-            src={
-              post.sharedPostContent.originalUser?.avatar ||
-              "/default-avatar.png"
-            }
+            src={`${API_URL}${post.sharedPostContent.originalUser?.avatar}`}
             alt={post.sharedPostContent.originalUser?.fullName || "User"}
             className="w-8 h-8 rounded-full mr-2"
           />
@@ -220,12 +220,12 @@ function PostContent({ post, postUser, isComment = false, onClose }) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
           <img
-            src={postUser?.avatar || "/default-avatar.png"}
-            alt={postUser?.fullName || "User"}
+            src={currentUser?.avatar ? `${API_URL}${currentUser.avatar}` : "/default-avatar.png"}
+            alt=""
             className="w-10 h-10 rounded-full mr-3"
           />
           <div>
-            <h3 className="font-semibold">{postUser?.fullName || "User"}</h3>
+            <h3 className="font-semibold">{currentUser?.fullName || "User"}</h3>
             <div className="flex items-center text-sm text-gray-500">
               {!isComment && post.isShared && (
                 <p>

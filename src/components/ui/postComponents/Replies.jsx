@@ -9,7 +9,7 @@ import {
 import CommentInput from "./CommentInput";
 import { useToast } from "../../../context/ToastContext";
 import socket from "../../../services/socket";
-
+const API_URL = "http://localhost:5000";
 const Replies = ({
   commentsList,
   emojiChoose,
@@ -27,6 +27,7 @@ const Replies = ({
   const [selectedReason, setSelectedReason] = useState("");
   const [reportingReplyId, setReportingReplyId] = useState(null);
 
+  
   const predefinedReasons = [
     "Nội dung không phù hợp",
     "Spam hoặc lừa đảo",
@@ -85,6 +86,7 @@ const Replies = ({
   }, [showToast]);
 
   return (
+    
     <div className={`${depth < 5 ? "ml-4" : "reset-ml"} mt-2`}>
       {commentsList.map((reply) => (
         <div
@@ -94,7 +96,11 @@ const Replies = ({
           <div className="flex items-start gap-2 mb-2">
             <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
               <img
-                src={`${reply.user[0].avatar || "anonymous"}`}
+                src={
+                  reply.user[0].avatar
+                    ? `${API_URL}${reply.user[0].avatar}`
+                    : "/anonymous.jpg"
+                }
                 alt="User avatar"
                 className="w-full h-full object-cover"
               />
@@ -112,13 +118,13 @@ const Replies = ({
                 key={index}
                 controls
                 className="w-full rounded-lg mt-2"
-                src={"http://localhost:5000" + fileUrl}
+                src={API_URL + fileUrl}
               />
             ) : (
               <img
                 key={index}
                 className="w-full rounded-lg mt-2"
-                src={"http://localhost:5000" + fileUrl}
+                src={API_URL + fileUrl}
                 alt="Comment media"
               />
             )

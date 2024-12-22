@@ -5,8 +5,8 @@ let socket = null;
 export const initializeSocket = () => {
   if (!socket) {
     // Replace with your server URL
-    socket = io("http://localhost:5000", {
-      transports: ["websocket"],
+    socket = io('http://localhost:5000', {
+      transports: ['websocket'],
       autoConnect: true,
       reconnection: true,
       reconnectionAttempts: 5,

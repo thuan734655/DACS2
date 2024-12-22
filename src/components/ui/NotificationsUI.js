@@ -4,12 +4,16 @@ import NotificationDetailUI from './NotificationDetailUI';
 import socket from '../../services/socket';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import { useUserPublicProfile } from '../../hooks/useUserPublicProfile';
 
 const NotificationsUI = ({ user, data }) => {
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const idUser = user?.idUser;
-
+  const { currentUser, reload, currentUserId, isOwner } =
+  useUserPublicProfile();
+  console.log("99999999999",currentUser);
+  
   useEffect(() => {
     const getNotifications = () => {
       socket.emit('getNotifications', { idUser });

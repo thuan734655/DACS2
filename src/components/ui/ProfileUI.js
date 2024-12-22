@@ -28,12 +28,15 @@ import {
   updateUserCover,
   updateUserInfo,
 } from "../../services/userService";
+import FormUser from "./FormUser";
 
 const API_URL = "http://http://localhost:5000";
 const ProfileUI = () => {
   const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(0);
   const [friends, setFriends] = useState([]);
+  console.log("friends", friends);
+
   const [isUploading, setIsUploading] = useState(false);
   const { id } = useParams();
   const [userInfo, setUserInfo] = useState({
@@ -920,61 +923,7 @@ const ProfileUI = () => {
           </Typography>
           <Grid container spacing={2}>
             {friends.map((friend) => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={friend.id}>
-                <Paper
-                  elevation={1}
-                  sx={{
-                    p: 2,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    textAlign: "center",
-                    borderRadius: "12px",
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                      transform: "translateY(-4px)",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                    },
-                  }}
-                >
-                  <Avatar
-                    src={friend.avatar}
-                    alt={friend.fullName}
-                    sx={{
-                      width: 100,
-                      height: 100,
-                      mb: 2,
-                      border: "3px solid #fff",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                    }}
-                  />
-                  <Typography
-                    variant="subtitle1"
-                    sx={{
-                      fontWeight: 600,
-                      color: "#2c3e50",
-                      mb: 1,
-                    }}
-                  >
-                    {friend.fullName}
-                  </Typography>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    sx={{
-                      textTransform: "none",
-                      borderRadius: "8px",
-                      bgcolor: "primary.main",
-                      "&:hover": {
-                        bgcolor: "primary.dark",
-                      },
-                    }}
-                    onClick={() => navigate(`/profile/${friend.id}`)}
-                  >
-                    Xem trang cá nhân
-                  </Button>
-                </Paper>
-              </Grid>
+              <FormUser key={friend.id} idUser={friend.id} />
             ))}
           </Grid>
         </Box>

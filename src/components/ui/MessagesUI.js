@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FaSearch, FaCircle, FaTimes } from "react-icons/fa";
 import { getFriendsList } from "../../services/userService";
 import socket from "../../services/socket";
-
+const API_URL = "http://localhost:5000";
 const MessagesUI = ({
   onClose,
   showInRightPanel = false,
@@ -11,6 +11,8 @@ const MessagesUI = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [friends, setFriends] = useState([]);
+  console.log("friends list", friends);
+  
   const [onlineUsers, setOnlineUsers] = useState(new Set());
   useEffect(() => {
     const loadFriends = async () => {
@@ -22,8 +24,9 @@ const MessagesUI = ({
             id: friend.idUser,
             user: friend.fullName || "Người dùng",
             avatar:
-              friend.avatar ||
-              `https://api.dicebear.com/6.x/avataaars/svg?seed=${friend.idUser}`,
+              friend.avatar
+                ? `${API_URL}${friend.avatar}`
+                : `https://api.dicebear.com/6.x/avataaars/svg?seed=${friend.idUser}`,
             lastMessage: "Nhấn để bắt đầu trò chuyện",
             time: "",
             unread: 0,
@@ -142,8 +145,12 @@ const MessagesUI = ({
                 </div>
                 <div className="flex-grow min-w-0">
                   <div className="flex justify-between items-start">
-                    <span className="font-medium text-sm sm:text-base truncate">{chat.user}</span>
-                    <span className="text-gray-400 text-xs sm:text-sm ml-1">{chat.time}</span>
+                    <span className="font-medium text-sm sm:text-base truncate">
+                      {chat.user}
+                    </span>
+                    <span className="text-gray-400 text-xs sm:text-sm ml-1">
+                      {chat.time}
+                    </span>
                   </div>
                   <p className="text-gray-600 text-xs sm:text-sm truncate">
                     {chat.lastMessage}
@@ -161,6 +168,5 @@ const MessagesUI = ({
     </div>
   );
 };
-
 
 export default MessagesUI;
