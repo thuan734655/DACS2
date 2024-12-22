@@ -12,8 +12,7 @@ const AdminLayout = () => {
   const isInitialLoad = React.useRef(true);
   const currentKey = React.useRef(null);
 
-  // Handler for socket responses
-  const handleReportResponse = React.useCallback((data) => {
+  const handleReportResponse = (data) => {
     if (data.success) {
       if (isInitialLoad.current) {
         setReports(data.reports);
@@ -27,7 +26,15 @@ const AdminLayout = () => {
       setHasMore(data.nextKey !== null);
     }
     setLoading(false);
-  }, []);
+  };
+
+  const handleDeleteResponse = (result) => {
+    if (!result.success) {
+      console.error("Error deleting report:", result.error);
+      alert("Không thể xóa báo cáo. Vui lòng thử lại sau.");
+      socket.emit("getAllReport", { limit: LIMIT, lastKey: null });
+    }
+  };
 
   const loadMore = () => {
     if (!loading && hasMore && currentKey.current !== null) {
@@ -39,16 +46,32 @@ const AdminLayout = () => {
     }
   };
 
-  React.useEffect(() => {
-    setLoading(true);
-    socket.emit("getAllReport", { limit: LIMIT, lastKey: null });
+  const handleDeleteReport = (reportId) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa báo cáo này?")) {
+      setReports(prev => prev.filter(report => report.idReport !== reportId));
+      if (selectedReport?.idReport === reportId) {
+        setSelectedReport(null);
+      }
+      socket.emit("deleteReport", reportId);
+    }
+  };
 
-    socket.on("responseAllReport", handleReportResponse);
+  React.useEffect(() => {
+    const setupSocket = () => {
+      setLoading(true);
+      socket.emit("getAllReport", { limit: LIMIT, lastKey: null });
+
+      socket.on("responseAllReport", handleReportResponse);
+      socket.on("responseDeleteReport", handleDeleteResponse);
+    };
+
+    setupSocket();
 
     return () => {
       socket.off("responseAllReport", handleReportResponse);
+      socket.off("responseDeleteReport", handleDeleteResponse);
     };
-  }, [handleReportResponse]);
+  }, []); 
 
   const handleViewReport = (report) => {
     setSelectedReport(report);
@@ -56,15 +79,6 @@ const AdminLayout = () => {
 
   const handleResolveReport = (reportId) => {
     socket.emit("updateReportStatus", { reportId, status: "RESOLVED" });
-  };
-
-  const handleDeleteReport = (reportId) => {
-    if (window.confirm("Are you sure you want to delete this report?")) {
-      socket.emit("deleteReport", { reportId });
-      if (selectedReport?.idReport === reportId) {
-        setSelectedReport(null);
-      }
-    }
   };
 
   const getReportTypeLabel = (type) => {
