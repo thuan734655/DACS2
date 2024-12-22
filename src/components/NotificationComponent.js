@@ -2,8 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import { markNotificationAsRead, markAllNotificationsAsRead } from '../services/notificationSocket';
 import './NotificationComponent.css';
-
+const API_URL = "http://localhost:5000";
 const NotificationComponent = ({ notifications, unreadCount, userId }) => {
+  
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -110,7 +111,7 @@ const NotificationComponent = ({ notifications, unreadCount, userId }) => {
                   onClick={() => handleNotificationClick(notification)}
                 >
                   <img
-                    src={notification.data.userAvatar || '/default-avatar.png'}
+                    src={notification.data.userAvatar ? `${API_URL}${notification.data.userAvatar}` : '/default-avatar.png'}
                     alt="avatar"
                     className="notification-avatar"
                   />

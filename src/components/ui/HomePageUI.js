@@ -424,38 +424,7 @@ const HomePageUI = () => {
             <UserSearchUI user={user} />
           ) : (
             <div>
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="font-semibold text-lg mb-4">
-                  Bạn bè đang online
-                </h3>
-                <div className="space-y-4">
-                  {onlineFriends.length === 0 ? (
-                    <div className="text-gray-500 text-center">
-                      Không có bạn bè nào đang online
-                    </div>
-                  ) : (
-                    onlineFriends.map((friend) => (
-                      <div
-                        key={friend.id}
-                        className="flex items-center space-x-3"
-                      >
-                        <div className="relative">
-                          <img
-                            src={
-                              friend.avatar ||
-                              `https://api.dicebear.com/6.x/avataaars/svg?seed=${friend.username}`
-                            }
-                            alt={friend.name}
-                            className="w-10 h-10 rounded-full"
-                          />
-                          <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                        </div>
-                        <div className="font-medium">{friend.name}</div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
+          
             </div>
           )}
         </div>

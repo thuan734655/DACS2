@@ -3,14 +3,20 @@ import MediaPreview from "./MediaPreview";
 import { X, MoreHorizontal, Globe, Users, Lock } from "lucide-react";
 import { useToast } from "../../../context/ToastContext";
 import socket from "../../../services/socket.js";
+import { useUserPublicProfile } from "../../../hooks/useUserPublicProfile.js";
 const API_URL = "http://localhost:5000";
 function PostContent({ post, user, isComment = false, onClose }) {
+  const { currentUser, reload, currentUserId, isOwner } =
+    useUserPublicProfile(post?.idUser);
+    
   const [showMenu, setShowMenu] = useState(false);
   const [contentReport, setContentReport] = useState("");
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [selectedReason, setSelectedReason] = useState("");
   const { showToast } = useToast();
-
+  
+    console.log("post content",post);
+    
   useEffect(() => {
     const handleResponse = (data) => {
       if (data.success) {
@@ -88,7 +94,7 @@ function PostContent({ post, user, isComment = false, onClose }) {
       <div className="mt-4 border rounded-lg p-4 bg-gray-50">
         <div className="flex items-center mb-2">
           <img
-            src="https://api.dicebear.com/6.x/avataaars/svg?seed=undefined"
+            src={`${API_URL}${post.sharedPostContent.originalUser?.avatar}`}
             alt={post.sharedPostContent.originalUser?.fullName || "User"}
             className="w-8 h-8 rounded-full mr-2"
           />
@@ -127,12 +133,12 @@ function PostContent({ post, user, isComment = false, onClose }) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
           <img
-            src={user?.avatar || "/default-avatar.png"}
-            alt={user?.fullName || "User"}
+            src={currentUser?.avatar ? `${API_URL}${currentUser.avatar}` : "/default-avatar.png"}
+            alt=""
             className="w-10 h-10 rounded-full mr-3"
           />
           <div>
-            <h3 className="font-semibold">{user?.fullName || "User"}</h3>
+            <h3 className="font-semibold">{currentUser?.fullName || "User"}</h3>
             <div className="flex items-center text-sm text-gray-500">
               {!isComment && post.isShared && (
                 <p>

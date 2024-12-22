@@ -1,3 +1,4 @@
+import { reload } from "firebase/auth";
 import axiosAPI from "./configAxios.js";
 
 export const getUserProfile = async () => {
@@ -240,6 +241,18 @@ export const updateUserCover = async (formData) => {
     return response; // Trả về toàn bộ response thay vì response.data
   } catch (error) {
     console.error("API Error:", error.response || error);
+    throw error;
+  }
+};
+
+export const unfriendUser = async (friendId, userId) => {
+  try {
+    const response = await axiosAPI.delete(`/api/users/friends/${friendId}`, {
+      data: { userId }, // Gửi userId trong body của request
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi hủy kết bạn:", error);
     throw error;
   }
 };
