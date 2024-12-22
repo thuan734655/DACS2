@@ -1,5 +1,5 @@
 import React from "react";
-import { FiTrash2, FiEye, FiCheckCircle } from "react-icons/fi";
+import { FiTrash2, FiEye, FiSettings, FiMail, FiCheck } from "react-icons/fi";
 import socket from "../../services/socket";
 
 const AdminLayout = () => {
@@ -8,6 +8,10 @@ const AdminLayout = () => {
   const [selectedReport, setSelectedReport] = React.useState(null);
   const [nextKey, setNextKey] = React.useState(null);
   const [hasMore, setHasMore] = React.useState(true);
+  const [showProcessDialog, setShowProcessDialog] = React.useState(false);
+  const [processingReport, setProcessingReport] = React.useState(null);
+  const [selectedAction, setSelectedAction] = React.useState(null);
+  const [emailContent, setEmailContent] = React.useState("");
   const LIMIT = 4;
   const isInitialLoad = React.useRef(true);
   const currentKey = React.useRef(null);
@@ -28,11 +32,119 @@ const AdminLayout = () => {
     setLoading(false);
   };
 
+  const handleProcessReport = (report) => {
+    setProcessingReport(report);
+    setShowProcessDialog(true);
+    setSelectedAction(null);
+    setEmailContent("");
+  };
+
+  const handleActionSelect = (action) => {
+    setSelectedAction(action);
+  };
+
+  const handleSendEmail = () => {
+    if (emailContent.trim() && processingReport) {
+      socket.emit("sendReportEmail", {
+        reportId: processingReport.idReport,
+        content: emailContent
+      });
+      setSelectedAction(null);
+      setEmailContent("");
+    }
+  };
+
+  const handleDeleteContent = () => {
+    if (window.confirm(`Bạn có chắc chắn muốn xóa ${processingReport?.type === "POST" ? "bài viết" : "bình luận"} này?`)) {
+      if (processingReport?.type === "POST") {
+        socket.emit("deletePost", processingReport.postId);
+      } else if (processingReport?.type === "COMMENT") {
+        socket.emit("deleteComment", processingReport.commentId);
+      }
+      setSelectedAction(null);
+    }
+  };
+
+  const handleMarkResolved = () => {
+    if (processingReport) {
+      socket.emit("updateReportStatus", { 
+        reportId: processingReport.idReport, 
+        status: "PROCESSING"
+      });
+      
+      // Update UI immediately
+      setReports(prev => prev.map(report => 
+        report.idReport === processingReport.idReport 
+          ? { ...report, status: "PROCESSING" } 
+          : report
+      ));
+      
+      setSelectedAction(null);
+    }
+  };
+
+  const closeProcessDialog = () => {
+    setShowProcessDialog(false);
+    setProcessingReport(null);
+    setSelectedAction(null);
+    setEmailContent("");
+  };
+
   const handleDeleteResponse = (result) => {
     if (!result.success) {
       console.error("Error deleting report:", result.error);
       alert("Không thể xóa báo cáo. Vui lòng thử lại sau.");
       socket.emit("getAllReport", { limit: LIMIT, lastKey: null });
+    }
+  };
+
+  const handleSubmitProcess = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const actions = {
+      sendEmail: formData.get('sendEmail') === 'on',
+      deleteContent: formData.get('deleteContent') === 'on',
+      markResolved: formData.get('markResolved') === 'on'
+    };
+    const note = formData.get('note');
+    
+    if (processingReport) {
+      // Send email if checked
+      if (actions.sendEmail) {
+        socket.emit("sendReportEmail", {
+          reportId: processingReport.idReport,
+          note
+        });
+      }
+
+      // Delete reported content if checked
+      if (actions.deleteContent) {
+        if (processingReport.type === "POST") {
+          socket.emit("deletePost", processingReport.postId);
+        } else if (processingReport.type === "COMMENT") {
+          socket.emit("deleteComment", processingReport.commentId);
+        }
+      }
+
+      // Mark as resolved if checked
+      if (actions.markResolved) {
+        socket.emit("updateReportStatus", { 
+          reportId: processingReport.idReport, 
+          status: "RESOLVED",
+          note 
+        });
+        
+        // Update UI immediately
+        setReports(prev => prev.map(report => 
+          report.idReport === processingReport.idReport 
+            ? { ...report, status: "RESOLVED", note } 
+            : report
+        ));
+      }
+      
+      // Close dialog
+      setShowProcessDialog(false);
+      setProcessingReport(null);
     }
   };
 
@@ -75,10 +187,6 @@ const AdminLayout = () => {
 
   const handleViewReport = (report) => {
     setSelectedReport(report);
-  };
-
-  const handleResolveReport = (reportId) => {
-    socket.emit("updateReportStatus", { reportId, status: "RESOLVED" });
   };
 
   const getReportTypeLabel = (type) => {
@@ -175,11 +283,11 @@ const AdminLayout = () => {
                             <FiEye className="h-5 w-5" />
                           </button>
                           <button
-                            onClick={() => handleResolveReport(report.idReport)}
+                            onClick={() => handleProcessReport(report)}
                             className="text-green-600 hover:text-green-900 mr-3"
-                            title="Đánh dấu đã xử lý"
+                            title="Xử lý báo cáo"
                           >
-                            <FiCheckCircle className="h-5 w-5" />
+                            <FiSettings className="h-5 w-5" />
                           </button>
                           <button
                             onClick={() => handleDeleteReport(report.idReport)}
@@ -329,6 +437,114 @@ const AdminLayout = () => {
           </div>
         </div>
       </div>
+      {/* Process Dialog */}
+      {showProcessDialog && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+          <div className="relative bg-white rounded-lg shadow-xl p-6 m-4 max-w-xl w-full">
+            <h3 className="text-lg font-medium mb-4">Xử lý báo cáo</h3>
+            
+            <div className="space-y-4">
+              {/* Action Buttons */}
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={() => handleActionSelect('email')}
+                  className={`flex items-center px-4 py-2 rounded-md ${
+                    selectedAction === 'email' 
+                      ? 'bg-blue-100 text-blue-700' 
+                      : 'bg-white text-gray-700 border border-gray-300'
+                  }`}
+                >
+                  <FiMail className="mr-2" />
+                  Gửi email
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleActionSelect('delete')}
+                  className={`flex items-center px-4 py-2 rounded-md ${
+                    selectedAction === 'delete' 
+                      ? 'bg-red-100 text-red-700' 
+                      : 'bg-white text-gray-700 border border-gray-300'
+                  }`}
+                >
+                  <FiTrash2 className="mr-2" />
+                  Xóa nội dung
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleActionSelect('resolve')}
+                  className={`flex items-center px-4 py-2 rounded-md ${
+                    selectedAction === 'resolve' 
+                      ? 'bg-green-100 text-green-700' 
+                      : 'bg-white text-gray-700 border border-gray-300'
+                  }`}
+                >
+                  <FiCheck className="mr-2" />
+                  Đánh dấu xử lý
+                </button>
+              </div>
+
+              {/* Conditional Content Based on Selected Action */}
+              {selectedAction === 'email' && (
+                <div className="mt-4">
+                  <textarea
+                    value={emailContent}
+                    onChange={(e) => setEmailContent(e.target.value)}
+                    rows="4"
+                    className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md p-2"
+                    placeholder="Nhập nội dung email..."
+                  ></textarea>
+                  <div className="mt-2 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={handleSendEmail}
+                      disabled={!emailContent.trim()}
+                      className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                    >
+                      Gửi email
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {selectedAction === 'delete' && (
+                <div className="mt-4 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleDeleteContent}
+                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  >
+                    Xác nhận xóa
+                  </button>
+                </div>
+              )}
+
+              {selectedAction === 'resolve' && (
+                <div className="mt-4 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleMarkResolved}
+                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  >
+                    Xác nhận xử lý
+                  </button>
+                </div>
+              )}
+
+              {/* Close Button */}
+              <div className="mt-6 flex justify-end">
+                <button
+                  type="button"
+                  onClick={closeProcessDialog}
+                  className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Đóng
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
