@@ -4,23 +4,51 @@ import socket from "../../services/socket";
 
 const AdminLayout = () => {
   const [reports, setReports] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
+  const [loading, setLoading] = React.useState(false);
   const [selectedReport, setSelectedReport] = React.useState(null);
+  const [nextKey, setNextKey] = React.useState(null);
+  const [hasMore, setHasMore] = React.useState(true);
+  const LIMIT = 4;
+  const isInitialLoad = React.useRef(true);
+  const currentKey = React.useRef(null);
+
+  // Handler for socket responses
+  const handleReportResponse = React.useCallback((data) => {
+    if (data.success) {
+      if (isInitialLoad.current) {
+        setReports(data.reports);
+        isInitialLoad.current = false;
+      } else {
+        setReports(prev => [...prev, ...data.reports]);
+      }
+      
+      currentKey.current = data.nextKey;
+      setNextKey(data.nextKey);
+      setHasMore(data.nextKey !== null);
+    }
+    setLoading(false);
+  }, []);
+
+  const loadMore = () => {
+    if (!loading && hasMore && currentKey.current !== null) {
+      setLoading(true);
+      socket.emit("getAllReport", { 
+        limit: LIMIT, 
+        lastKey: currentKey.current
+      });
+    }
+  };
 
   React.useEffect(() => {
-    socket.emit("getAllReport");
+    setLoading(true);
+    socket.emit("getAllReport", { limit: LIMIT, lastKey: null });
 
-    socket.on("responseAllReport", (data) => {
-      if (data.success && Array.isArray(data.reports)) {
-        setReports(data.reports);
-        setLoading(false);
-      }
-    });
+    socket.on("responseAllReport", handleReportResponse);
 
     return () => {
-      socket.off("responseAllReport");
+      socket.off("responseAllReport", handleReportResponse);
     };
-  }, []);
+  }, [handleReportResponse]);
 
   const handleViewReport = (report) => {
     setSelectedReport(report);
@@ -118,15 +146,11 @@ const AdminLayout = () => {
                                 : "bg-yellow-100 text-yellow-800"
                             }`}
                           >
-                            {report.status === "RESOLVED"
-                              ? "Đã xử lý"
-                              : "Đang chờ"}
+                            {report.status === "RESOLVED" ? "Đã xử lý" : "Đang chờ"}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(report.createdAt).toLocaleDateString(
-                            "vi-VN"
-                          )}
+                          {new Date(report.createdAt).toLocaleDateString("vi-VN")}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <button
@@ -155,6 +179,27 @@ const AdminLayout = () => {
                     ))}
                   </tbody>
                 </table>
+                {hasMore && (
+                  <div className="px-6 py-4 text-center">
+                    <button
+                      onClick={loadMore}
+                      disabled={loading}
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                    >
+                      {loading ? (
+                        <span className="flex items-center">
+                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Đang tải...
+                        </span>
+                      ) : (
+                        'Tải thêm'
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
