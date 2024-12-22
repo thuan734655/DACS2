@@ -10,6 +10,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import React, { useEffect } from "react";
 import { initializeSocket } from "./services/socketService";
 import { ToastProvider } from "./context/ToastContext";
+import AdminLayout from "./components/admin/AdminLayout";
 
 function App() {
   useEffect(() => {
@@ -30,6 +31,8 @@ function App() {
             <Route path="/profile/:id" element={<ProfileUI />} />
             <Route path="/profile" element={<ProfileUI />} />
             <Route path="/notifications" element={<NotificationPage />} />
+            <Route path="/admin" element={<AdminLayout />} />
+
           </Routes>
         </Router>
       </div>
