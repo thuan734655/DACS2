@@ -35,8 +35,6 @@ const ProfileUI = () => {
   const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(0);
   const [friends, setFriends] = useState([]);
-  console.log("friends", friends);
-
   const [isUploading, setIsUploading] = useState(false);
   const { id } = useParams();
   const [userInfo, setUserInfo] = useState({
@@ -51,6 +49,7 @@ const ProfileUI = () => {
     education: "",
     location: "",
   });
+console.log("0000000000",id);
 
   const { currentUser, reload, currentUserId, isOwner } =
     useUserPublicProfile(id);
@@ -92,7 +91,7 @@ const ProfileUI = () => {
   const handleSave = async () => {
     try {
       setLoading(true);
-      await updateUserInfo(currentUser.idUser, editedInfo);
+      await updateUserInfo(currentUserId, editedInfo);
       setUserInfo(editedInfo);
       setIsEditing(false);
     } catch (error) {

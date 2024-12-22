@@ -191,6 +191,9 @@ export const getUserPublicProfile = async (userId) => {
 };
 
 export const updateUserInfo = async (userId, info) => {
+  if (!userId) {
+    throw new Error("User ID is required");
+  }
   try {
     const response = await axiosAPI.put(`/api/users/${userId}/info`, info);
     return response.data;

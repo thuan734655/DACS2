@@ -3,13 +3,17 @@ import Logo from "../../assets/imgs/Logo.png";
 import { LogOut, User, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { searchUsersByName } from "../../services/userService";
-
+import { useUserPublicProfile } from "../../hooks/useUserPublicProfile";
+const API_URL = "http://localhost:5000";
 const HeaderUI = (isAdmin) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [showResults, setShowResults] = useState(false);
-
+  const { currentUser, reload, currentUserId, isOwner } =
+  useUserPublicProfile();
+  console.log("44444444444",currentUser);
+  
   const handleSearch = async (value) => {
     setSearchTerm(value);
     if (value.trim()) {
@@ -79,7 +83,7 @@ const HeaderUI = (isAdmin) => {
                     onClick={() => handleResultClick(user.idUser)}
                   >
                     <img
-                      src={user.avatar || "default-avatar.png"}
+                      src={currentUser.avatar ? `${API_URL}${user.avatar}` : "default-avatar.png"}
                       alt={user.fullName}
                       className="w-8 h-8 rounded-full mr-2"
                     />
