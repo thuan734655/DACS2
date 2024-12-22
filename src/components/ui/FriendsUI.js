@@ -15,7 +15,7 @@ import {
 } from "../../services/userService";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+const API_URL = "http://localhost:5000";
 const FriendsUI = () => {
   const [activeTab, setActiveTab] = useState("friends"); // 'requests' or 'suggestions'
   const [friendRequests, setFriendRequests] = useState([]);
@@ -156,7 +156,7 @@ const FriendsUI = () => {
               className="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-lg"
             >
               <img
-                src={request.avatar || "/default-avatar.png"}
+                src={request.avatar ? `${API_URL}${request.avatar}` : "/default-avatar.png"}
                 alt={request.fullName}
                 className="w-12 h-12 rounded-full object-cover"
               />
@@ -263,7 +263,7 @@ const FriendsUI = () => {
           >
             <div className="flex items-center gap-3">
               <img
-                src={`https://api.dicebear.com/6.x/avataaars/svg?seed=${friend.idUser}`}
+                src={friend?.avatar ? `${API_URL}${friend.avatar}` : "/default-avatar.png"}
                 alt={`${friend.fullName || "User"}`}
                 className="w-12 h-12 rounded-full object-cover"
               />

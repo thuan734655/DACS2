@@ -2,7 +2,7 @@ import {React, useState, useEffect} from 'react';
 import socket from "../../services/socket";
 import SocialPost from './SocialPost';
 import { FaArrowLeft, FaUserFriends, FaCheck, FaTimes, FaUserPlus, FaUser } from 'react-icons/fa';
-
+const API_URL = "http://localhost:5000";
 const NotificationDetailUI = ({notification, onBack}) => {
   const user = JSON.parse(localStorage.getItem("user")); 
   const [isPost, setIsPost] = useState( notification.type === 'POST_REACTION' || notification.type === 'POST_COMMENT' ||  notification.type === 'POST_REPLY_COMMENT' || notification.type === 'POST_REPLY_TO_REPLY' ||notification.type === 'POST_SHARE');
@@ -42,7 +42,7 @@ const NotificationDetailUI = ({notification, onBack}) => {
               <div className="relative z-10 flex justify-center mb-6">
                 {avatarUrl ? (
                   <img 
-                    src={avatarUrl} 
+                    src={avatarUrl ? `${API_URL}${avatarUrl}` : 'https://api.dicebear.com/6.x/avataaars/svg?seed=1'} 
                     alt={senderName}
                     className="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover"
                   />
@@ -161,7 +161,7 @@ const NotificationDetailUI = ({notification, onBack}) => {
               <div className="relative z-10 flex justify-center mb-6">
                 {avatarUrl ? (
                   <img 
-                    src={avatarUrl} 
+                    src={avatarUrl ? `${API_URL}${avatarUrl}` : 'https://api.dicebear.com/6.x/avataaars/svg?seed=${senderName}'} 
                     alt={senderName}
                     className="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover filter grayscale"
                   />
