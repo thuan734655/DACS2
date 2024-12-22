@@ -23,7 +23,7 @@ import {
 import socket from "../../services/socket";
 import { useUserPublicProfile } from "../../hooks/useUserPublicProfile";
 
-const API_URL = "http://http://localhost:5000";
+const API_URL = "http://localhost:5000";
 const HomePageUI = () => {
   const [formCreatePostVisible, setFormCreatePostVisible] = useState(false);
   const [listPosts, setListPosts] = useState({});

@@ -159,7 +159,11 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
 
         <div className="p-4 flex items-center gap-2">
           <img
-            src={user?.avatar ? `${API_URL}${user.avatar}` : "https://via.placeholder.com/40"}
+            src={
+              user?.avatar
+                ? `${API_URL}${user.avatar}`
+                : "https://via.placeholder.com/40"
+            }
             alt=""
             className="w-10 h-10 rounded-full"
           />
