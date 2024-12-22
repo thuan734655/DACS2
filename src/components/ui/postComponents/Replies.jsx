@@ -27,7 +27,6 @@ const Replies = ({
   const [selectedReason, setSelectedReason] = useState("");
   const [reportingReplyId, setReportingReplyId] = useState(null);
 
-  
   const predefinedReasons = [
     "Nội dung không phù hợp",
     "Spam hoặc lừa đảo",
@@ -51,6 +50,7 @@ const Replies = ({
     }
 
     const content = {
+      postId: postId,
       reason: reason,
       type: "REPLY",
       replyId: replyId,
@@ -86,7 +86,6 @@ const Replies = ({
   }, [showToast]);
 
   return (
-    
     <div className={`${depth < 5 ? "ml-4" : "reset-ml"} mt-2`}>
       {commentsList.map((reply) => (
         <div

@@ -48,6 +48,7 @@ function CommentList({
     }
 
     const content = {
+      postId: postId,
       reason: reason,
       type: "COMMENT",
       commentId: commentId,

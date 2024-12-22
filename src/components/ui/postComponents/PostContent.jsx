@@ -144,11 +144,10 @@ function PostContent({ post, postUser, isComment = false, onClose }) {
       showToast("Vui lòng chọn hoặc nhập lý do báo cáo!", "error");
       return;
     }
-
     const content = {
+      postId: post.postId,
       reason: reason,
       type: "POST",
-      postId: postId,
     };
 
     socket.emit("report", content);
