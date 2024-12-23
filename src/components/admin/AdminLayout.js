@@ -1,8 +1,10 @@
 import React from "react";
 import { FiTrash2, FiEye, FiSettings, FiMail, FiCheck } from "react-icons/fi";
 import socket from "../../services/socket";
+import { useToast } from "../../context/ToastContext";
 
 const AdminLayout = () => {
+  const { showToast } = useToast();
   const [reports, setReports] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
   const [selectedReport, setSelectedReport] = React.useState(null);
@@ -91,22 +93,28 @@ const AdminLayout = () => {
   };
 
   const handleMarkResolved = () => {
+    console.log("Marking as resolved...", processingReport);
     if (processingReport) {
-      socket.emit("updateReportStatus", {
-        reportId: processingReport.idReport,
-        status: "PROCESSING",
+      socket.emit("setReadReport", {
+        idReport: processingReport.idReport,
+        status: "RESOLVED",
+        idUser: idUser,
       });
 
       // Update UI immediately
       setReports((prev) =>
         prev.map((report) =>
           report.idReport === processingReport.idReport
-            ? { ...report, status: "PROCESSING" }
+            ? { ...report, status: "RESOLVED" }
             : report
         )
       );
 
       setSelectedAction(null);
+
+      // Close the dialog
+      setShowProcessDialog(false);
+      setProcessingReport(null);
     }
   };
 
@@ -232,6 +240,17 @@ const AdminLayout = () => {
       socket.off("responseAllReport", handleReportResponse);
     };
   }, []);
+
+  React.useEffect(() => {
+    socket.on("responseUpdateReadReport", (data) => {
+      if (data.success) {
+        showToast("Đánh dấu xử lý thành côngcông!", "success");
+      }
+    });
+    return () => {
+      socket.off("responseUpdateReadReport");
+    };
+  }, [processingReport]);
 
   const handleViewReport = (report) => {
     setSelectedReport(report);
