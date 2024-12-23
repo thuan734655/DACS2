@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FaSearch, FaCircle, FaTimes } from "react-icons/fa";
 import { getFriendsList } from "../../services/userService";
 import socket from "../../services/socket";
-const API_URL = "http://localhost:5000";
+const API_URL = "https://dacs2-server-7.onrender.com";
 const MessagesUI = ({
   onClose,
   showInRightPanel = false,
@@ -12,7 +12,7 @@ const MessagesUI = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [friends, setFriends] = useState([]);
   console.log("friends list", friends);
-  
+
   const [onlineUsers, setOnlineUsers] = useState(new Set());
   useEffect(() => {
     const loadFriends = async () => {
@@ -23,10 +23,9 @@ const MessagesUI = ({
           friendsList.map((friend) => ({
             id: friend.idUser,
             user: friend.fullName || "Người dùng",
-            avatar:
-              friend.avatar
-                ? `${API_URL}${friend.avatar}`
-                : `https://api.dicebear.com/6.x/avataaars/svg?seed=${friend.idUser}`,
+            avatar: friend.avatar
+              ? `${API_URL}${friend.avatar}`
+              : `https://api.dicebear.com/6.x/avataaars/svg?seed=${friend.idUser}`,
             lastMessage: "Nhấn để bắt đầu trò chuyện",
             time: "",
             unread: 0,

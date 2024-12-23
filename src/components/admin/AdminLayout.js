@@ -52,14 +52,19 @@ const AdminLayout = () => {
   const handleSendEmail = () => {
     if (emailContent.trim() && processingReport) {
       const data = {
-        id: processingReport.type === "POST" ? processingReport.postId : processingReport.commentId,
+        id:
+          processingReport.type === "POST"
+            ? processingReport.postId
+            : processingReport.commentId,
         dataMail: {
           content: emailContent,
-          title: `Phản hồi báo cáo ${processingReport.type === 'POST' ? 'bài viết' : 'bình luận'}`,
-          subject: `Phản hồi báo cáo từ hệ thống`
-        }
+          title: `Phản hồi báo cáo ${
+            processingReport.type === "POST" ? "bài viết" : "bình luận"
+          }`,
+          subject: `Phản hồi báo cáo từ hệ thống`,
+        },
       };
-      
+
       socket.emit("sendMail", data, processingReport.type, idUser);
       setEmailContent("");
       setSelectedAction(null);
@@ -287,7 +292,7 @@ const AdminLayout = () => {
 
   const renderActionContent = () => {
     switch (selectedAction) {
-      case 'email':
+      case "email":
         return (
           <div className="mt-4">
             <textarea
@@ -519,7 +524,7 @@ const AdminLayout = () => {
                                   (url, index) => (
                                     <img
                                       key={index}
-                                      src={`http://localhost:5000${url}`}
+                                      src={`https://dacs2-server-7.onrender.com${url}`}
                                       alt={`Media ${index + 1}`}
                                       className="w-full h-20 object-cover rounded"
                                     />
@@ -541,7 +546,7 @@ const AdminLayout = () => {
                                   (url, index) => (
                                     <img
                                       key={index}
-                                      src={`http://localhost:5000${url}`}
+                                      src={`https://dacs2-server-7.onrender.com${url}`}
                                       alt={`Media ${index + 1}`}
                                       className="w-full h-20 object-cover rounded"
                                     />
@@ -595,7 +600,7 @@ const AdminLayout = () => {
               <div className="flex space-x-2 mt-4">
                 <button
                   className="flex items-center px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  onClick={() => handleActionSelect('email')}
+                  onClick={() => handleActionSelect("email")}
                 >
                   <FiMail className="mr-2" />
                   Gửi Email

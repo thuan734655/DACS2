@@ -23,7 +23,7 @@ import {
 import socket from "../../services/socket";
 import { useUserPublicProfile } from "../../hooks/useUserPublicProfile";
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://dacs2-server-7.onrender.com";
 const HomePageUI = () => {
   const [formCreatePostVisible, setFormCreatePostVisible] = useState(false);
   const [listPosts, setListPosts] = useState(() => {
@@ -73,10 +73,15 @@ const HomePageUI = () => {
       // Kiểm tra xem cache có hết hạn chưa (5 phút)
       const cacheExpiration = 5 * 60 * 1000; // 5 phút
       const currentTime = Date.now();
-      const isCacheValid = currentTime - parseInt(lastCacheTime) < cacheExpiration;
+      const isCacheValid =
+        currentTime - parseInt(lastCacheTime) < cacheExpiration;
 
       // Nếu là trang đầu tiên và cache còn hợp lệ, sử dụng dữ liệu từ cache
-      if (pageToLoad === 1 && isCacheValid && Object.keys(listPosts).length > 0) {
+      if (
+        pageToLoad === 1 &&
+        isCacheValid &&
+        Object.keys(listPosts).length > 0
+      ) {
         setIsLoading(false);
         return;
       }
@@ -310,7 +315,9 @@ const HomePageUI = () => {
           </div>
 
           <nav
-            className={`space-y-4 ${isMobileMenuOpen ? "block" : "hidden md:block"}`}
+            className={`space-y-4 ${
+              isMobileMenuOpen ? "block" : "hidden md:block"
+            }`}
           >
             {menuItems.map((item) => (
               <button

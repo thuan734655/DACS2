@@ -4,7 +4,7 @@ import { X, MoreHorizontal, Globe, Users, Lock } from "lucide-react";
 import { useToast } from "../../../context/ToastContext";
 import socket from "../../../services/socket.js";
 import { useUserPublicProfile } from "../../../hooks/useUserPublicProfile.js";
-const API_URL = "http://localhost:5000";
+const API_URL = "https://dacs2-server-7.onrender.com";
 function PostContent({ post, postUser, isComment = false, onClose }) {
   const { currentUser, reload, currentUserId, isOwner } = useUserPublicProfile(
     post?.idUser

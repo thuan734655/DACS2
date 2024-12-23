@@ -30,7 +30,7 @@ import {
 } from "../../services/userService";
 import FormUser from "./FormUser";
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://dacs2-server-7.onrender.com";
 const ProfileUI = () => {
   const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(0);

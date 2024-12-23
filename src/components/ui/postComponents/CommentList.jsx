@@ -12,7 +12,7 @@ import socket from "../../../services/socket";
 import { formatTimestamp } from "../../../utils/timeFormat";
 import { useToast } from "../../../context/ToastContext";
 import { useUserPublicProfile } from "../../../hooks/useUserPublicProfile";
-const API_URL = "http://localhost:5000";
+const API_URL = "https://dacs2-server-7.onrender.com";
 function CommentList({
   commentsList,
   emojiChoose,
@@ -21,9 +21,9 @@ function CommentList({
   setCommentCount,
 }) {
   const { currentUser, reload, currentUserId, isOwner } =
-  useUserPublicProfile();
+    useUserPublicProfile();
   console.log("111111111111", currentUser);
-  
+
   const { showToast } = useToast();
   const [activeId, setActiveId] = useState(null);
   const [openReplies, setOpenReplies] = useState({});
@@ -191,7 +191,11 @@ function CommentList({
             <div className="flex items-start gap-2 mb-2">
               <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
                 <img
-                  src={user[0]?.avatar ? `${API_URL}${user[0].avatar}` : `https://api.dicebear.com/6.x/avataaars/svg?seed=${user[0]?.fullName}`}
+                  src={
+                    user[0]?.avatar
+                      ? `${API_URL}${user[0].avatar}`
+                      : `https://api.dicebear.com/6.x/avataaars/svg?seed=${user[0]?.fullName}`
+                  }
                   alt="User avatar"
                   className="w-full h-full object-cover"
                 />
@@ -208,13 +212,13 @@ function CommentList({
                         key={index}
                         controls
                         className="w-full rounded-lg mt-2"
-                        src={"http://localhost:5000" + fileUrl}
+                        src={"https://dacs2-server-7.onrender.com" + fileUrl}
                       />
                     ) : (
                       <img
                         key={index}
                         className="w-full rounded-lg mt-2"
-                        src={"http://localhost:5000" + fileUrl}
+                        src={"https://dacs2-server-7.onrender.com" + fileUrl}
                         alt="Comment media"
                       />
                     )
