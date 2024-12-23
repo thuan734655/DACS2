@@ -50,8 +50,6 @@ const HomePageUI = () => {
   const [hasMore, setHasMore] = useState(true);
   const [fetchedPostIds, setFetchedPostIds] = useState([]);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-  const scrollRef = useRef(null);
-  const lastScrollPositionRef = useRef(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { currentUser } = useUserPublicProfile();
 
@@ -88,6 +86,10 @@ const HomePageUI = () => {
     },
     [idUser, fetchedPostIds, isLoading, hasMore, listPosts, lastCacheTime]
   );
+
+  const handleLoadMore = () => {
+    loadPosts(page + 1);
+  };
 
   const clearCache = useCallback(() => {
     localStorage.removeItem("cachedPosts");
@@ -150,19 +152,21 @@ const HomePageUI = () => {
   }, [listPosts]);
 
   useEffect(() => {
-    const handleReceivePosts = ({ posts, page: receivedPage, hasMore }) => {
+    const handleReceivePosts = ({ posts, hasMorePosts }) => {
       setListPosts((prevPosts) => {
-        const newPosts = receivedPage === 1 ? posts : { ...prevPosts, ...posts };
+        const newPosts = { ...prevPosts, ...posts };
         // Lưu vào localStorage
         localStorage.setItem("cachedPosts", JSON.stringify(newPosts));
         localStorage.setItem("lastCacheTime", Date.now().toString());
         return newPosts;
       });
-      setPage(receivedPage);
-      setHasMore(hasMore);
-      setFetchedPostIds((prevIds) => [...prevIds, ...Object.keys(posts)]);
       setIsLoading(false);
       setInitialLoadComplete(true);
+      setHasMore(hasMorePosts);
+      setFetchedPostIds((prevFetchedPostIds) => [
+        ...prevFetchedPostIds,
+        ...Object.keys(posts),
+      ]);
     };
 
     const handleError = ({ message }) => {
@@ -218,35 +222,12 @@ const HomePageUI = () => {
           ...prevPosts,
         };
       });
-
-      setFetchedPostIds((prevIds) => [post.postId, ...prevIds]);
     });
 
     return () => {
       socket.off("receiveNewPost");
     };
   }, []);
-
-  const handleScroll = useCallback(() => {
-    if (scrollRef.current && initialLoadComplete) {
-      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-      if (
-        scrollHeight - scrollTop - clientHeight < 200 &&
-        !isLoading &&
-        hasMore
-      ) {
-        loadPosts(page + 1);
-      }
-    }
-  }, [loadPosts, page, isLoading, hasMore, initialLoadComplete]);
-
-  useEffect(() => {
-    const scrollContainer = scrollRef.current;
-    if (scrollContainer) {
-      scrollContainer.addEventListener("scroll", handleScroll);
-      return () => scrollContainer.removeEventListener("scroll", handleScroll);
-    }
-  }, [handleScroll]);
 
   const loadUserData = async () => {
     try {
@@ -268,41 +249,6 @@ const HomePageUI = () => {
   const handleChatSelect = (chat) => {
     setSelectedChat(chat);
   };
-
-  useEffect(() => {
-    socket.on("receiveNewPost", ({ post }) => {
-      if (!post) return;
-
-      setListPosts((prevPosts) => {
-        const newPosts = { ...prevPosts };
-        const postId = post.postId || Date.now().toString();
-
-        newPosts[postId] = {
-          post: {
-            ...post,
-            toggle: false,
-            text: post.text || "",
-            textColor: post.textColor || "#000000",
-            backgroundColor: post.backgroundColor || "#ffffff",
-            listFileUrl: post.listFileUrl || [],
-            comments: post.comments || [],
-            createdAt: post.createdAt || Date.now(),
-          },
-          groupedLikes: post.groupedLikes || [],
-          commentCount: post.commentCount || 0,
-          infoUserList: {
-            [post.idUser]: post.infoUserList[post.idUser],
-          },
-        };
-
-        return newPosts;
-      });
-    });
-
-    return () => {
-      socket.off("receiveNewPost");
-    };
-  }, []);
 
   const renderLeftPanel = () => {
     if (!user) {
@@ -405,7 +351,7 @@ const HomePageUI = () => {
                 user={user}
               />
             )}
-            {isLoading && page === 1 ? (
+            {isLoading ? (
               <div className="text-center py-4">Đang tải bài viết...</div>
             ) : error ? (
               <div className="text-center py-4 text-red-500">
@@ -429,9 +375,27 @@ const HomePageUI = () => {
                     />
                   );
                 })}
-                {isLoading && (
-                  <div className="text-center py-4">
-                    Đang tải thêm bài viết...
+                {hasMore && (
+                  <div className="flex justify-center py-4">
+                    <button
+                      onClick={handleLoadMore}
+                      disabled={isLoading}
+                      className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 disabled:opacity-50 flex items-center space-x-2"
+                    >
+                      {isLoading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                          <span>Đang tải...</span>
+                        </>
+                      ) : (
+                        <span>Xem thêm bài viết</span>
+                      )}
+                    </button>
+                  </div>
+                )}
+                {!hasMore && Object.keys(listPosts).length > 0 && (
+                  <div className="text-center py-4 text-gray-500">
+                    Đã hiển thị tất cả bài viết
                   </div>
                 )}
               </div>
@@ -480,10 +444,7 @@ const HomePageUI = () => {
           {renderLeftPanel()}
         </div>
 
-        <div
-          ref={scrollRef}
-          className="col-span-12 md:col-span-6 pt-10 h-full overflow-y-auto"
-        >
+        <div className="col-span-12 md:col-span-6 pt-10 h-full overflow-y-auto">
           {renderMainContent()}
         </div>
 
@@ -497,16 +458,7 @@ const HomePageUI = () => {
             />
           ) : activeTab === "friends" ? (
             <UserSearchUI user={user} />
-          ) : (
-            <div>
-              <button
-                onClick={clearCache}
-                className="w-full px-4 py-2 text-sm text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Làm mới dữ liệu
-              </button>
-            </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>
