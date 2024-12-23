@@ -87,9 +87,10 @@ const HandleLoginController = async (
     console.log(user, "user");
     if (requires2FA) {
       alert("Vui lòng xác thực 2FA!!");
-      setStep(2); // Step 2 for 2FA
+      setStep(2);
     } else if (active) {
-      setStep(4); // Step 4 for active account
+      alert("Vui lòng xác thực tài khoản!!");
+      setStep(2); 
     } else {
       navigate("/homepage");
     }
