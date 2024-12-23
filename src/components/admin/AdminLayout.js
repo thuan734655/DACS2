@@ -12,6 +12,7 @@ const AdminLayout = () => {
   const [processingReport, setProcessingReport] = React.useState(null);
   const [selectedAction, setSelectedAction] = React.useState(null);
   const [emailContent, setEmailContent] = React.useState("");
+  const idUser = JSON.parse(localStorage.getItem("user"))?.idUser;
   const LIMIT = 4;
   const isInitialLoad = React.useRef(true);
   const currentKey = React.useRef(null);
@@ -22,9 +23,9 @@ const AdminLayout = () => {
         setReports(data.reports);
         isInitialLoad.current = false;
       } else {
-        setReports(prev => [...prev, ...data.reports]);
+        setReports((prev) => [...prev, ...data.reports]);
       }
-      
+
       currentKey.current = data.nextKey;
       setNextKey(data.nextKey);
       setHasMore(data.nextKey !== null);
@@ -47,7 +48,7 @@ const AdminLayout = () => {
     if (emailContent.trim() && processingReport) {
       socket.emit("sendReportEmail", {
         reportId: processingReport.idReport,
-        content: emailContent
+        content: emailContent,
       });
       setSelectedAction(null);
       setEmailContent("");
@@ -55,30 +56,56 @@ const AdminLayout = () => {
   };
 
   const handleDeleteContent = () => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa ${processingReport?.type === "POST" ? "bài viết" : "bình luận"} này?`)) {
-      if (processingReport?.type === "POST") {
-        socket.emit("deletePost", processingReport.postId);
-      } else if (processingReport?.type === "COMMENT") {
-        socket.emit("deleteComment", processingReport.commentId);
+    if (processingReport) {
+      const confirmMessage =
+        processingReport.type === "POST"
+          ? "Bạn có chắc chắn muốn xóa bài viết này?"
+          : "Bạn có chắc chắn muốn xóa bình luận này?";
+
+      if (window.confirm(confirmMessage)) {
+        // Delete the content first
+        if (processingReport.type === "POST") {
+          socket.emit("deletePost", {
+            postId: processingReport.postId,
+            idUser: idUser,
+          });
+        } else if (processingReport.type === "COMMENT") {
+          const commentId = processingReport.commentId;
+          socket.emit("deleteComment", { commentId, idUser });
+        }
+
+        // Remove report from UI immediately
+        setReports((prev) =>
+          prev.filter((report) => report.idReport !== processingReport.idReport)
+        );
+
+        // Delete the report
+        socket.emit("deleteReport", processingReport.idReport);
+
+        // Close the dialog
+        setShowProcessDialog(false);
+        setProcessingReport(null);
+        setSelectedAction(null);
       }
-      setSelectedAction(null);
     }
   };
 
   const handleMarkResolved = () => {
     if (processingReport) {
-      socket.emit("updateReportStatus", { 
-        reportId: processingReport.idReport, 
-        status: "PROCESSING"
+      socket.emit("updateReportStatus", {
+        reportId: processingReport.idReport,
+        status: "PROCESSING",
       });
-      
+
       // Update UI immediately
-      setReports(prev => prev.map(report => 
-        report.idReport === processingReport.idReport 
-          ? { ...report, status: "PROCESSING" } 
-          : report
-      ));
-      
+      setReports((prev) =>
+        prev.map((report) =>
+          report.idReport === processingReport.idReport
+            ? { ...report, status: "PROCESSING" }
+            : report
+        )
+      );
+
       setSelectedAction(null);
     }
   };
@@ -90,37 +117,32 @@ const AdminLayout = () => {
     setEmailContent("");
   };
 
-  const handleDeleteResponse = (result) => {
-    if (!result.success) {
-      console.error("Error deleting report:", result.error);
-      alert("Không thể xóa báo cáo. Vui lòng thử lại sau.");
-      socket.emit("getAllReport", { limit: LIMIT, lastKey: null });
-    }
-  };
-
   const handleSubmitProcess = (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const actions = {
-      sendEmail: formData.get('sendEmail') === 'on',
-      deleteContent: formData.get('deleteContent') === 'on',
-      markResolved: formData.get('markResolved') === 'on'
+      sendEmail: formData.get("sendEmail") === "on",
+      deleteContent: formData.get("deleteContent") === "on",
+      markResolved: formData.get("markResolved") === "on",
     };
-    const note = formData.get('note');
-    
+    const note = formData.get("note");
+
     if (processingReport) {
       // Send email if checked
       if (actions.sendEmail) {
         socket.emit("sendReportEmail", {
           reportId: processingReport.idReport,
-          note
+          note,
         });
       }
 
       // Delete reported content if checked
       if (actions.deleteContent) {
         if (processingReport.type === "POST") {
-          socket.emit("deletePost", processingReport.postId);
+          socket.emit("deletePost", {
+            postId: processingReport.postId,
+            idUser: processingReport.userId,
+          });
         } else if (processingReport.type === "COMMENT") {
           socket.emit("deleteComment", processingReport.commentId);
         }
@@ -128,20 +150,22 @@ const AdminLayout = () => {
 
       // Mark as resolved if checked
       if (actions.markResolved) {
-        socket.emit("updateReportStatus", { 
-          reportId: processingReport.idReport, 
+        socket.emit("updateReportStatus", {
+          reportId: processingReport.idReport,
           status: "RESOLVED",
-          note 
+          note,
         });
-        
+
         // Update UI immediately
-        setReports(prev => prev.map(report => 
-          report.idReport === processingReport.idReport 
-            ? { ...report, status: "RESOLVED", note } 
-            : report
-        ));
+        setReports((prev) =>
+          prev.map((report) =>
+            report.idReport === processingReport.idReport
+              ? { ...report, status: "RESOLVED", note }
+              : report
+          )
+        );
       }
-      
+
       // Close dialog
       setShowProcessDialog(false);
       setProcessingReport(null);
@@ -151,16 +175,18 @@ const AdminLayout = () => {
   const loadMore = () => {
     if (!loading && hasMore && currentKey.current !== null) {
       setLoading(true);
-      socket.emit("getAllReport", { 
-        limit: LIMIT, 
-        lastKey: currentKey.current
+      socket.emit("getAllReport", {
+        limit: LIMIT,
+        lastKey: currentKey.current,
       });
     }
   };
 
   const handleDeleteReport = (reportId) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa báo cáo này?")) {
-      setReports(prev => prev.filter(report => report.idReport !== reportId));
+      setReports((prev) =>
+        prev.filter((report) => report.idReport !== reportId)
+      );
       if (selectedReport?.idReport === reportId) {
         setSelectedReport(null);
       }
@@ -168,22 +194,44 @@ const AdminLayout = () => {
     }
   };
 
+  // Handle delete responses from server
+  React.useEffect(() => {
+    const handleDeleteResponse = (response) => {
+      if (!response.success) {
+        // If deletion failed, restore the deleted report by fetching latest data
+        setLoading(true);
+        socket.emit("getAllReport", {
+          limit: LIMIT,
+          lastKey: currentKey.current,
+        });
+        alert("Không thể xóa nội dung. Vui lòng thử lại sau.");
+      }
+    };
+
+    socket.on("responseDeletePost", handleDeleteResponse);
+    socket.on("responseDeleteComment", handleDeleteResponse);
+    socket.on("responseDeleteReport", handleDeleteResponse);
+
+    return () => {
+      socket.off("responseDeletePost", handleDeleteResponse);
+      socket.off("responseDeleteComment", handleDeleteResponse);
+      socket.off("responseDeleteReport", handleDeleteResponse);
+    };
+  }, []);
+
   React.useEffect(() => {
     const setupSocket = () => {
       setLoading(true);
       socket.emit("getAllReport", { limit: LIMIT, lastKey: null });
-
       socket.on("responseAllReport", handleReportResponse);
-      socket.on("responseDeleteReport", handleDeleteResponse);
     };
 
     setupSocket();
 
     return () => {
       socket.off("responseAllReport", handleReportResponse);
-      socket.off("responseDeleteReport", handleDeleteResponse);
     };
-  }, []); 
+  }, []);
 
   const handleViewReport = (report) => {
     setSelectedReport(report);
@@ -268,11 +316,15 @@ const AdminLayout = () => {
                                 : "bg-yellow-100 text-yellow-800"
                             }`}
                           >
-                            {report.status === "RESOLVED" ? "Đã xử lý" : "Đang chờ"}
+                            {report.status === "RESOLVED"
+                              ? "Đã xử lý"
+                              : "Đang chờ"}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(report.createdAt).toLocaleDateString("vi-VN")}
+                          {new Date(report.createdAt).toLocaleDateString(
+                            "vi-VN"
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <button
@@ -310,14 +362,30 @@ const AdminLayout = () => {
                     >
                       {loading ? (
                         <span className="flex items-center">
-                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          <svg
+                            className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
                           </svg>
                           Đang tải...
                         </span>
                       ) : (
-                        'Tải thêm'
+                        "Tải thêm"
                       )}
                     </button>
                   </div>
@@ -442,17 +510,17 @@ const AdminLayout = () => {
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
           <div className="relative bg-white rounded-lg shadow-xl p-6 m-4 max-w-xl w-full">
             <h3 className="text-lg font-medium mb-4">Xử lý báo cáo</h3>
-            
+
             <div className="space-y-4">
               {/* Action Buttons */}
               <div className="flex space-x-3">
                 <button
                   type="button"
-                  onClick={() => handleActionSelect('email')}
+                  onClick={() => handleActionSelect("email")}
                   className={`flex items-center px-4 py-2 rounded-md ${
-                    selectedAction === 'email' 
-                      ? 'bg-blue-100 text-blue-700' 
-                      : 'bg-white text-gray-700 border border-gray-300'
+                    selectedAction === "email"
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-white text-gray-700 border border-gray-300"
                   }`}
                 >
                   <FiMail className="mr-2" />
@@ -460,11 +528,11 @@ const AdminLayout = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleActionSelect('delete')}
+                  onClick={() => handleActionSelect("delete")}
                   className={`flex items-center px-4 py-2 rounded-md ${
-                    selectedAction === 'delete' 
-                      ? 'bg-red-100 text-red-700' 
-                      : 'bg-white text-gray-700 border border-gray-300'
+                    selectedAction === "delete"
+                      ? "bg-red-100 text-red-700"
+                      : "bg-white text-gray-700 border border-gray-300"
                   }`}
                 >
                   <FiTrash2 className="mr-2" />
@@ -472,11 +540,11 @@ const AdminLayout = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleActionSelect('resolve')}
+                  onClick={() => handleActionSelect("resolve")}
                   className={`flex items-center px-4 py-2 rounded-md ${
-                    selectedAction === 'resolve' 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-white text-gray-700 border border-gray-300'
+                    selectedAction === "resolve"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-white text-gray-700 border border-gray-300"
                   }`}
                 >
                   <FiCheck className="mr-2" />
@@ -485,7 +553,7 @@ const AdminLayout = () => {
               </div>
 
               {/* Conditional Content Based on Selected Action */}
-              {selectedAction === 'email' && (
+              {selectedAction === "email" && (
                 <div className="mt-4">
                   <textarea
                     value={emailContent}
@@ -507,7 +575,7 @@ const AdminLayout = () => {
                 </div>
               )}
 
-              {selectedAction === 'delete' && (
+              {selectedAction === "delete" && (
                 <div className="mt-4 flex justify-end">
                   <button
                     type="button"
@@ -519,7 +587,7 @@ const AdminLayout = () => {
                 </div>
               )}
 
-              {selectedAction === 'resolve' && (
+              {selectedAction === "resolve" && (
                 <div className="mt-4 flex justify-end">
                   <button
                     type="button"
