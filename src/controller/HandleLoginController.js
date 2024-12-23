@@ -65,7 +65,6 @@ const HandleLoginController = async (
     let response;
     try {
       response = await login(email, password, visitorId);
-      console.log("full data", response.data.user);
       localStorage.setItem(
         "user",
         JSON.stringify(
@@ -84,8 +83,8 @@ const HandleLoginController = async (
     }
 
     // Process API response
-    const { requires2FA, active } = response.data;
-
+    const { requires2FA, active, user } = response.data;
+    console.log(user, "user");
     if (requires2FA) {
       alert("Vui lòng xác thực 2FA!!");
       setStep(2); // Step 2 for 2FA
