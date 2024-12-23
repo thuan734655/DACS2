@@ -2,8 +2,11 @@ import React from "react";
 import { FiTrash2, FiEye, FiSettings, FiMail, FiCheck } from "react-icons/fi";
 import socket from "../../services/socket";
 import { useToast } from "../../context/ToastContext";
+import { useNavigate } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa";
 
 const AdminLayout = () => {
+  const navigate = useNavigate();
   const { showToast } = useToast();
   const [reports, setReports] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
@@ -319,8 +322,20 @@ const AdminLayout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-100">
+      <div className="bg-white shadow-md p-4 mb-6">
+        <div className="max-w-7xl mx-auto">
+          <button
+            onClick={() => navigate("/homepage")}
+            className="group flex items-center gap-3 px-4 py-2 text-gray-600 hover:text-blue-600 transition-all duration-300 ease-in-out"
+          >
+            <FaArrowLeft className="text-lg transform group-hover:-translate-x-1 transition-transform duration-300" />
+            <span className="font-medium">Quay lại trang chủ</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Quản lý Báo cáo</h1>
           <div className="flex items-center space-x-4">

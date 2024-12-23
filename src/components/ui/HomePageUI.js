@@ -26,7 +26,13 @@ import { useUserPublicProfile } from "../../hooks/useUserPublicProfile";
 const API_URL = "http://localhost:5000";
 const HomePageUI = () => {
   const [formCreatePostVisible, setFormCreatePostVisible] = useState(false);
-  const [listPosts, setListPosts] = useState({});
+  const [listPosts, setListPosts] = useState(() => {
+    const cachedPosts = localStorage.getItem("cachedPosts");
+    return cachedPosts ? JSON.parse(cachedPosts) : {};
+  });
+  const [lastCacheTime, setLastCacheTime] = useState(() => {
+    return localStorage.getItem("lastCacheTime") || 0;
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
@@ -45,18 +51,58 @@ const HomePageUI = () => {
   const [fetchedPostIds, setFetchedPostIds] = useState([]);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const scrollRef = useRef(null);
-  const lastScrollPositionRef = useRef(0); // New ref to store the scroll position
+  const lastScrollPositionRef = useRef(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { currentUser } = useUserPublicProfile();
+
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
+
   const menuItems = [
-    { id: 'home', icon: FaHome, label: 'Trang chủ' },
-    { id: 'notifications', icon: FaBell, label: 'Thông báo' },
-    { id: 'messages', icon: FaEnvelope, label: 'Tin nhắn' },
-    { id: 'friends', icon: FaUserFriends, label: 'Kết bạn' },
+    { id: "home", icon: FaHome, label: "Trang chủ" },
+    { id: "notifications", icon: FaBell, label: "Thông báo" },
+    { id: "messages", icon: FaEnvelope, label: "Tin nhắn" },
+    { id: "friends", icon: FaUserFriends, label: "Kết bạn" },
   ];
+
+  const loadPosts = useCallback(
+    (pageToLoad = 1) => {
+      if (isLoading || !hasMore) return;
+      setIsLoading(true);
+      setError(null);
+
+      // Kiểm tra xem cache có hết hạn chưa (5 phút)
+      const cacheExpiration = 5 * 60 * 1000; // 5 phút
+      const currentTime = Date.now();
+      const isCacheValid = currentTime - parseInt(lastCacheTime) < cacheExpiration;
+
+      // Nếu là trang đầu tiên và cache còn hợp lệ, sử dụng dữ liệu từ cache
+      if (pageToLoad === 1 && isCacheValid && Object.keys(listPosts).length > 0) {
+        setIsLoading(false);
+        return;
+      }
+
+      // Nếu không có cache hoặc cache hết hạn, gọi API
+      socket.emit("getPosts", idUser, fetchedPostIds, 10, pageToLoad);
+    },
+    [idUser, fetchedPostIds, isLoading, hasMore, listPosts, lastCacheTime]
+  );
+
+  const clearCache = useCallback(() => {
+    localStorage.removeItem("cachedPosts");
+    localStorage.removeItem("lastCacheTime");
+    setListPosts({});
+    setFetchedPostIds([]);
+    setPage(1);
+    loadPosts(1);
+  }, [loadPosts]);
+
+  const handleCreatePost = () => {
+    setFormCreatePostVisible(true);
+    clearCache();
+  };
+
   useEffect(() => {
     socket.on("notification", (notification) => {
       if (notification.originPostIdUser === idUser) {
@@ -98,38 +144,25 @@ const HomePageUI = () => {
     }
   }, [activeTab, idUser]);
 
-  const loadPosts = useCallback(
-    (pageToLoad = 1) => {
-      if (isLoading || !hasMore) return;
-      setIsLoading(true);
-      setError(null);
-
-      // Always store the current scroll position before loading new posts
-      lastScrollPositionRef.current = scrollRef.current?.scrollTop || 0;
-
-      socket.emit("getPosts", idUser, fetchedPostIds, 10, pageToLoad);
-    },
-    [idUser, fetchedPostIds, isLoading, hasMore]
-  );
+  useEffect(() => {
+    localStorage.setItem("cachedPosts", JSON.stringify(listPosts));
+    localStorage.setItem("lastCacheTime", Date.now().toString());
+  }, [listPosts]);
 
   useEffect(() => {
     const handleReceivePosts = ({ posts, page: receivedPage, hasMore }) => {
-      setListPosts((prevPosts) => ({
-        ...posts,
-        ...prevPosts,
-      }));
+      setListPosts((prevPosts) => {
+        const newPosts = receivedPage === 1 ? posts : { ...prevPosts, ...posts };
+        // Lưu vào localStorage
+        localStorage.setItem("cachedPosts", JSON.stringify(newPosts));
+        localStorage.setItem("lastCacheTime", Date.now().toString());
+        return newPosts;
+      });
       setPage(receivedPage);
       setHasMore(hasMore);
       setFetchedPostIds((prevIds) => [...prevIds, ...Object.keys(posts)]);
       setIsLoading(false);
       setInitialLoadComplete(true);
-
-      // Use requestAnimationFrame to ensure the DOM has updated before scrolling
-      requestAnimationFrame(() => {
-        if (scrollRef.current) {
-          scrollRef.current.scrollTop = lastScrollPositionRef.current;
-        }
-      });
     };
 
     const handleError = ({ message }) => {
@@ -278,7 +311,7 @@ const HomePageUI = () => {
 
     return (
       <div>
-         <div className="bg-white rounded-lg shadow-lg p-4 mb-4 hidden md:block">
+        <div className="bg-white rounded-lg shadow-lg p-4 mb-4 hidden md:block">
           <div className="flex items-center space-x-4 mb-4">
             <img
               src={
@@ -312,42 +345,44 @@ const HomePageUI = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
-      <button
-        onClick={() => setFormCreatePostVisible(true)}
-        className="w-full flex items-center space-x-3 p-3 rounded-lg transition-colors hover:bg-gray-100 mb-4"
-      >
-        <FaPen className="text-blue-500 text-xl" />
-        <span className="font-medium">Tạo bài viết mới</span>
-      </button>
-
-      <div className="md:hidden mb-4">
-        <button
-          onClick={toggleMobileMenu}
-          className="w-full flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-gray-100"
-        >
-          <span className="font-medium">Menu</span>
-          <FaBars className="text-blue-500 text-xl" />
-        </button>
-      </div>
-
-      <nav className={`space-y-4 ${isMobileMenuOpen ? 'block' : 'hidden md:block'}`}>
-        {menuItems.map((item) => (
           <button
-            key={item.id}
-            onClick={() => {
-              setActiveTab(item.id);
-              setIsMobileMenuOpen(false);
-            }}
-            className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-              activeTab === item.id
-                ? 'bg-blue-50 text-blue-600'
-                : 'hover:bg-gray-100'
-            }`}
+            onClick={() => setFormCreatePostVisible(true)}
+            className="w-full flex items-center space-x-3 p-3 rounded-lg transition-colors hover:bg-gray-100 mb-4"
           >
-            <item.icon className="text-blue-500 text-xl" />
-            <span className="font-medium">{item.label}</span>
+            <FaPen className="text-blue-500 text-xl" />
+            <span className="font-medium">Tạo bài viết mới</span>
           </button>
-        ))}
+
+          <div className="md:hidden mb-4">
+            <button
+              onClick={toggleMobileMenu}
+              className="w-full flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-gray-100"
+            >
+              <span className="font-medium">Menu</span>
+              <FaBars className="text-blue-500 text-xl" />
+            </button>
+          </div>
+
+          <nav
+            className={`space-y-4 ${isMobileMenuOpen ? "block" : "hidden md:block"}`}
+          >
+            {menuItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
+                  activeTab === item.id
+                    ? "bg-blue-50 text-blue-600"
+                    : "hover:bg-gray-100"
+                }`}
+              >
+                <item.icon className="text-blue-500 text-xl" />
+                <span className="font-medium">{item.label}</span>
+              </button>
+            ))}
           </nav>
         </div>
       </div>
@@ -464,7 +499,12 @@ const HomePageUI = () => {
             <UserSearchUI user={user} />
           ) : (
             <div>
-          
+              <button
+                onClick={clearCache}
+                className="w-full px-4 py-2 text-sm text-gray-600 hover:text-blue-600 transition-colors"
+              >
+                Làm mới dữ liệu
+              </button>
             </div>
           )}
         </div>
