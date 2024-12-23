@@ -48,12 +48,20 @@ const AdminLayout = () => {
 
   const handleSendEmail = () => {
     if (emailContent.trim() && processingReport) {
-      socket.emit("sendReportEmail", {
-        reportId: processingReport.idReport,
-        content: emailContent,
-      });
-      setSelectedAction(null);
+      const data = {
+        id: processingReport.type === "POST" ? processingReport.postId : processingReport.commentId,
+        dataMail: {
+          content: emailContent,
+          title: `Phản hồi báo cáo ${processingReport.type === 'POST' ? 'bài viết' : 'bình luận'}`,
+          subject: `Phản hồi báo cáo từ hệ thống`
+        }
+      };
+      
+      socket.emit("sendMail", data, processingReport.type, idUser);
       setEmailContent("");
+      setSelectedAction(null);
+      setShowProcessDialog(false);
+      setProcessingReport(null);
     }
   };
 
@@ -93,7 +101,6 @@ const AdminLayout = () => {
   };
 
   const handleMarkResolved = () => {
-    console.log("Marking as resolved...", processingReport);
     if (processingReport) {
       socket.emit("setReadReport", {
         idReport: processingReport.idReport,
@@ -242,15 +249,25 @@ const AdminLayout = () => {
   }, []);
 
   React.useEffect(() => {
-    socket.on("responseUpdateReadReport", (data) => {
+    socket.on("responseSendEmail", (data) => {
       if (data.success) {
-        showToast("Đánh dấu xử lý thành côngcông!", "success");
+        showToast("Gửi email phản hồi thành công!", "success");
+      } else {
+        showToast("Gửi email thất bại. Vui lòng thử lại!", "error");
       }
     });
+
+    socket.on("responseUpdateReadReport", (data) => {
+      if (data.success) {
+        showToast("Đánh dấu xử lý thành công!", "success");
+      }
+    });
+
     return () => {
+      socket.off("responseSendEmail");
       socket.off("responseUpdateReadReport");
     };
-  }, [processingReport]);
+  }, [showToast]);
 
   const handleViewReport = (report) => {
     setSelectedReport(report);
@@ -263,6 +280,34 @@ const AdminLayout = () => {
       REPLY: "Phản hồi",
     };
     return labels[type] || type;
+  };
+
+  const renderActionContent = () => {
+    switch (selectedAction) {
+      case 'email':
+        return (
+          <div className="mt-4">
+            <textarea
+              className="w-full p-2 border rounded"
+              value={emailContent}
+              onChange={(e) => setEmailContent(e.target.value)}
+              placeholder="Nhập nội dung email..."
+              rows="4"
+            />
+            <div className="mt-2 flex justify-end">
+              <button
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                onClick={handleSendEmail}
+                disabled={!emailContent.trim()}
+              >
+                Gửi Email
+              </button>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
   };
 
   if (loading) {
@@ -532,92 +577,30 @@ const AdminLayout = () => {
 
             <div className="space-y-4">
               {/* Action Buttons */}
-              <div className="flex space-x-3">
+              <div className="flex space-x-2 mt-4">
                 <button
-                  type="button"
-                  onClick={() => handleActionSelect("email")}
-                  className={`flex items-center px-4 py-2 rounded-md ${
-                    selectedAction === "email"
-                      ? "bg-blue-100 text-blue-700"
-                      : "bg-white text-gray-700 border border-gray-300"
-                  }`}
+                  className="flex items-center px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  onClick={() => handleActionSelect('email')}
                 >
                   <FiMail className="mr-2" />
-                  Gửi email
+                  Gửi Email
                 </button>
                 <button
-                  type="button"
-                  onClick={() => handleActionSelect("delete")}
-                  className={`flex items-center px-4 py-2 rounded-md ${
-                    selectedAction === "delete"
-                      ? "bg-red-100 text-red-700"
-                      : "bg-white text-gray-700 border border-gray-300"
-                  }`}
+                  className="flex items-center px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                  onClick={handleDeleteContent}
                 >
                   <FiTrash2 className="mr-2" />
-                  Xóa nội dung
+                  Xóa Nội Dung
                 </button>
                 <button
-                  type="button"
-                  onClick={() => handleActionSelect("resolve")}
-                  className={`flex items-center px-4 py-2 rounded-md ${
-                    selectedAction === "resolve"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-white text-gray-700 border border-gray-300"
-                  }`}
+                  className="flex items-center px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                  onClick={handleMarkResolved}
                 >
                   <FiCheck className="mr-2" />
-                  Đánh dấu xử lý
+                  Đánh Dấu Đã Xử Lý
                 </button>
               </div>
-
-              {/* Conditional Content Based on Selected Action */}
-              {selectedAction === "email" && (
-                <div className="mt-4">
-                  <textarea
-                    value={emailContent}
-                    onChange={(e) => setEmailContent(e.target.value)}
-                    rows="4"
-                    className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md p-2"
-                    placeholder="Nhập nội dung email..."
-                  ></textarea>
-                  <div className="mt-2 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={handleSendEmail}
-                      disabled={!emailContent.trim()}
-                      className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                    >
-                      Gửi email
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {selectedAction === "delete" && (
-                <div className="mt-4 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={handleDeleteContent}
-                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                  >
-                    Xác nhận xóa
-                  </button>
-                </div>
-              )}
-
-              {selectedAction === "resolve" && (
-                <div className="mt-4 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={handleMarkResolved}
-                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                  >
-                    Xác nhận xử lý
-                  </button>
-                </div>
-              )}
-
+              {renderActionContent()}
               {/* Close Button */}
               <div className="mt-6 flex justify-end">
                 <button
