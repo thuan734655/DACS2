@@ -30,7 +30,7 @@ const Replies = ({
   const predefinedReasons = [
     "Nội dung không phù hợp",
     "Spam hoặc lừa đảo",
-    "Bài viết chứa thông tin sai lệch",
+    "Bình luận chứa thông tin sai lệch",
     "Nội dung bạo lực hoặc xúc phạm",
   ];
 

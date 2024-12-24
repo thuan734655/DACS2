@@ -35,7 +35,7 @@ function CommentList({
   const predefinedReasons = [
     "Nội dung không phù hợp",
     "Spam hoặc lừa đảo",
-    "Bài viết chứa thông tin sai lệch",
+    "Bình luận chứa thông tin sai lệch",
     "Nội dung bạo lực hoặc xúc phạm",
   ];
 
@@ -100,13 +100,19 @@ function CommentList({
       socket.emit("deleteComment", { commentId, idUser: currentUserId });
       // Update UI immediately
       setCommentsList((prevComments) => {
-        const newComments = prevComments.filter(comment => comment.commentId !== commentId);
+        const newComments = prevComments.filter(
+          (comment) => comment.commentId !== commentId
+        );
         // Update cached posts
-        const cachedPosts = JSON.parse(localStorage.getItem("cachedPosts") || "{}");
-        Object.keys(cachedPosts).forEach(postKey => {
+        const cachedPosts = JSON.parse(
+          localStorage.getItem("cachedPosts") || "{}"
+        );
+        Object.keys(cachedPosts).forEach((postKey) => {
           if (cachedPosts[postKey].post && cachedPosts[postKey].post.comments) {
-            cachedPosts[postKey].post.comments = cachedPosts[postKey].post.comments.filter(
-              comment => comment.commentId !== commentId
+            cachedPosts[postKey].post.comments = cachedPosts[
+              postKey
+            ].post.comments.filter(
+              (comment) => comment.commentId !== commentId
             );
           }
         });
@@ -114,7 +120,7 @@ function CommentList({
         localStorage.setItem("lastCacheTime", Date.now().toString());
         return newComments;
       });
-      setCommentCount(prev => prev - 1);
+      setCommentCount((prev) => prev - 1);
       showToast("Đã xóa bình luận thành công!", "success");
     }
   };
@@ -278,17 +284,17 @@ function CommentList({
                   onClick={() => handleDeleteComment(commentId)}
                   className="flex items-center gap-1 text-red-500 hover:text-red-700"
                 >
-                  <svg 
-                    className="h-4 w-4" 
-                    fill="none" 
-                    stroke="currentColor" 
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" 
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                     />
                   </svg>
                   <span className="text-sm">Xóa</span>
@@ -311,12 +317,16 @@ function CommentList({
                   {openReplies[commentId] ? (
                     <React.Fragment>
                       <ChevronDown className="h-4 w-4" />
-                      <span className="text-sm">Ẩn {replies.length} phản hồi</span>
+                      <span className="text-sm">
+                        Ẩn {replies.length} phản hồi
+                      </span>
                     </React.Fragment>
                   ) : (
                     <React.Fragment>
                       <ChevronRight className="h-4 w-4" />
-                      <span className="text-sm">Xem {replies.length} phản hồi</span>
+                      <span className="text-sm">
+                        Xem {replies.length} phản hồi
+                      </span>
                     </React.Fragment>
                   )}
                 </button>
