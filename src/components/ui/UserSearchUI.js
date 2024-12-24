@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { FaSearch, FaUserPlus } from 'react-icons/fa';
-import { searchUsersByName, sendFriendRequest, getSuggestedFriends } from '../../services/userService';
-import { toast } from 'react-toastify';
-import { useUserPublicProfile } from '../../hooks/useUserPublicProfile';
-const API_URL = "http://localhost:5000";
+import React, { useState, useEffect } from "react";
+import { FaSearch, FaUserPlus } from "react-icons/fa";
+import {
+  searchUsersByName,
+  sendFriendRequest,
+  getSuggestedFriends,
+} from "../../services/userService";
+import { toast } from "react-toastify";
+import { useUserPublicProfile } from "../../hooks/useUserPublicProfile";
+const API_URL = "https://dacs2-server-8.onrender.com";
 const UserSearchUI = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -13,8 +17,8 @@ const UserSearchUI = () => {
   const [error, setError] = useState(null);
   const [suggestedFriends, setSuggestedFriends] = useState([]);
   const { currentUser, reload, currentUserId, isOwner } =
-  useUserPublicProfile();
-  console.log("55555555",currentUser);
+    useUserPublicProfile();
+  console.log("55555555", currentUser);
   useEffect(() => {
     // Lấy dữ liệu user từ localStorage khi component mount
     const userData = localStorage.getItem("user");
@@ -65,8 +69,8 @@ const UserSearchUI = () => {
       const results = await searchUsersByName(searchTerm.trim());
       setSearchResults(results);
     } catch (error) {
-      console.error('Lỗi tìm kiếm:', error);
-      toast.error('Không thể tìm kiếm người dùng');
+      console.error("Lỗi tìm kiếm:", error);
+      toast.error("Không thể tìm kiếm người dùng");
       setSearchResults([]);
     } finally {
       setIsSearching(false);
@@ -79,45 +83,52 @@ const UserSearchUI = () => {
         setError("Vui lòng đăng nhập để thực hiện chức năng này");
         return;
       }
-      
+
       setIsLoading(true);
-      console.log("Sending friend request with:", { userId, requesterId: user.idUser });
-      
+      console.log("Sending friend request with:", {
+        userId,
+        requesterId: user.idUser,
+      });
+
       await sendFriendRequest(userId, user.idUser);
-      
-      toast.success('Đã gửi lời mời kết bạn');
-      
+
+      toast.success("Đã gửi lời mời kết bạn");
+
       // Cập nhật cả searchResults và suggestedFriends
-      setSearchResults(prevResults =>
-        prevResults.map(userResult =>
+      setSearchResults((prevResults) =>
+        prevResults.map((userResult) =>
           userResult.idUser === userId
             ? { ...userResult, friendRequestSent: true }
             : userResult
         )
       );
 
-      setSuggestedFriends(prevSuggestions =>
-        prevSuggestions.map(friend =>
+      setSuggestedFriends((prevSuggestions) =>
+        prevSuggestions.map((friend) =>
           friend.idUser === userId
             ? { ...friend, friendRequestSent: true }
             : friend
         )
       );
-
     } catch (error) {
-      console.error("Error sending friend request:", error.response?.data || error.message || error);
-      
-      if (error.response?.data?.message === 'Friend request already exists') {
-        toast.info('Lời mời kết bạn đã được gửi trước đó');
-        setSearchResults(prevResults =>
-          prevResults.map(userResult =>
+      console.error(
+        "Error sending friend request:",
+        error.response?.data || error.message || error
+      );
+
+      if (error.response?.data?.message === "Friend request already exists") {
+        toast.info("Lời mời kết bạn đã được gửi trước đó");
+        setSearchResults((prevResults) =>
+          prevResults.map((userResult) =>
             userResult.idUser === userId
               ? { ...userResult, friendRequestSent: true }
               : userResult
           )
         );
       } else {
-        toast.error("Có lỗi xảy ra khi gửi lời mời kết bạn. Vui lòng thử lại sau.");
+        toast.error(
+          "Có lỗi xảy ra khi gửi lời mời kết bạn. Vui lòng thử lại sau."
+        );
       }
     } finally {
       setIsLoading(false);
@@ -131,15 +142,21 @@ const UserSearchUI = () => {
     >
       <div className="flex items-center gap-4">
         <img
-          src={currentUser.avatar ? `${API_URL}${user.avatar}` : 'https://api.dicebear.com/6.x/avataaars/svg?seed=${user.idUser}'}
+          src={
+            currentUser.avatar
+              ? `${API_URL}${user.avatar}`
+              : "https://api.dicebear.com/6.x/avataaars/svg?seed=${user.idUser}"
+          }
           alt={user.fullName}
           className="w-12 h-12 rounded-full"
         />
         <div>
           <h3 className="font-medium text-gray-900">{user.fullName}</h3>
-          
+
           {isSuggestion && user.mutual_friends_count > 0 && (
-            <p className="text-sm text-gray-600">{user.mutual_friends_count} bạn chung</p>
+            <p className="text-sm text-gray-600">
+              {user.mutual_friends_count} bạn chung
+            </p>
           )}
         </div>
       </div>
@@ -150,11 +167,15 @@ const UserSearchUI = () => {
             onClick={() => handleAddFriend(user.idUser)}
             disabled={isLoading}
             className={`px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center gap-2
-              ${!isLoading ? 'hover:bg-blue-600' : 'opacity-75 cursor-not-allowed'}
+              ${
+                !isLoading
+                  ? "hover:bg-blue-600"
+                  : "opacity-75 cursor-not-allowed"
+              }
               transition-colors duration-200`}
           >
             <FaUserPlus />
-            {isLoading ? 'Đang xử lý...' : 'Kết bạn'}
+            {isLoading ? "Đang xử lý..." : "Kết bạn"}
           </button>
         ) : (
           <button
@@ -191,7 +212,7 @@ const UserSearchUI = () => {
           <div>
             <h2 className="text-lg font-semibold mb-4">Kết quả tìm kiếm</h2>
             <div className="space-y-4">
-              {searchResults.map(user => renderUserCard(user))}
+              {searchResults.map((user) => renderUserCard(user))}
             </div>
           </div>
         ) : searchTerm.trim() ? (
@@ -203,11 +224,7 @@ const UserSearchUI = () => {
         {/* Suggested Friends Section */}
       </div>
 
-      {error && (
-        <div className="text-red-500 text-center mt-4">
-          {error}
-        </div>
-      )}
+      {error && <div className="text-red-500 text-center mt-4">{error}</div>}
     </div>
   );
 };

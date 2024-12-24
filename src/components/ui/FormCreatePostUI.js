@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { X, Image } from "lucide-react";
 
 import socket from "../../services/socket";
-const API_URL = "http://localhost:5000";
+const API_URL = "https://dacs2-server-8.onrender.com";
 const FromCreatePost = ({ setFormCreatePostVisible }) => {
   const [postText, setPostText] = useState("");
 

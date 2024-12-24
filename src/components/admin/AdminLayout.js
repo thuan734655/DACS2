@@ -524,7 +524,7 @@ const AdminLayout = () => {
                                   (url, index) => (
                                     <img
                                       key={index}
-                                      src={`http://localhost:5000${url}`}
+                                      src={`https://dacs2-server-8.onrender.com${url}`}
                                       alt={`Media ${index + 1}`}
                                       className="w-full h-20 object-cover rounded"
                                     />
@@ -546,7 +546,7 @@ const AdminLayout = () => {
                                   (url, index) => (
                                     <img
                                       key={index}
-                                      src={`http://localhost:5000${url}`}
+                                      src={`https://dacs2-server-8.onrender.com${url}`}
                                       alt={`Media ${index + 1}`}
                                       className="w-full h-20 object-cover rounded"
                                     />

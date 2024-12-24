@@ -3,7 +3,7 @@ import { Send, ImageIcon, Smile, X } from "lucide-react";
 import EmojiPicker from "emoji-picker-react";
 import socket from "../../../services/socket";
 import { useUserPublicProfile } from "../../../hooks/useUserPublicProfile";
-const API_URL = "http://localhost:5000";
+const API_URL = "https://dacs2-server-8.onrender.com";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const SUPPORTED_FORMATS = ["image/jpeg", "image/png", "video/mp4"]; // Allowed formats
 
