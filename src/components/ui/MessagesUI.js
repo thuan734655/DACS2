@@ -12,7 +12,7 @@ const MessagesUI = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [friends, setFriends] = useState([]);
   console.log("friends list", friends);
-  
+
   const [onlineUsers, setOnlineUsers] = useState(new Set());
   useEffect(() => {
     const loadFriends = async () => {
@@ -88,15 +88,15 @@ const MessagesUI = ({
 
   return (
     <div className="bg-white rounded-lg shadow-lg h-full flex flex-col">
-      <div className="p-2 sm:p-4 border-b sticky top-0 bg-white z-10">
-        <div className="flex justify-between items-center mb-2 sm:mb-4">
-          <h2 className="text-lg sm:text-xl font-semibold">Tin nhắn</h2>
+      <div className="p-2 sm:p-3 md:p-4 lg:p-5 border-b sticky top-0 bg-white z-10">
+        <div className="flex justify-between items-center mb-2 sm:mb-3 md:mb-4">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">Tin nhắn</h2>
           {!showInRightPanel && onClose && (
             <button
               onClick={onClose}
-              className="p-1 sm:p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-1 sm:p-1.5 md:p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
-              <FaTimes className="text-gray-500 text-sm sm:text-base" />
+              <FaTimes className="text-gray-500 text-sm sm:text-base md:text-lg" />
             </button>
           )}
         </div>
@@ -104,11 +104,11 @@ const MessagesUI = ({
           <input
             type="text"
             placeholder="Tìm kiếm tin nhắn..."
-            className="w-full pl-8 sm:pl-10 pr-4 py-1 sm:py-2 text-sm sm:text-base border rounded-lg focus:outline-none focus:border-blue-500"
+            className="w-full pl-8 sm:pl-9 md:pl-10 pr-4 py-1.5 sm:py-2 md:py-2.5 text-sm sm:text-base md:text-lg border rounded-lg focus:outline-none focus:border-blue-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <FaSearch className="absolute left-2 sm:left-3 top-2 sm:top-3 text-gray-400 text-sm sm:text-base" />
+          <FaSearch className="absolute left-2 sm:left-2.5 md:left-3 top-2 sm:top-2.5 md:top-3 text-gray-400 text-sm sm:text-base md:text-lg" />
         </div>
       </div>
       <div className="overflow-y-auto flex-grow">
@@ -125,39 +125,39 @@ const MessagesUI = ({
           .map((chat, index) => (
             <div
               key={`${chat.idUser}+${index}`}
-              className={`p-2 sm:p-4 hover:bg-gray-50 cursor-pointer ${
+              className={`p-2 sm:p-3 md:p-4 lg:p-5 hover:bg-gray-50 cursor-pointer transition-colors duration-200 ${
                 selectedChatId === chat.idUser ? "bg-blue-50" : ""
               }`}
               onClick={() => handleChatClick(chat)}
             >
-              <div className="flex items-start space-x-2 sm:space-x-3">
+              <div className="flex items-start space-x-2 sm:space-x-3 md:space-x-4">
                 <div className="relative flex-shrink-0">
                   <img
                     src={chat.avatar}
                     alt={chat.user}
-                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full"
+                    className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full"
                   />
                   {chat.online && (
                     <div className="absolute bottom-0 right-0">
-                      <FaCircle className="text-green-500 text-xs" />
+                      <FaCircle className="text-green-500 text-xs sm:text-sm" />
                     </div>
                   )}
                 </div>
                 <div className="flex-grow min-w-0">
                   <div className="flex justify-between items-start">
-                    <span className="font-medium text-sm sm:text-base truncate">
+                    <span className="font-medium text-sm sm:text-base md:text-lg truncate">
                       {chat.user}
                     </span>
-                    <span className="text-gray-400 text-xs sm:text-sm ml-1">
+                    <span className="text-gray-400 text-xs sm:text-sm md:text-base ml-1">
                       {chat.time}
                     </span>
                   </div>
-                  <p className="text-gray-600 text-xs sm:text-sm truncate">
+                  <p className="text-gray-600 text-xs sm:text-sm md:text-base truncate mt-0.5 sm:mt-1">
                     {chat.lastMessage}
                   </p>
                 </div>
                 {chat.unread > 0 && (
-                  <div className="bg-blue-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center flex-shrink-0">
+                  <div className="bg-blue-500 text-white text-xs md:text-sm rounded-full w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 flex items-center justify-center flex-shrink-0">
                     {chat.unread}
                   </div>
                 )}

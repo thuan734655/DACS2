@@ -1,20 +1,28 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { FaVideo, FaPhone, FaFile, FaSmile, FaPaperPlane, FaTimes, FaDownload } from 'react-icons/fa';
-import EmojiPicker from 'emoji-picker-react';
-import { sendMessage, subscribeToChat } from '../../services/ChatService';
-import VideoCallService from '../../services/VideoCallService';
-import VideoCall from '../VideoCall';
-import { getDatabase, ref, onValue } from 'firebase/database';
-import app from '../../config/firebaseConfig';
+import React, { useState, useEffect, useRef } from "react";
+import {
+  FaVideo,
+  FaPhone,
+  FaFile,
+  FaSmile,
+  FaPaperPlane,
+  FaTimes,
+  FaDownload,
+} from "react-icons/fa";
+import EmojiPicker from "emoji-picker-react";
+import { sendMessage, subscribeToChat } from "../../services/ChatService";
+import VideoCallService from "../../services/VideoCallService";
+import VideoCall from "../VideoCall";
+import { getDatabase, ref, onValue } from "firebase/database";
+import app from "../../config/firebaseConfig";
 
 const db = getDatabase(app);
 
 const ChatUI = ({ chat, onClose }) => {
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [messages, setMessages] = useState([]);
   const fileInputRef = useRef(null);
-  const currentUser = JSON.parse(localStorage.getItem('user'));
+  const currentUser = JSON.parse(localStorage.getItem("user"));
   const [isInCall, setIsInCall] = useState(false);
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
@@ -26,24 +34,26 @@ const ChatUI = ({ chat, onClose }) => {
 
   useEffect(() => {
     if (!currentUser?.idUser || !chat?.id) return;
-   
+
     const unsubscribe = subscribeToChat(
       currentUser.idUser,
       chat.id,
       (newMessages) => {
-        setMessages(newMessages.map(msg => ({
-          id: msg.id,
-          sender: msg.senderId,
-          text: msg.message,
-          fileData: msg.fileData,
-          fileInfo: msg.fileInfo,
-          type: msg.type,
-          time: new Date(msg.timestamp).toLocaleTimeString('vi-VN', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-          }),
-          isSender: msg.senderId === currentUser.idUser
-        })));
+        setMessages(
+          newMessages.map((msg) => ({
+            id: msg.id,
+            sender: msg.senderId,
+            text: msg.message,
+            fileData: msg.fileData,
+            fileInfo: msg.fileInfo,
+            type: msg.type,
+            time: new Date(msg.timestamp).toLocaleTimeString("vi-VN", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            isSender: msg.senderId === currentUser.idUser,
+          }))
+        );
       }
     );
 
@@ -51,20 +61,23 @@ const ChatUI = ({ chat, onClose }) => {
   }, [chat.id, currentUser?.idUser]);
 
   const handleSendMessage = async () => {
-    if ((message.trim() || fileInputRef.current?.files[0]) && currentUser?.idUser) {
+    if (
+      (message.trim() || fileInputRef.current?.files[0]) &&
+      currentUser?.idUser
+    ) {
       try {
         await sendMessage(
-          currentUser.idUser, 
-          chat.id, 
+          currentUser.idUser,
+          chat.id,
           message.trim(),
           fileInputRef.current?.files[0]
         );
-        setMessage('');
+        setMessage("");
         if (fileInputRef.current) {
-          fileInputRef.current.value = '';
+          fileInputRef.current.value = "";
         }
       } catch (error) {
-        console.error('Error sending message:', error);
+        console.error("Error sending message:", error);
       }
     }
   };
@@ -73,8 +86,8 @@ const ChatUI = ({ chat, onClose }) => {
     const file = event.target.files[0];
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
-        alert('File không được vượt quá 10MB');
-        fileInputRef.current.value = '';
+        alert("File không được vượt quá 10MB");
+        fileInputRef.current.value = "";
         return;
       }
       handleSendMessage();
@@ -82,7 +95,7 @@ const ChatUI = ({ chat, onClose }) => {
   };
 
   const handleFileDownload = (fileData, fileName) => {
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = fileData;
     link.download = fileName;
     document.body.appendChild(link);
@@ -91,18 +104,21 @@ const ChatUI = ({ chat, onClose }) => {
   };
 
   const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   const handleVideoCall = async () => {
     try {
       if (!currentUser?.idUser || !chat?.id) return;
 
-      const stream = await VideoCallService.initializeCall(currentUser.idUser, chat.id);
+      const stream = await VideoCallService.initializeCall(
+        currentUser.idUser,
+        chat.id
+      );
       setLocalStream(stream);
 
       VideoCallService.onRemoteStream = (stream) => {
@@ -112,8 +128,8 @@ const ChatUI = ({ chat, onClose }) => {
       await VideoCallService.makeCall(currentUser.idUser, chat.id);
       setIsInCall(true);
     } catch (error) {
-      console.error('Error starting video call:', error);
-      alert('Không thể bắt đầu cuộc gọi video. Vui lòng thử lại.');
+      console.error("Error starting video call:", error);
+      alert("Không thể bắt đầu cuộc gọi video. Vui lòng thử lại.");
     }
   };
 
@@ -126,22 +142,27 @@ const ChatUI = ({ chat, onClose }) => {
       setLocalStream(null);
       setRemoteStream(null);
     } catch (error) {
-      console.error('Error ending call:', error);
+      console.error("Error ending call:", error);
     }
   };
 
   useEffect(() => {
-    const currentUser = JSON.parse(localStorage.getItem('user'));
+    const currentUser = JSON.parse(localStorage.getItem("user"));
     if (!currentUser?.idUser || !chat?.id) return;
 
     const callRef = ref(db, `calls/${chat.id}_${currentUser.idUser}/offer`);
     const unsubscribe = onValue(callRef, async (snapshot) => {
       const offer = snapshot.val();
       if (offer && !isInCall) {
-        const confirmCall = window.confirm(`${chat.user} đang gọi video cho bạn. Bạn có muốn trả lời?`);
+        const confirmCall = window.confirm(
+          `${chat.user} đang gọi video cho bạn. Bạn có muốn trả lời?`
+        );
         if (confirmCall) {
           try {
-            const stream = await VideoCallService.initializeCall(currentUser.idUser, chat.id);
+            const stream = await VideoCallService.initializeCall(
+              currentUser.idUser,
+              chat.id
+            );
             setLocalStream(stream);
 
             VideoCallService.onRemoteStream = (stream) => {
@@ -151,8 +172,8 @@ const ChatUI = ({ chat, onClose }) => {
             await VideoCallService.answerCall(currentUser.idUser, chat.id);
             setIsInCall(true);
           } catch (error) {
-            console.error('Error answering call:', error);
-            alert('Không thể trả lời cuộc gọi. Vui lòng thử lại.');
+            console.error("Error answering call:", error);
+            alert("Không thể trả lời cuộc gọi. Vui lòng thử lại.");
           }
         } else {
           await VideoCallService.endCall(currentUser.idUser, chat.id);
@@ -166,16 +187,16 @@ const ChatUI = ({ chat, onClose }) => {
   }, [chat.id, chat.user, isInCall]);
 
   const renderMessageContent = (msg) => {
-    if (msg.type === 'file') {
-      const isImage = msg.fileInfo?.type.startsWith('image/');
-      
+    if (msg.type === "file") {
+      const isImage = msg.fileInfo?.type.startsWith("image/");
+
       if (isImage) {
         return (
-          <img 
-            src={msg.fileData} 
-            alt="" 
+          <img
+            src={msg.fileData}
+            alt=""
             className="max-w-full rounded-lg cursor-pointer"
-            style={{ maxHeight: '300px' }}
+            style={{ maxHeight: "300px" }}
             onClick={() => handleFileDownload(msg.fileData, msg.fileInfo.name)}
           />
         );
@@ -185,10 +206,14 @@ const ChatUI = ({ chat, onClose }) => {
         <div className="flex items-center space-x-3 bg-gray-50 p-3 rounded-lg">
           <FaFile className="text-gray-500 text-xl" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-black truncate">{msg.fileInfo.name}</p>
-            <p className="text-xs text-gray-500">{formatFileSize(msg.fileInfo.size)}</p>
+            <p className="text-sm font-medium text-black truncate">
+              {msg.fileInfo.name}
+            </p>
+            <p className="text-xs text-gray-500">
+              {formatFileSize(msg.fileInfo.size)}
+            </p>
           </div>
-          <button 
+          <button
             onClick={() => handleFileDownload(msg.fileData, msg.fileInfo.name)}
             className="p-2 hover:bg-gray-200 rounded-full transition-colors"
           >
@@ -202,18 +227,18 @@ const ChatUI = ({ chat, onClose }) => {
   };
 
   const onEmojiClick = (emojiObject) => {
-    setMessage(prevMessage => prevMessage + emojiObject.emoji);
+    setMessage((prevMessage) => prevMessage + emojiObject.emoji);
     setShowEmojiPicker(false);
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
   };
 
-return (
+  return (
     <div className="flex flex-col h-full bg-white rounded-lg shadow-lg">
       {/* Chat Header */}
       <div className="flex justify-between items-center p-4 border-b">
@@ -231,7 +256,7 @@ return (
           <div className="hidden sm:block">
             <h3 className="font-semibold">{chat.user}</h3>
             <p className="text-sm text-gray-500">
-              {chat.online ? 'Đang hoạt động' : 'Không hoạt động'}
+              {chat.online ? "Đang hoạt động" : "Không hoạt động"}
             </p>
           </div>
         </div>
@@ -239,13 +264,16 @@ return (
           <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
             <FaPhone className="text-blue-500" />
           </button>
-          <button 
+          <button
             onClick={handleVideoCall}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
             <FaVideo className="text-blue-500" />
           </button>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
             <FaTimes className="text-gray-500" />
           </button>
         </div>
@@ -256,17 +284,23 @@ return (
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${msg.isSender ? 'justify-end' : 'justify-start'} mb-4`}
+            className={`flex ${
+              msg.isSender ? "justify-end" : "justify-start"
+            } mb-4`}
           >
             <div
               className={`max-w-[70%] sm:max-w-[60%] ${
                 msg.isSender
-                  ? 'bg-blue-500 text-white rounded-l-lg rounded-tr-lg'
-                  : 'bg-gray-100 rounded-r-lg rounded-tl-lg'
+                  ? "bg-blue-500 text-white rounded-l-lg rounded-tr-lg"
+                  : "bg-gray-100 rounded-r-lg rounded-tl-lg"
               } p-3`}
             >
               {renderMessageContent(msg)}
-              <span className={`text-xs ${msg.isSender ? 'text-blue-100' : 'text-gray-500'} block mt-1`}>
+              <span
+                className={`text-xs ${
+                  msg.isSender ? "text-blue-100" : "text-gray-500"
+                } block mt-1`}
+              >
                 {msg.time}
               </span>
             </div>
