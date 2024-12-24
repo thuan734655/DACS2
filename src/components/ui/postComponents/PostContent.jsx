@@ -6,9 +6,7 @@ import socket from "../../../services/socket.js";
 import { useUserPublicProfile } from "../../../hooks/useUserPublicProfile.js";
 const API_URL = "http://localhost:5000";
 function PostContent({ post, postUser, isComment = false, onClose }) {
-  const { currentUser, reload, currentUserId, isOwner } = useUserPublicProfile(
-    post?.idUser
-  );
+  const { currentUser } = useUserPublicProfile(post?.idUser);
 
   const [showMenu, setShowMenu] = useState(false);
   const [contentReport, setContentReport] = useState("");
@@ -22,7 +20,7 @@ function PostContent({ post, postUser, isComment = false, onClose }) {
   const [privacy, setPrivacy] = useState(post.privacy);
   const [content, setContent] = useState(post.text);
   const user = JSON.parse(localStorage.getItem("user"));
-  console.log(postUser, "postUser");
+  console.log(post, "postUser");
   useEffect(() => {
     const handleResponse = (data) => {
       if (data.success) {
@@ -176,14 +174,14 @@ function PostContent({ post, postUser, isComment = false, onClose }) {
   };
 
   const renderSharedContent = () => {
-    if (!post.sharedPostContent) return null;
+    if (post.type !== "share" || !post.sharedPostContent) return null;
 
     return (
       <div className="mt-4 border rounded-lg p-4 bg-gray-50">
         <div className="flex items-center mb-2">
           <img
             src={
-              post.sharedPostContent.originalUser?.avatar ||
+              `http://localhost:5000${post.sharedPostContent.originalUser?.avatar}` ||
               "/default-avatar.png"
             }
             alt={post.sharedPostContent.originalUser?.fullName || "User"}
@@ -193,11 +191,9 @@ function PostContent({ post, postUser, isComment = false, onClose }) {
             <span className="font-semibold">
               {post.sharedPostContent.originalUser?.fullName || "User"}
             </span>
-            {!isComment && (
-              <p className="text-xs text-gray-500">
-                Đã đăng lúc: {formatDate(post.createdAt)}
-              </p>
-            )}
+            <div className="text-xs text-gray-500">
+              {formatDate(post.sharedAt || post.createdAt)}
+            </div>
           </div>
         </div>
         <div
@@ -308,23 +304,24 @@ function PostContent({ post, postUser, isComment = false, onClose }) {
         </div>
       </div>
 
-      <div
-        className="rounded-lg"
-        style={{
-          backgroundColor: post.isShared
-            ? "white"
-            : post.backgroundColor || "white",
-          color: post.isShared ? "black" : post.textColor || "black",
-          padding: "1rem",
-        }}
-      >
-        <p className="whitespace-pre-wrap mb-4">{content || ""}</p>
+      <div className="rounded-lg">
+        <div
+          className="p-4 rounded-lg"
+          style={{
+            backgroundColor: post.backgroundColor || "white",
+            color: post.textColor || "black",
+          }}
+        >
+          {post.shareText && (
+            <p className="text-sm text-gray-600 mb-3">{post.shareText}</p>
+          )}
+          <p className="whitespace-pre-wrap mb-4">{content || ""}</p>
+          {!post.isShared && post.mediaUrls && post.mediaUrls.length > 0 && (
+            <MediaPreview mediaUrls={post.mediaUrls} />
+          )}
+        </div>
 
-        {!post.isShared && post.mediaUrls && post.mediaUrls.length > 0 && (
-          <MediaPreview mediaUrls={post.mediaUrls} />
-        )}
-
-        {post.isShared && renderSharedContent()}
+        {post.type === "share" && renderSharedContent()}
       </div>
 
       <div className="mt-2">
