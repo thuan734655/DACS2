@@ -19,8 +19,10 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useCallback, useRef } from "react";
 import { useUserPublicProfile } from "../../hooks/useUserPublicProfile";
 import socket from "../../services/socket";
+import SocialPost from "./SocialPost";
 import {
   getFriendsList,
   getUserInfo,
@@ -49,7 +51,17 @@ const ProfileUI = () => {
     education: "",
     location: "",
   });
-
+  const [isLoadingPost, setIsLoadingPost] = useState(false);
+  const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
+  const [postsPerPage] = useState(5);
+  const [hasMore, setHasMore] = useState(true);
+  const [fetchedPostIds, setFetchedPostIds] = useState([]);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [listPosts, setListPosts] = useState({});
+  const postsContainerRef = useRef(null);
   const { currentUser, reload, currentUserId, isOwner } =
     useUserPublicProfile(id);
 
@@ -76,12 +88,86 @@ const ProfileUI = () => {
         }))
       );
     });
+
   }, [currentUserId]);
+
+
 
   const handleEdit = () => {
     setIsEditing(true);
   };
 
+  const loadPosts = useCallback(
+    (pageToLoad = 1) => {
+      if (isLoadingPost || (!hasMore && pageToLoad !== 1)) return;
+  
+      setIsLoadingPost(true);
+      setError(null);
+  
+      if (pageToLoad === 1) {
+        setListPosts({});
+        setFetchedPostIds([]);
+        setHasMore(true);
+        setIsFirstLoad(true);
+      }
+  
+      socket.emit("getPosts", currentUserId, fetchedPostIds, postsPerPage, pageToLoad);
+    },
+    [currentUserId, fetchedPostIds, isLoadingPost, hasMore, postsPerPage]
+  );
+  
+  const handleScroll = useCallback(() => {
+    if (!postsContainerRef.current || isLoadingPost || !hasMore || isLoadingMore) 
+      return;
+  
+    const container = postsContainerRef.current;
+    const scrollTop = container.scrollTop;
+    const scrollHeight = container.scrollHeight;
+    const clientHeight = container.clientHeight;
+  
+    const scrollPercentage = ((scrollTop + clientHeight) / scrollHeight) * 100;
+  
+    if (scrollPercentage > 80 && !isLoadingPost && hasMore) {
+      setPage(prev => prev + 1);
+      setIsLoadingMore(true);
+      loadPosts(page + 1);
+    }
+  }, [loadPosts, page, isLoadingPost, hasMore, isLoadingMore]);
+
+  useEffect(() => {
+    const container = postsContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, [handleScroll]);
+  
+  useEffect(() => {
+    socket.on("receivePosts", ({ posts, hasMorePosts }) => {
+      console.log("Profile receivePosts", hasMorePosts);
+      setListPosts(prevPosts => {
+        const newPosts = isFirstLoad ? posts : { ...prevPosts, ...posts };
+        return newPosts;
+      });
+      
+      setFetchedPostIds(prev => [...prev, ...Object.keys(posts)]);
+      setHasMore(hasMorePosts);
+      setIsLoadingPost(false);
+      setIsLoadingMore(false);
+      setInitialLoadComplete(true);
+      setIsFirstLoad(false);
+    });
+  
+    return () => {
+      socket.off("receivePosts");
+    };
+  }, [isFirstLoad]);
+  
+  useEffect(() => {
+    if (!initialLoadComplete && currentUserId) {
+      loadPosts(1);
+    }
+  }, [loadPosts, initialLoadComplete, currentUserId]);
   const handleCancel = () => {
     setIsEditing(false);
     setEditedInfo(userInfo);
@@ -682,6 +768,56 @@ const ProfileUI = () => {
             ></Card>
 
             {/* Posts */}
+            {/* Posts */}
+<div 
+  ref={postsContainerRef}
+  className="space-y-4 overflow-y-auto"
+  style={{ maxHeight: "calc(100vh - 200px)" }}
+>
+  {isLoadingPost && isFirstLoad ? (
+    <div className="flex justify-center py-4">
+      <div className="w-8 h-8 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
+    </div>
+  ) : error ? (
+    <div className="text-center py-4 text-red-500">
+      Có lỗi xảy ra: {error}
+    </div>
+  ) : Object.keys(listPosts).length === 0 ? (
+    <div className="text-center py-4">Chưa có bài viết nào</div>
+  ) : (
+    <>
+      {Object.entries(listPosts)
+        .sort(([, a], [, b]) => b.post.createdAt - a.post.createdAt)
+        .slice(0, page * postsPerPage)
+        .map(([postId, postData]) => {
+          if (!postData || !postData.post) return null;
+          return (
+            <SocialPost
+              key={postId}
+              postId={postData.post.postId || postId}
+              groupedLikes={postData.groupedLikes}
+              commentCountDefault={postData.commentCount}
+              post={postData.post}
+              postUser={postData.infoUserList[postData.post.idUser]}
+              
+            />
+          );
+        })}
+
+      {isLoadingMore && (
+        <div className="flex justify-center py-4">
+          <div className="w-6 h-6 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
+        </div>
+      )}
+
+      {!hasMore && Object.keys(listPosts).length > 0 && (
+        <div className="text-center py-4 text-gray-500">
+          Đã hiển thị tất cả bài viết
+        </div>
+      )}
+    </>
+  )}
+</div>
           </Grid>
         </Grid>
       )}

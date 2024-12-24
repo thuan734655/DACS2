@@ -185,7 +185,6 @@ const HomePageUI = () => {
 
   useEffect(() => {
     socket.on("receiveNewPost", ({ post }) => {
-      console.log("????????????");
       if (!post) return;
 
       setListPosts((prevPosts) => {
