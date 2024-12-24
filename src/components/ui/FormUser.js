@@ -79,21 +79,23 @@ const FormUser = (props) => {
         >
           Xem trang cá nhân
         </Button>
-        <Button
-          variant="outlined"
-          color="error"
-          onClick={handleUnfriend}
-          sx={{
-            mt: 2,
-            borderRadius: "20px",
-            textTransform: "none",
-            "&:hover": {
-              backgroundColor: "#ffebee",
-            },
-          }}
-        >
-          Hủy kết bạn
-        </Button>
+        {!isOwner && (
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={handleUnfriend}
+            sx={{
+              mt: 2,
+              borderRadius: "20px",
+              textTransform: "none",
+              "&:hover": {
+                backgroundColor: "#ffebee",
+              },
+            }}
+          >
+            Hủy kết bạn
+          </Button>
+        )}
       </Paper>
     </Grid>
   );

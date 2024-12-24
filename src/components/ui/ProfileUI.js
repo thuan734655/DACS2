@@ -1,4 +1,4 @@
-import { CameraAlt, Edit } from "@mui/icons-material";
+import { CameraAlt, Edit, ArrowBack } from "@mui/icons-material";
 import {
   Autocomplete,
   Avatar,
@@ -72,7 +72,7 @@ const ProfileUI = () => {
           fullName: friend.fullName || "Người dùng",
           avatar:
             friend.avatar ||
-            `https://api.dicebear.com/6.x/avataaars/svg?seed=${friend.idUser}`,
+            `https://api.dicebear.com/6.x/avataars/svg?seed=${friend.idUser}`,
         }))
       );
     });
@@ -232,6 +232,22 @@ const ProfileUI = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 2 }}>
+        <Button
+          variant="outlined"
+          startIcon={<ArrowBack />}
+          onClick={() => navigate('/homepage')}
+          sx={{
+            borderRadius: "20px",
+            textTransform: "none",
+            '&:hover': {
+              backgroundColor: 'rgba(0, 0, 0, 0.04)'
+            }
+          }}
+        >
+          Quay lại trang chủ
+        </Button>
+      </Box>
       {/* Cover Image Section */}
       <Box
         sx={{
@@ -775,7 +791,9 @@ const ProfileUI = () => {
                       <Typography
                         variant="body2"
                         sx={{
-                          color: userInfo.introduction ? "#2c3e50" : "#94a3b8",
+                          color: userInfo.introduction
+                            ? "#2c3e50"
+                            : "#94a3b8",
                           whiteSpace: "pre-wrap",
                           lineHeight: 1.6,
                         }}

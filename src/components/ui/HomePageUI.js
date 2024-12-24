@@ -22,9 +22,10 @@ import {
 } from "react-icons/fa";
 import socket from "../../services/socket";
 import { useUserPublicProfile } from "../../hooks/useUserPublicProfile";
-
+import { useNavigate } from "react-router-dom";
 const API_URL = "http://localhost:5000";
 const HomePageUI = () => {
+  const navigate = useNavigate();
   const [formCreatePostVisible, setFormCreatePostVisible] = useState(false);
   const [listPosts, setListPosts] = useState(() => {
     const cachedPosts = localStorage.getItem("cachedPosts");
@@ -258,7 +259,7 @@ const HomePageUI = () => {
     return (
       <div>
         <div className="bg-white rounded-lg shadow-lg p-4 mb-4 hidden md:block">
-          <div className="flex items-center space-x-4 mb-4">
+          <div className="flex items-center space-x-4 mb-4" onClick={() => navigate(`/profile/${user.idUser}`)}>
             <img
               src={
                 currentUser?.avatar
@@ -267,6 +268,7 @@ const HomePageUI = () => {
               }
               alt={user?.fullName}
               className="w-16 h-16 rounded-full"
+              
             />
             <div>
               <h2 className="font-semibold text-lg">
