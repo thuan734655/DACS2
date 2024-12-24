@@ -191,7 +191,7 @@ function CommentList({
             <div className="flex items-start gap-2 mb-2">
               <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
                 <img
-                  src={user[0]?.avatar ? `${API_URL}${user[0].avatar}` : `https://api.dicebear.com/6.x/avataaars/svg?seed=${user[0]?.fullName}`}
+                  src={user[0]?.avatar ? `${API_URL}${user[0]?.avatar}` : `https://api.dicebear.com/6.x/avataaars/svg?seed=${user[0]?.fullName}`}
                   alt="User avatar"
                   className="w-full h-full object-cover"
                 />

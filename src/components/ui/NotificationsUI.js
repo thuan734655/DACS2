@@ -5,7 +5,7 @@ import socket from '../../services/socket';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { useUserPublicProfile } from '../../hooks/useUserPublicProfile';
-
+const API_URL = "http://localhost:5000";
 const NotificationsUI = ({ user, data }) => {
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [notifications, setNotifications] = useState([]);
@@ -232,7 +232,7 @@ const NotificationsUI = ({ user, data }) => {
               <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center relative shadow-sm">
                 {notification.senderAvatar ? (
                   <img
-                    src={notification.senderAvatar}
+                    src={notification.senderAvatar ? `${API_URL}${notification.senderAvatar}` : 'https://api.dicebear.com/6.x/avataaars/svg?seed=1'}
                     alt=""
                     className="w-full h-full rounded-full object-cover"
                   />

@@ -4,7 +4,7 @@ import axiosAPI from "./configAxios.js";
 export const getUserProfile = async () => {
   try {
     const response = await axiosAPI.get("/api/users/profile");
-    console.log("Get user info response:", response.data); // Log để debug
+    console.log("Phản hồi lấy thông tin người dùng:", response.data); // Log để debug
     return response.data || null;
   } catch (error) {
     console.error("Lỗi khi lấy thông tin người dùng:", error);
@@ -57,7 +57,7 @@ export const respondToFriendRequest = async (requester_id, accept) => {
     const currentUser = JSON.parse(userData);
 
     // Log để debug
-    console.log("Sending response with data:", {
+    console.log("Gửi phản hồi với dữ liệu:", {
       requester_id,
       accept,
     });
@@ -191,6 +191,9 @@ export const getUserPublicProfile = async (userId) => {
 };
 
 export const updateUserInfo = async (userId, info) => {
+  if (!userId) {
+    throw new Error("ID người dùng là bắt buộc");
+  }
   try {
     const response = await axiosAPI.put(`/api/users/${userId}/info`, info);
     return response.data;
@@ -202,7 +205,7 @@ export const updateUserInfo = async (userId, info) => {
 export const updateUserAvatar = async (formData) => {
   try {
     const userId = formData.get("userId");
-    console.log("Sending request to update avatar for user:", userId);
+    console.log("Gửi yêu cầu cập nhật ảnh đại diện cho người dùng:", userId);
 
     const response = await axiosAPI.post(
       `/api/users/${userId}/update-avatar`,
@@ -214,10 +217,10 @@ export const updateUserAvatar = async (formData) => {
       }
     );
 
-    console.log("Server response:", response);
+    console.log("Phản hồi từ máy chủ:", response);
     return response; // Trả về toàn bộ response thay vì response.data
   } catch (error) {
-    console.error("API Error:", error.response || error);
+    console.error("Lỗi API:", error.response || error);
     throw error;
   }
 };
@@ -225,7 +228,7 @@ export const updateUserAvatar = async (formData) => {
 export const updateUserCover = async (formData) => {
   try {
     const userId = formData.get("userId");
-    console.log("Sending request to update cover for user:", userId);
+    console.log("Gửi yêu cầu cập nhật ảnh bìa cho người dùng:", userId);
 
     const response = await axiosAPI.post(
       `/api/users/${userId}/update-cover`,
@@ -237,19 +240,23 @@ export const updateUserCover = async (formData) => {
       }
     );
 
-    console.log("Server response:", response);
+    console.log("Phản hồi từ máy chủ:", response);
     return response; // Trả về toàn bộ response thay vì response.data
   } catch (error) {
-    console.error("API Error:", error.response || error);
+    console.error("Lỗi API:", error.response || error);
     throw error;
   }
 };
 
-export const unfriendUser = async (friendId, userId) => {
+export const unfriendUser = async (friendId) => {
   try {
-    const response = await axiosAPI.delete(`/api/users/friends/${friendId}`, {
-      data: { userId }, // Gửi userId trong body của request
-    });
+    const currentUser = JSON.parse(localStorage.getItem("user"));
+    const userId = currentUser?.idUser;
+    if (!userId) {
+      throw new Error("Không tìm thấy ID người dùng");
+    }
+    const response = await axiosAPI.delete(`/api/users/${userId}/friends/${friendId}`);
+    console.log("Phản hồi từ máy chủ:", response.data);
     return response.data;
   } catch (error) {
     console.error("Lỗi khi hủy kết bạn:", error);

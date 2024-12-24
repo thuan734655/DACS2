@@ -23,8 +23,8 @@ function CommentInput({
   const [emojiPicker, setEmojiPicker] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const { currentUser, reload, currentUserId, isOwner } =
-  useUserPublicProfile(replyId);
-  
+    useUserPublicProfile(replyId);
+
   const idUser = JSON.parse(localStorage.getItem("user")).idUser; // Lấy userId từ localStorage
 
   // Handle file change with validation
@@ -61,8 +61,6 @@ function CommentInput({
     setEmojiPicker(false);
   }, []);
 
-
-
   // Handle comment submission
   const handleAddComment = useCallback(async () => {
     const userInfo = localStorage.getItem("user");
@@ -95,8 +93,8 @@ function CommentInput({
       // Emit comment or reply to the server
       if (isReply) {
         const replyContent = { replyData: comment, commentId };
-        console.log(commentId)
-        console.log(document.querySelector(`#${commentId}`))
+        console.log(commentId);
+        console.log(document.querySelector(`#${commentId}`));
         socket.emit("replyComment", replyContent);
       } else if (replyId) {
         const replyContent = { replyData: comment, replyId: replyId };
@@ -118,7 +116,11 @@ function CommentInput({
     >
       <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 hover:opacity-90 transition-all duration-200 shadow-sm">
         <img
-          src={currentUser?.avatar ? `${API_URL}${currentUser.avatar}` : "/default-avatar.png"}
+          src={
+            currentUser?.avatar
+              ? `${API_URL}${currentUser.avatar}`
+              : "/default-avatar.png"
+          }
           alt="User"
           className="h-full w-full object-cover"
         />

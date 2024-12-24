@@ -2,14 +2,17 @@ import {React, useState, useEffect} from 'react';
 import socket from "../../services/socket";
 import SocialPost from './SocialPost';
 import { FaArrowLeft, FaUserFriends, FaCheck, FaTimes, FaUserPlus, FaUser } from 'react-icons/fa';
-
+import { useUserPublicProfile } from '../../hooks/useUserPublicProfile';
+const API_URL = "http://localhost:5000";
 const NotificationDetailUI = ({notification, onBack}) => {
   const user = JSON.parse(localStorage.getItem("user")); 
   const [isPost, setIsPost] = useState( notification.type === 'POST_REACTION' || notification.type === 'POST_COMMENT' ||  notification.type === 'POST_REPLY_COMMENT' || notification.type === 'POST_REPLY_TO_REPLY' ||notification.type === 'POST_SHARE');
   const [isFriendRequest, setIsFriendRequest] = useState(notification.type === 'FRIEND_REQUEST' || notification.type === 'FRIEND_REQUEST_ACCEPTED' || notification.type === 'FRIEND_REQUEST_DENY');
   const [dataNotification, setDataNotification] = useState({});
   const [isLoad, setLoad] = useState(true);
-
+  const { currentUser, reload, currentUserId, isOwner } =
+  useUserPublicProfile();
+  console.log("44444444444",currentUser);
   useEffect(() => {
     if (isPost) {
       socket.on("res_getPostById", (data) => {
@@ -42,7 +45,7 @@ const NotificationDetailUI = ({notification, onBack}) => {
               <div className="relative z-10 flex justify-center mb-6">
                 {avatarUrl ? (
                   <img 
-                    src={avatarUrl} 
+                    src={avatarUrl ? `${API_URL}${avatarUrl}` : 'https://api.dicebear.com/6.x/avataaars/svg?seed=1'} 
                     alt={senderName}
                     className="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover"
                   />
@@ -96,7 +99,7 @@ const NotificationDetailUI = ({notification, onBack}) => {
                 <div className="transform -translate-x-4 transition-transform hover:scale-105">
                   {avatarUrl ? (
                     <img 
-                      src={avatarUrl} 
+                      src={avatarUrl ? `${API_URL}${avatarUrl}` : 'https://api.dicebear.com/6.x/avataaars/svg?seed=1'} 
                       alt={senderName}
                       className="w-20 h-20 rounded-full border-4 border-white shadow-lg object-cover"
                     />
@@ -115,7 +118,11 @@ const NotificationDetailUI = ({notification, onBack}) => {
                 {/* Second user */}
                 <div className="transform translate-x-4 transition-transform hover:scale-105">
                   <div className="w-20 h-20 bg-gradient-to-r from-green-400 to-green-600 rounded-full border-4 border-white shadow-lg flex items-center justify-center">
-                    <FaUser className="text-3xl text-white" />
+                    <img
+                      src={currentUser?.avatar ? `${API_URL}${currentUser?.avatar}` : 'https://api.dicebear.com/6.x/avataaars/svg?seed=1'} 
+                      alt={receiverName}
+                      className="w-20 h-20 rounded-full border-4 border-white shadow-lg object-cover"
+                    />
                   </div>
                 </div>
               </div>
@@ -161,7 +168,7 @@ const NotificationDetailUI = ({notification, onBack}) => {
               <div className="relative z-10 flex justify-center mb-6">
                 {avatarUrl ? (
                   <img 
-                    src={avatarUrl} 
+                    src={avatarUrl ? `${API_URL}${avatarUrl}` : 'https://api.dicebear.com/6.x/avataaars/svg?seed=${senderName}'} 
                     alt={senderName}
                     className="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover filter grayscale"
                   />

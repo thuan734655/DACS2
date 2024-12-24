@@ -1,16 +1,27 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { FaMicrophone, FaMicrophoneSlash, FaVideo, FaVideoSlash, FaPhone } from 'react-icons/fa';
+import React, { useEffect, useRef, useState } from "react";
+import {
+  FaMicrophone,
+  FaMicrophoneSlash,
+  FaVideo,
+  FaVideoSlash,
+  FaPhone,
+} from "react-icons/fa";
 // Import trực tiếp file âm thanh
-import ringPhone from '../assets/sound/ring-phone.mp3';
-import telephoneRing from '../assets/sound/telephone-ring.mp3';
+import ringPhone from "../assets/sound/ring-phone.mp3";
+import telephoneRing from "../assets/sound/telephone-ring.mp3";
 
-const VideoCall = ({ localStream, remoteStream, onEndCall, isIncomingCall }) => {
+const VideoCall = ({
+  localStream,
+  remoteStream,
+  onEndCall,
+  isIncomingCall,
+}) => {
   const localVideoRef = useRef();
   const remoteVideoRef = useRef();
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isRinging, setIsRinging] = useState(false);
-  
+
   // Khởi tạo Audio với đường dẫn đã import
   const callStartAudioRef = useRef(new Audio(ringPhone));
   const incomingCallAudioRef = useRef(new Audio(telephoneRing));
@@ -33,7 +44,7 @@ const VideoCall = ({ localStream, remoteStream, onEndCall, isIncomingCall }) => 
       try {
         await callStartAudioRef.current.play();
       } catch (error) {
-        console.error('Error playing call start sound:', error);
+        console.error("Error playing call start sound:", error);
       }
     };
     playCallStartSound();
@@ -48,12 +59,12 @@ const VideoCall = ({ localStream, remoteStream, onEndCall, isIncomingCall }) => 
           await incomingCallAudioRef.current.play();
           setIsRinging(true);
         } catch (error) {
-          console.error('Error playing incoming call sound:', error);
+          console.error("Error playing incoming call sound:", error);
         }
       };
       playIncomingCallSound();
     }
-    
+
     // Cleanup khi isIncomingCall thay đổi
     return () => {
       if (incomingCallAudioRef.current) {
@@ -104,7 +115,7 @@ const VideoCall = ({ localStream, remoteStream, onEndCall, isIncomingCall }) => 
       callStartAudioRef.current.pause();
       callStartAudioRef.current.currentTime = 0;
     }
-    
+
     // Dừng âm thanh cuộc gọi đến nếu đang phát
     if (incomingCallAudioRef.current) {
       incomingCallAudioRef.current.loop = false;
@@ -112,7 +123,7 @@ const VideoCall = ({ localStream, remoteStream, onEndCall, isIncomingCall }) => 
       incomingCallAudioRef.current.currentTime = 0;
       setIsRinging(false);
     }
-    
+
     // Gọi callback onEndCall
     onEndCall();
   };
@@ -158,7 +169,7 @@ const VideoCall = ({ localStream, remoteStream, onEndCall, isIncomingCall }) => 
           <button
             onClick={toggleAudio}
             className={`p-4 rounded-full ${
-              isAudioEnabled ? 'bg-gray-200' : 'bg-red-500 text-white'
+              isAudioEnabled ? "bg-gray-200" : "bg-red-500 text-white"
             }`}
           >
             {isAudioEnabled ? <FaMicrophone /> : <FaMicrophoneSlash />}
@@ -166,7 +177,7 @@ const VideoCall = ({ localStream, remoteStream, onEndCall, isIncomingCall }) => 
           <button
             onClick={toggleVideo}
             className={`p-4 rounded-full ${
-              isVideoEnabled ? 'bg-gray-200' : 'bg-red-500 text-white'
+              isVideoEnabled ? "bg-gray-200" : "bg-red-500 text-white"
             }`}
           >
             {isVideoEnabled ? <FaVideo /> : <FaVideoSlash />}

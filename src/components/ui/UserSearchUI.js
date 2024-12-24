@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { FaSearch, FaUserPlus } from 'react-icons/fa';
 import { searchUsersByName, sendFriendRequest, getSuggestedFriends } from '../../services/userService';
 import { toast } from 'react-toastify';
-
+import { useUserPublicProfile } from '../../hooks/useUserPublicProfile';
+const API_URL = "http://localhost:5000";
 const UserSearchUI = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -11,7 +12,9 @@ const UserSearchUI = () => {
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
   const [suggestedFriends, setSuggestedFriends] = useState([]);
-
+  const { currentUser, reload, currentUserId, isOwner } =
+  useUserPublicProfile();
+  console.log("55555555",currentUser);
   useEffect(() => {
     // Lấy dữ liệu user từ localStorage khi component mount
     const userData = localStorage.getItem("user");
@@ -128,7 +131,7 @@ const UserSearchUI = () => {
     >
       <div className="flex items-center gap-4">
         <img
-          src={`user.avatar || 'https://api.dicebear.com/6.x/avataaars/svg?seed=${user.idUser}'`}
+          src={currentUser.avatar ? `${API_URL}${user.avatar}` : 'https://api.dicebear.com/6.x/avataaars/svg?seed=${user.idUser}'}
           alt={user.fullName}
           className="w-12 h-12 rounded-full"
         />
