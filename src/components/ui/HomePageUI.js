@@ -150,7 +150,7 @@ const HomePageUI = () => {
   useEffect(() => {
     const handleReceivePosts = ({ posts, hasMorePosts }) => {
       setListPosts((prevPosts) => {
-        const newPosts = { ...posts };  
+        const newPosts = { ...posts };
         // Update cache immediately
         localStorage.setItem("cachedPosts", JSON.stringify(newPosts));
         localStorage.setItem("lastCacheTime", Date.now().toString());
@@ -234,8 +234,8 @@ const HomePageUI = () => {
             ...newPosts[postId],
             post: {
               ...newPosts[postId].post,
-              ...updatedPost
-            }
+              ...updatedPost,
+            },
           };
           // Update localStorage cache
           localStorage.setItem("cachedPosts", JSON.stringify(newPosts));
@@ -279,7 +279,10 @@ const HomePageUI = () => {
     return (
       <div>
         <div className="bg-white rounded-lg shadow-lg p-4 mb-4 hidden md:block">
-          <div className="flex items-center space-x-4 mb-4" onClick={() => navigate(`/profile/${user.idUser}`)}>
+          <div
+            className="flex items-center space-x-4 mb-4"
+            onClick={() => navigate(`/profile/${user.idUser}`)}
+          >
             <img
               src={
                 currentUser?.avatar
@@ -288,7 +291,6 @@ const HomePageUI = () => {
               }
               alt={user?.fullName}
               className="w-16 h-16 rounded-full"
-              
             />
             <div>
               <h2 className="font-semibold text-lg">
@@ -313,13 +315,15 @@ const HomePageUI = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
-          <button
-            onClick={() => setFormCreatePostVisible(true)}
-            className="w-full flex items-center space-x-3 p-3 rounded-lg transition-colors hover:bg-gray-100 mb-4"
-          >
-            <FaPen className="text-blue-500 text-xl" />
-            <span className="font-medium">Tạo bài viết mới</span>
-          </button>
+          {activeTab === "home" && (
+            <button
+              onClick={() => setFormCreatePostVisible(true)}
+              className="w-full flex items-center space-x-3 p-3 rounded-lg transition-colors hover:bg-gray-100 mb-4"
+            >
+              <FaPen className="text-blue-500 text-xl" />
+              <span className="font-medium">Tạo bài viết mới</span>
+            </button>
+          )}
 
           <div className="md:hidden mb-4">
             <button
@@ -332,7 +336,9 @@ const HomePageUI = () => {
           </div>
 
           <nav
-            className={`space-y-4 ${isMobileMenuOpen ? "block" : "hidden md:block"}`}
+            className={`space-y-4 ${
+              isMobileMenuOpen ? "block" : "hidden md:block"
+            }`}
           >
             {menuItems.map((item) => (
               <button
@@ -404,11 +410,7 @@ const HomePageUI = () => {
                       disabled={isLoading}
                       className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 disabled:opacity-50 flex items-center space-x-2"
                     >
-                      {isLoading ? (
-                        <></>
-                      ) : (
-                        <span>Xem thêm bài viết</span>
-                      )}
+                      {isLoading ? <></> : <span>Xem thêm bài viết</span>}
                     </button>
                   </div>
                 )}
