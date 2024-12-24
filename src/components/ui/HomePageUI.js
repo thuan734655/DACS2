@@ -70,21 +70,16 @@ const HomePageUI = () => {
       setIsLoading(true);
       setError(null);
 
-      // Kiểm tra xem cache có hết hạn chưa (5 phút)
-      const cacheExpiration = 5 * 60 * 1000; // 5 phút
-      const currentTime = Date.now();
-      const isCacheValid = currentTime - parseInt(lastCacheTime) < cacheExpiration;
-
-      // Nếu là trang đầu tiên và cache còn hợp lệ, sử dụng dữ liệu từ cache
-      if (pageToLoad === 1 && isCacheValid && Object.keys(listPosts).length > 0) {
-        setIsLoading(false);
-        return;
+      // Always fetch new data on page 1
+      if (pageToLoad === 1) {
+        setListPosts({});
+        setFetchedPostIds([]);
       }
 
-      // Nếu không có cache hoặc cache hết hạn, gọi API
+      // Emit socket event to get posts
       socket.emit("getPosts", idUser, fetchedPostIds, 10, pageToLoad);
     },
-    [idUser, fetchedPostIds, isLoading, hasMore, listPosts, lastCacheTime]
+    [idUser, fetchedPostIds, isLoading, hasMore]
   );
 
   const handleLoadMore = () => {
@@ -154,8 +149,8 @@ const HomePageUI = () => {
   useEffect(() => {
     const handleReceivePosts = ({ posts, hasMorePosts }) => {
       setListPosts((prevPosts) => {
-        const newPosts = { ...prevPosts, ...posts };
-        // Lưu vào localStorage
+        const newPosts = { ...posts };  
+        // Update cache immediately
         localStorage.setItem("cachedPosts", JSON.stringify(newPosts));
         localStorage.setItem("lastCacheTime", Date.now().toString());
         return newPosts;
@@ -226,6 +221,31 @@ const HomePageUI = () => {
 
     return () => {
       socket.off("receiveNewPost");
+    };
+  }, []);
+
+  useEffect(() => {
+    socket.on("postUpdated", ({ postId, updatedPost }) => {
+      setListPosts((prevPosts) => {
+        const newPosts = { ...prevPosts };
+        if (newPosts[postId]) {
+          newPosts[postId] = {
+            ...newPosts[postId],
+            post: {
+              ...newPosts[postId].post,
+              ...updatedPost
+            }
+          };
+          // Update localStorage cache
+          localStorage.setItem("cachedPosts", JSON.stringify(newPosts));
+          localStorage.setItem("lastCacheTime", Date.now().toString());
+        }
+        return newPosts;
+      });
+    });
+
+    return () => {
+      socket.off("postUpdated");
     };
   }, []);
 
@@ -383,10 +403,7 @@ const HomePageUI = () => {
                       className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 disabled:opacity-50 flex items-center space-x-2"
                     >
                       {isLoading ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
-                          <span>Đang tải...</span>
-                        </>
+                        <></>
                       ) : (
                         <span>Xem thêm bài viết</span>
                       )}

@@ -13,6 +13,7 @@ import { formatTimestamp } from "../../../utils/timeFormat";
 import { useToast } from "../../../context/ToastContext";
 import { useUserPublicProfile } from "../../../hooks/useUserPublicProfile";
 const API_URL = "http://localhost:5000";
+
 function CommentList({
   commentsList,
   emojiChoose,
@@ -21,9 +22,8 @@ function CommentList({
   setCommentCount,
 }) {
   const { currentUser, reload, currentUserId, isOwner } =
-  useUserPublicProfile();
-  console.log("111111111111", currentUser);
-  
+    useUserPublicProfile();
+
   const { showToast } = useToast();
   const [activeId, setActiveId] = useState(null);
   const [openReplies, setOpenReplies] = useState({});
@@ -95,6 +95,30 @@ function CommentList({
     });
   };
 
+  const handleDeleteComment = (commentId) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa bình luận này?")) {
+      socket.emit("deleteComment", { commentId, idUser: currentUserId });
+      // Update UI immediately
+      setCommentsList((prevComments) => {
+        const newComments = prevComments.filter(comment => comment.commentId !== commentId);
+        // Update cached posts
+        const cachedPosts = JSON.parse(localStorage.getItem("cachedPosts") || "{}");
+        Object.keys(cachedPosts).forEach(postKey => {
+          if (cachedPosts[postKey].post && cachedPosts[postKey].post.comments) {
+            cachedPosts[postKey].post.comments = cachedPosts[postKey].post.comments.filter(
+              comment => comment.commentId !== commentId
+            );
+          }
+        });
+        localStorage.setItem("cachedPosts", JSON.stringify(cachedPosts));
+        localStorage.setItem("lastCacheTime", Date.now().toString());
+        return newComments;
+      });
+      setCommentCount(prev => prev - 1);
+      showToast("Đã xóa bình luận thành công!", "success");
+    }
+  };
+
   useEffect(() => {
     socket.on("receiveComment", ({ newComment }) => {
       if (newComment && newComment.postId === postId) {
@@ -154,8 +178,18 @@ function CommentList({
 
     socket.on("responseReportComment", handleResponse);
 
+    socket.on("responseDeleteComment", ({ success }) => {
+      if (!success) {
+        // Only show error if delete failed, since we already updated UI optimistically
+        showToast("Không thể xóa bình luận. Vui lòng thử lại!", "error");
+        // Reload comments if delete failed
+        socket.emit("getPosts", postId, [], 10, 1);
+      }
+    });
+
     return () => {
       socket.off("responseReportComment", handleResponse);
+      socket.off("responseDeleteComment");
       socket.off("receiveComment");
       socket.off("receiveReplyToComment");
       socket.off("receiveReplyToReply");
@@ -191,7 +225,11 @@ function CommentList({
             <div className="flex items-start gap-2 mb-2">
               <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
                 <img
-                  src={user[0]?.avatar ? `${API_URL}${user[0]?.avatar}` : `https://api.dicebear.com/6.x/avataaars/svg?seed=${user[0]?.fullName}`}
+                  src={
+                    user[0]?.avatar
+                      ? `${API_URL}${user[0]?.avatar}`
+                      : `https://api.dicebear.com/6.x/avataaars/svg?seed=${user[0]?.fullName}`
+                  }
                   alt="User avatar"
                   className="w-full h-full object-cover"
                 />
@@ -232,15 +270,39 @@ function CommentList({
                 onClick={() => handleToggleCommentInput(commentId)}
               >
                 <MessageCircle className="h-4 w-4" />
-                <span>Trả lời</span>
+                <span className="text-sm">Trả lời</span>
               </button>
+
+              {(currentUserId === idUser || isOwner) && (
+                <button
+                  onClick={() => handleDeleteComment(commentId)}
+                  className="flex items-center gap-1 text-red-500 hover:text-red-700"
+                >
+                  <svg 
+                    className="h-4 w-4" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" 
+                    />
+                  </svg>
+                  <span className="text-sm">Xóa</span>
+                </button>
+              )}
+
               <button
                 className="flex items-center gap-1 text-gray-600 hover:text-gray-900"
                 onClick={() => openReportDialog(commentId)}
               >
                 <Flag className="h-4 w-4" />
-                <span>Báo cáo</span>
+                <span className="text-sm">Báo cáo</span>
               </button>
+
               {replies?.length > 0 && (
                 <button
                   className="flex items-center gap-1 text-gray-600 hover:text-gray-900"
@@ -249,12 +311,12 @@ function CommentList({
                   {openReplies[commentId] ? (
                     <React.Fragment>
                       <ChevronDown className="h-4 w-4" />
-                      <span>Ẩn {replies.length} phản hồi</span>
+                      <span className="text-sm">Ẩn {replies.length} phản hồi</span>
                     </React.Fragment>
                   ) : (
                     <React.Fragment>
                       <ChevronRight className="h-4 w-4" />
-                      <span>Xem thêm {replies.length} phản hồi</span>
+                      <span className="text-sm">Xem {replies.length} phản hồi</span>
                     </React.Fragment>
                   )}
                 </button>
