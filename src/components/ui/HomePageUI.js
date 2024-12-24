@@ -48,10 +48,16 @@ const HomePageUI = () => {
   );
   const [listNotification, setListNotification] = useState([]);
   const [page, setPage] = useState(1);
+  const [postsPerPage] = useState(5);
   const [hasMore, setHasMore] = useState(true);
   const [fetchedPostIds, setFetchedPostIds] = useState([]);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [lastScrollPosition, setLastScrollPosition] = useState(0);
+  const postsContainerRef = useRef(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const { currentUser } = useUserPublicProfile();
 
   const toggleMobileMenu = () => {
@@ -67,39 +73,51 @@ const HomePageUI = () => {
 
   const loadPosts = useCallback(
     (pageToLoad = 1) => {
-      if (isLoading || !hasMore) return;
+      if (isLoading || (!hasMore && pageToLoad !== 1)) return;
+
       setIsLoading(true);
       setError(null);
 
-      // Always fetch new data on page 1
+      // Reset states if loading first page
       if (pageToLoad === 1) {
         setListPosts({});
         setFetchedPostIds([]);
+        setHasMore(true);
+        setIsFirstLoad(true);
       }
 
-      // Emit socket event to get posts
-      socket.emit("getPosts", idUser, fetchedPostIds, 10, pageToLoad);
+      socket.emit("getPosts", idUser, fetchedPostIds, postsPerPage, pageToLoad);
     },
-    [idUser, fetchedPostIds, isLoading, hasMore]
+    [idUser, fetchedPostIds, isLoading, hasMore, postsPerPage]
   );
 
-  const handleLoadMore = () => {
-    loadPosts(page + 1);
-  };
+  const handleScroll = useCallback(() => {
+    if (!postsContainerRef.current || isLoading || !hasMore || isLoadingMore)
+      return;
 
-  const clearCache = useCallback(() => {
-    localStorage.removeItem("cachedPosts");
-    localStorage.removeItem("lastCacheTime");
-    setListPosts({});
-    setFetchedPostIds([]);
-    setPage(1);
-    loadPosts(1);
-  }, [loadPosts]);
+    const container = postsContainerRef.current;
+    const scrollTop = container.scrollTop;
+    const scrollHeight = container.scrollHeight;
+    const clientHeight = container.clientHeight;
 
-  const handleCreatePost = () => {
-    setFormCreatePostVisible(true);
-    clearCache();
-  };
+    // Calculate scroll percentage
+    const scrollPercentage = ((scrollTop + clientHeight) / scrollHeight) * 100;
+
+    // Load more when scrolled past 80%
+    if (scrollPercentage > 80 && !isLoading && hasMore) {
+      setPage((prev) => prev + 1);
+      setIsLoadingMore(true);
+      loadPosts(page + 1);
+    }
+  }, [loadPosts, page, isLoading, hasMore, isLoadingMore]);
+
+  useEffect(() => {
+    const postsContainer = postsContainerRef.current;
+    if (postsContainer) {
+      postsContainer.addEventListener("scroll", handleScroll);
+      return () => postsContainer.removeEventListener("scroll", handleScroll);
+    }
+  }, [handleScroll]);
 
   useEffect(() => {
     socket.on("notification", (notification) => {
@@ -110,10 +128,6 @@ const HomePageUI = () => {
         ]);
       }
     });
-    const handleMessageClick = () => {
-      setActiveTab("messages");
-      setShowUserSearch(true);
-    };
     socket.on("notifications", ({ notifications }) => {
       if (Array.isArray(notifications)) {
         setListNotification(notifications);
@@ -143,54 +157,39 @@ const HomePageUI = () => {
   }, [activeTab, idUser]);
 
   useEffect(() => {
-    localStorage.setItem("cachedPosts", JSON.stringify(listPosts));
-    localStorage.setItem("lastCacheTime", Date.now().toString());
-  }, [listPosts]);
-
-  useEffect(() => {
-    const handleReceivePosts = ({ posts, hasMorePosts }) => {
+    socket.on("receivePosts", ({ posts, hasMorePosts }) => {
+      console.log("receivePosts", hasMorePosts);
       setListPosts((prevPosts) => {
-        const newPosts = { ...posts };  
-        // Update cache immediately
-        localStorage.setItem("cachedPosts", JSON.stringify(newPosts));
-        localStorage.setItem("lastCacheTime", Date.now().toString());
+        const newPosts = isFirstLoad ? posts : { ...prevPosts, ...posts };
         return newPosts;
       });
-      setIsLoading(false);
-      setInitialLoadComplete(true);
+
+      setFetchedPostIds((prev) => [...prev, ...Object.keys(posts)]);
       setHasMore(hasMorePosts);
-      setFetchedPostIds((prevFetchedPostIds) => [
-        ...prevFetchedPostIds,
-        ...Object.keys(posts),
-      ]);
-    };
-
-    const handleError = ({ message }) => {
-      setError(message);
       setIsLoading(false);
-    };
-
-    socket.on("receivePosts", handleReceivePosts);
-    socket.on("error", handleError);
+      setIsLoadingMore(false);
+      setInitialLoadComplete(true);
+      setIsFirstLoad(false);
+    });
 
     return () => {
-      socket.off("receivePosts", handleReceivePosts);
-      socket.off("error", handleError);
+      socket.off("receivePosts");
     };
-  }, []);
+  }, [isFirstLoad]);
 
   useEffect(() => {
-    if (user && !initialLoadComplete) {
-      loadPosts();
-      loadUserData();
+    if (!initialLoadComplete && user) {
+      loadPosts(1);
     }
-  }, [user, initialLoadComplete, loadPosts]);
+  }, [loadPosts, initialLoadComplete, user]);
 
   useEffect(() => {
     socket.on("receiveNewPost", ({ post }) => {
+      console.log("????????????");
       if (!post) return;
 
       setListPosts((prevPosts) => {
+        console.log("receiveNewPost", prevPosts);
         const newPosts = { ...prevPosts };
         const postId = post.postId || Date.now().toString();
 
@@ -212,7 +211,6 @@ const HomePageUI = () => {
           },
         };
 
-        // Tạo một object mới với post mới ở đầu
         return {
           [postId]: newPosts[postId],
           ...prevPosts,
@@ -234,10 +232,9 @@ const HomePageUI = () => {
             ...newPosts[postId],
             post: {
               ...newPosts[postId].post,
-              ...updatedPost
-            }
+              ...updatedPost,
+            },
           };
-          // Update localStorage cache
           localStorage.setItem("cachedPosts", JSON.stringify(newPosts));
           localStorage.setItem("lastCacheTime", Date.now().toString());
         }
@@ -249,6 +246,13 @@ const HomePageUI = () => {
       socket.off("postUpdated");
     };
   }, []);
+
+  useEffect(() => {
+    if (Object.keys(listPosts).length > 0) {
+      localStorage.setItem("cachedPosts", JSON.stringify(listPosts));
+      localStorage.setItem("lastCacheTime", Date.now().toString());
+    }
+  }, [listPosts]);
 
   const loadUserData = async () => {
     try {
@@ -279,16 +283,18 @@ const HomePageUI = () => {
     return (
       <div>
         <div className="bg-white rounded-lg shadow-lg p-4 mb-4 hidden md:block">
-          <div className="flex items-center space-x-4 mb-4" onClick={() => navigate(`/profile/${user.idUser}`)}>
+          <div
+            className="flex items-center space-x-4 mb-4"
+            onClick={() => navigate(`/profile/${user.idUser}`)}
+          >
             <img
               src={
-                currentUser?.avatar
-                  ? `${API_URL}${currentUser.avatar}`
-                  : `https://api.dicebear.com/6.x/avataaars/svg?seed=${currentUser.fullName}`
+                user?.avatar
+                  ? `${API_URL}${user.avatar}`
+                  : `https://api.dicebear.com/6.x/avataaars/svg?seed=${user.fullName}`
               }
               alt={user?.fullName}
               className="w-16 h-16 rounded-full"
-              
             />
             <div>
               <h2 className="font-semibold text-lg">
@@ -332,7 +338,9 @@ const HomePageUI = () => {
           </div>
 
           <nav
-            className={`space-y-4 ${isMobileMenuOpen ? "block" : "hidden md:block"}`}
+            className={`space-y-4 ${
+              isMobileMenuOpen ? "block" : "hidden md:block"
+            }`}
           >
             {menuItems.map((item) => (
               <button
@@ -373,8 +381,10 @@ const HomePageUI = () => {
                 user={user}
               />
             )}
-            {isLoading ? (
-              <div className="text-center py-4">Đang tải bài viết...</div>
+            {isLoading && isFirstLoad ? (
+              <div className="flex justify-center py-4">
+                <div className="w-8 h-8 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
+              </div>
             ) : error ? (
               <div className="text-center py-4 text-red-500">
                 Có lỗi xảy ra: {error}
@@ -382,36 +392,31 @@ const HomePageUI = () => {
             ) : Object.keys(listPosts).length === 0 ? (
               <div className="text-center py-4">Chưa có bài viết nào</div>
             ) : (
-              <div className="space-y-4">
-                {Object.entries(listPosts).map(([postId, postData]) => {
-                  if (!postData || !postData.post) return null;
-                  return (
-                    <SocialPost
-                      key={postId}
-                      postId={postData.post.postId || postId}
-                      groupedLikes={postData.groupedLikes}
-                      commentCountDefault={postData.commentCount}
-                      post={postData.post}
-                      postUser={postData.infoUserList[postData.post.idUser]}
-                      currentUser={user}
-                    />
-                  );
-                })}
-                {hasMore && (
+              <div className="space-y-4" id="posts-section">
+                {Object.entries(listPosts)
+                  .sort(([, a], [, b]) => b.post.createdAt - a.post.createdAt)
+                  .slice(0, page * postsPerPage)
+                  .map(([postId, postData]) => {
+                    if (!postData || !postData.post) return null;
+                    return (
+                      <SocialPost
+                        key={postId}
+                        postId={postData.post.postId || postId}
+                        groupedLikes={postData.groupedLikes}
+                        commentCountDefault={postData.commentCount}
+                        post={postData.post}
+                        postUser={postData.infoUserList[postData.post.idUser]}
+                        currentUser={user}
+                      />
+                    );
+                  })}
+
+                {isLoadingMore && (
                   <div className="flex justify-center py-4">
-                    <button
-                      onClick={handleLoadMore}
-                      disabled={isLoading}
-                      className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 disabled:opacity-50 flex items-center space-x-2"
-                    >
-                      {isLoading ? (
-                        <></>
-                      ) : (
-                        <span>Xem thêm bài viết</span>
-                      )}
-                    </button>
+                    <div className="w-6 h-6 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
                   </div>
                 )}
+
                 {!hasMore && Object.keys(listPosts).length > 0 && (
                   <div className="text-center py-4 text-gray-500">
                     Đã hiển thị tất cả bài viết
@@ -463,7 +468,10 @@ const HomePageUI = () => {
           {renderLeftPanel()}
         </div>
 
-        <div className="col-span-12 md:col-span-6 pt-10 h-full overflow-y-auto">
+        <div
+          className="col-span-12 md:col-span-6 pt-10 h-full overflow-y-auto"
+          ref={postsContainerRef}
+        >
           {renderMainContent()}
         </div>
 
