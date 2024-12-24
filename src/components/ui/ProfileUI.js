@@ -49,7 +49,6 @@ const ProfileUI = () => {
     education: "",
     location: "",
   });
-console.log("0000000000",id);
 
   const { currentUser, reload, currentUserId, isOwner } =
     useUserPublicProfile(id);
