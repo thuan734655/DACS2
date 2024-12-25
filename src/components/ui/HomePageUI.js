@@ -24,6 +24,9 @@ import socket from "../../services/socket";
 import { useUserPublicProfile } from "../../hooks/useUserPublicProfile";
 import { useNavigate } from "react-router-dom";
 const API_URL = "https://dacs2-server-8.onrender.com";
+
+
+
 const HomePageUI = () => {
   const navigate = useNavigate();
   const [formCreatePostVisible, setFormCreatePostVisible] = useState(false);
