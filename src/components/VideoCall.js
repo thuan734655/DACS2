@@ -7,14 +7,10 @@ import {
   FaPhone,
 } from "react-icons/fa";
 
-const VideoCall = ({
-  localStream,
-  remoteStream,
-  onEndCall,
-  isIncomingCall,
-}) => {
+const VideoCall = ({ localStream, remoteStream, onEndCall }) => {
   const localVideoRef = useRef();
   const remoteVideoRef = useRef();
+  const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
 
   useEffect(() => {
@@ -29,16 +25,20 @@ const VideoCall = ({
     }
   }, [remoteStream]);
 
+  const toggleAudio = () => {
+    if (localStream) {
+      const audioTrack = localStream.getAudioTracks()[0];
+      audioTrack.enabled = !audioTrack.enabled;
+      setIsAudioEnabled(audioTrack.enabled);
+    }
+  };
+
   const toggleVideo = () => {
     if (localStream) {
       const videoTrack = localStream.getVideoTracks()[0];
       videoTrack.enabled = !videoTrack.enabled;
       setIsVideoEnabled(videoTrack.enabled);
     }
-  };
-
-  const handleEndCall = () => {
-    onEndCall();
   };
 
   return (
@@ -80,6 +80,14 @@ const VideoCall = ({
         {/* Controls */}
         <div className="flex justify-center space-x-4 mt-4">
           <button
+            onClick={toggleAudio}
+            className={`p-4 rounded-full ${
+              isAudioEnabled ? "bg-gray-200" : "bg-red-500 text-white"
+            }`}
+          >
+            {isAudioEnabled ? <FaMicrophone /> : <FaMicrophoneSlash />}
+          </button>
+          <button
             onClick={toggleVideo}
             className={`p-4 rounded-full ${
               isVideoEnabled ? "bg-gray-200" : "bg-red-500 text-white"
@@ -88,7 +96,7 @@ const VideoCall = ({
             {isVideoEnabled ? <FaVideo /> : <FaVideoSlash />}
           </button>
           <button
-            onClick={handleEndCall}
+            onClick={onEndCall}
             className="p-4 rounded-full bg-red-500 text-white"
           >
             <FaPhone className="transform rotate-135" />
