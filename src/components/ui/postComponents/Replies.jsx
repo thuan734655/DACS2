@@ -9,7 +9,7 @@ import {
 import CommentInput from "./CommentInput";
 import { useToast } from "../../../context/ToastContext";
 import socket from "../../../services/socket";
-const API_URL = "http://localhost:5000";
+const API_URL = "https://dacs2-server-8.onrender.com";
 const Replies = ({
   commentsList,
   emojiChoose,

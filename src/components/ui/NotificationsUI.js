@@ -1,31 +1,37 @@
-import React, { useEffect, useState } from 'react';
-import { FaThumbsUp, FaComment, FaUserPlus, FaShare, FaEllipsisH, FaTrash } from 'react-icons/fa';
-import NotificationDetailUI from './NotificationDetailUI';
-import socket from '../../services/socket';
-import { formatDistanceToNow } from 'date-fns';
-import { vi } from 'date-fns/locale';
-import { useUserPublicProfile } from '../../hooks/useUserPublicProfile';
-const API_URL = "http://localhost:5000";
+import React, { useEffect, useState } from "react";
+import {
+  FaThumbsUp,
+  FaComment,
+  FaUserPlus,
+  FaShare,
+  FaEllipsisH,
+  FaTrash,
+} from "react-icons/fa";
+import NotificationDetailUI from "./NotificationDetailUI";
+import socket from "../../services/socket";
+import { formatDistanceToNow } from "date-fns";
+import { vi } from "date-fns/locale";
+import { useUserPublicProfile } from "../../hooks/useUserPublicProfile";
+const API_URL = "https://dacs2-server-8.onrender.com";
 const NotificationsUI = ({ user, data }) => {
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const idUser = user?.idUser;
   const { currentUser, reload, currentUserId, isOwner } =
-  useUserPublicProfile();
-  console.log("99999999999",currentUser);
-  
+    useUserPublicProfile();
+  console.log("99999999999", currentUser);
+
   useEffect(() => {
     const getNotifications = () => {
-      socket.emit('getNotifications', { idUser });
+      socket.emit("getNotifications", { idUser });
 
-      socket.on('notifications', ({ notifications: serverNotifications }) => {
-        console.log('Received notifications:', serverNotifications);
+      socket.on("notifications", ({ notifications: serverNotifications }) => {
+        console.log("Received notifications:", serverNotifications);
         if (Array.isArray(serverNotifications)) {
           const notificationsWithToggle = serverNotifications
-            .map(notification => ({
-
+            .map((notification) => ({
               ...notification,
-              toggle: false
+              toggle: false,
             }))
             .sort((a, b) => {
               // Sort by read status first (unread first)
@@ -35,29 +41,37 @@ const NotificationsUI = ({ user, data }) => {
               return new Date(b.createdAt) - new Date(a.createdAt);
             });
 
-          setNotifications(prevNotifications => {
-            const defaultNotifications = prevNotifications.filter(n => n.id.startsWith('default-'));
-            const allNotifications = [...notificationsWithToggle, ...defaultNotifications];
-            console.log('All notifications:', allNotifications);
+          setNotifications((prevNotifications) => {
+            const defaultNotifications = prevNotifications.filter((n) =>
+              n.id.startsWith("default-")
+            );
+            const allNotifications = [
+              ...notificationsWithToggle,
+              ...defaultNotifications,
+            ];
+            console.log("All notifications:", allNotifications);
             return allNotifications;
           });
         } else {
-          console.error('Dữ liệu không phải là mảng:', serverNotifications);
+          console.error("Dữ liệu không phải là mảng:", serverNotifications);
         }
       });
 
-      socket.on('notification', (notification) => {
-        console.log('New notification received:', notification);
-        setNotifications((prevNotifications) => [{
-          ...notification,
-          toggle: false,
-          read: false
-        }, ...prevNotifications]);
+      socket.on("notification", (notification) => {
+        console.log("New notification received:", notification);
+        setNotifications((prevNotifications) => [
+          {
+            ...notification,
+            toggle: false,
+            read: false,
+          },
+          ...prevNotifications,
+        ]);
       });
 
       // Add socket listener for error handling during deletion
-      socket.on('errorDeleteNotification', ({ message }) => {
-        console.error('Error deleting notification:', message);
+      socket.on("errorDeleteNotification", ({ message }) => {
+        console.error("Error deleting notification:", message);
         // You can add toast notification or other error handling here
       });
     };
@@ -65,30 +79,32 @@ const NotificationsUI = ({ user, data }) => {
     getNotifications();
 
     return () => {
-      socket.off('notifications');
-      socket.off('notification');
-      socket.off('errorDeleteNotification');
+      socket.off("notifications");
+      socket.off("notification");
+      socket.off("errorDeleteNotification");
     };
   }, [idUser]);
 
   const handleDeleteNotification = (idNotification) => {
-    socket.emit('deteleNotificaiton', { idNotification });
+    socket.emit("deteleNotificaiton", { idNotification });
     // Optimistically remove the notification from the UI
-    setNotifications(prevNotifications =>
-      prevNotifications.filter(notification => notification.id !== idNotification)
+    setNotifications((prevNotifications) =>
+      prevNotifications.filter(
+        (notification) => notification.id !== idNotification
+      )
     );
   };
 
   const getNotificationIcon = (type) => {
     switch (type) {
-      case 'postShared':
+      case "postShared":
         return <FaShare className="text-purple-500" />;
-      case 'postLiked':
+      case "postLiked":
         return <FaThumbsUp className="text-blue-500" />;
-      case 'postComment':
+      case "postComment":
         return <FaComment className="text-green-500" />;
-      case 'friendRequest':
-      case 'friendAccept':
+      case "friendRequest":
+      case "friendAccept":
         return <FaUserPlus className="text-blue-500" />;
       default:
         return null;
@@ -98,14 +114,14 @@ const NotificationsUI = ({ user, data }) => {
   const handleNotificationClick = (notification) => {
     setSelectedNotification(notification);
     if (!notification.read) {
-      socket.emit('markNotificationAsRead', {
+      socket.emit("markNotificationAsRead", {
         notificationId: notification.id,
-        idUser
+        idUser,
       });
 
       // Update local state to mark as read
-      setNotifications(prevNotifications =>
-        prevNotifications.map(n =>
+      setNotifications((prevNotifications) =>
+        prevNotifications.map((n) =>
           n.id === notification.id ? { ...n, read: true } : n
         )
       );
@@ -123,72 +139,75 @@ const NotificationsUI = ({ user, data }) => {
 
   // Show all notifications regardless of tab
   const allNotifications = notifications;
-  const unreadCount = allNotifications.filter(n => !n.read).length;
-  console.log('Rendering notifications:', allNotifications);
+  const unreadCount = allNotifications.filter((n) => !n.read).length;
+  console.log("Rendering notifications:", allNotifications);
 
   const getNotificationMessage = (notification) => {
     const { type, senderName, data = {} } = notification;
     const { reaction, postTitle, shareText } = data;
-    const postName = postTitle ? `"${postTitle}"` : 'bài viết của bạn';
+    const postName = postTitle ? `"${postTitle}"` : "bài viết của bạn";
 
     // Định dạng nội dung comment để hiển thị ngắn gọn
     const formatCommentText = (text) => {
-      if (!text) return '';
+      if (!text) return "";
       return text.length > 50 ? `${text.substring(0, 50)}...` : text;
     };
 
     switch (type) {
-      case 'POST_REACTION':
-        if (reaction === 'like') return `${senderName} đã thích ${postName}`;
-        if (reaction === 'love') return `${senderName} đã thả tim ${postName}`;
-        if (reaction === 'haha') return `${senderName} cảm thấy hài hước về ${postName}`;
-        if (reaction === 'wow') return `${senderName} đã ngạc nhiên về ${postName}`;
-        if (reaction === 'sad') return `${senderName} cảm thấy buồn về ${postName}`;
-        if (reaction === 'angry') return `${senderName} cảm thấy phẫn nộ về ${postName}`;
+      case "POST_REACTION":
+        if (reaction === "like") return `${senderName} đã thích ${postName}`;
+        if (reaction === "love") return `${senderName} đã thả tim ${postName}`;
+        if (reaction === "haha")
+          return `${senderName} cảm thấy hài hước về ${postName}`;
+        if (reaction === "wow")
+          return `${senderName} đã ngạc nhiên về ${postName}`;
+        if (reaction === "sad")
+          return `${senderName} cảm thấy buồn về ${postName}`;
+        if (reaction === "angry")
+          return `${senderName} cảm thấy phẫn nộ về ${postName}`;
         return `${senderName} đã bày tỏ cảm xúc về ${postName}`;
 
-      case 'POST_COMMENT':
+      case "POST_COMMENT":
         return `${senderName} đã bình luận trong ${postName}`;
 
-      case 'POST_SHARE':
+      case "POST_SHARE":
         if (shareText) {
           const formattedShare = formatCommentText(shareText);
           return `${senderName} đã chia sẻ ${postName} và nói "${formattedShare}"`;
         }
         return `${senderName} đã chia sẻ ${postName} lên tường của họ`;
 
-      case 'FRIEND_REQUEST':
+      case "FRIEND_REQUEST":
         return `${senderName} đã gửi cho bạn một lời mời kết bạn`;
 
-      case 'FRIEND_ACCEPT':
+      case "FRIEND_ACCEPT":
         return `${senderName} đã đồng ý kết bạn với bạn. Các bạn giờ đã là bạn bè!`;
 
-      case 'POST_REPLY_TO_REPLY':
+      case "POST_REPLY_TO_REPLY":
         return `${senderName} đã trả lời bình luận của bạn `;
 
-      case 'POST_REPLY_COMMENT':
+      case "POST_REPLY_COMMENT":
         return `${senderName} đã trả lời bình luận của bạn `;
 
-      case 'POST_REPLY_REPLY':
+      case "POST_REPLY_REPLY":
         return `${senderName} đã trả lời bình luận của bạn `;
 
-      case 'FRIEND_REQUEST_ACCEPTED':
+      case "FRIEND_REQUEST_ACCEPTED":
         return `${senderName} đã chấp nhận lời mời kết bạn của bạn `;
 
-      case 'FRIEND_REQUEST_DENY':
+      case "FRIEND_REQUEST_DENY":
         return `${senderName} đã từ chối lời mời kết bạn của bạn `;
 
-
       default:
-        console.log('Unknown notification type:', type);
+        console.log("Unknown notification type:", type);
         const friendlyType = type
           .toLowerCase()
-          .replace('post_', '')
-          .replace('comment_', '')
-          .replace('friend_', '')
-          .replace('group_', '')
-          .replace('reply_to_', '')
-          .replace('_', ' ');
+          .replace("post_", "")
+          .replace("comment_", "")
+          .replace("friend_", "")
+          .replace("group_", "")
+          .replace("reply_to_", "")
+          .replace("_", " ");
         return `${senderName} đã ${friendlyType} trong ${postName}`;
     }
   };
@@ -205,7 +224,6 @@ const NotificationsUI = ({ user, data }) => {
             </span>
           )}
         </div>
-       
       </div>
 
       {/* Notifications List */}
@@ -213,8 +231,18 @@ const NotificationsUI = ({ user, data }) => {
         {allNotifications.length === 0 ? (
           <div className="text-center py-8">
             <div className="text-gray-400 mb-2">
-              <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              <svg
+                className="mx-auto h-12 w-12"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                />
               </svg>
             </div>
             <p className="text-gray-500">Không có thông báo nào</p>
@@ -224,7 +252,7 @@ const NotificationsUI = ({ user, data }) => {
             <div
               key={notification.id}
               className={`flex items-start gap-3 p-3 hover:bg-gray-50 rounded-xl cursor-pointer relative transition-all duration-200 transform hover:scale-[1.01] ${
-                !notification.read ? 'bg-blue-50/50' : ''
+                !notification.read ? "bg-blue-50/50" : ""
               }`}
               onClick={() => handleNotificationClick(notification)}
             >
@@ -232,7 +260,11 @@ const NotificationsUI = ({ user, data }) => {
               <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center relative shadow-sm">
                 {notification.senderAvatar ? (
                   <img
-                    src={notification.senderAvatar ? `${API_URL}${notification.senderAvatar}` : 'https://api.dicebear.com/6.x/avataaars/svg?seed=1'}
+                    src={
+                      notification.senderAvatar
+                        ? `${API_URL}${notification.senderAvatar}`
+                        : "https://api.dicebear.com/6.x/avataaars/svg?seed=1"
+                    }
                     alt=""
                     className="w-full h-full rounded-full object-cover"
                   />
@@ -248,47 +280,57 @@ const NotificationsUI = ({ user, data }) => {
 
               {/* Content */}
               <div className="flex-1 min-w-0">
-                <p className={`text-sm ${!notification.read ? 'text-gray-900 font-medium' : 'text-gray-600'} line-clamp-2`}>
+                <p
+                  className={`text-sm ${
+                    !notification.read
+                      ? "text-gray-900 font-medium"
+                      : "text-gray-600"
+                  } line-clamp-2`}
+                >
                   {getNotificationMessage(notification)}
                 </p>
                 <span className="text-xs text-gray-400 mt-1 block">
-                  {formatDistanceToNow(new Date(notification.createdAt || Date.now()), {
-                    addSuffix: true,
-                    locale: vi
-                  })}
+                  {formatDistanceToNow(
+                    new Date(notification.createdAt || Date.now()),
+                    {
+                      addSuffix: true,
+                      locale: vi,
+                    }
+                  )}
                 </span>
 
                 {/* Friend Request Actions */}
-                {notification.type === 'friendRequest' && !notification.read && (
-                  <div className="flex gap-2 mt-3">
-                    <button
-                      className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        socket.emit('acceptFriendRequest', {
-                          notificationId: notification.id,
-                          userId: idUser,
-                          friendId: notification.senderId
-                        });
-                      }}
-                    >
-                      Xác nhận
-                    </button>
-                    <button
-                      className="px-4 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        socket.emit('declineFriendRequest', {
-                          notificationId: notification.id,
-                          userId: idUser,
-                          friendId: notification.senderId
-                        });
-                      }}
-                    >
-                      Xóa
-                    </button>
-                  </div>
-                )}
+                {notification.type === "friendRequest" &&
+                  !notification.read && (
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          socket.emit("acceptFriendRequest", {
+                            notificationId: notification.id,
+                            userId: idUser,
+                            friendId: notification.senderId,
+                          });
+                        }}
+                      >
+                        Xác nhận
+                      </button>
+                      <button
+                        className="px-4 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          socket.emit("declineFriendRequest", {
+                            notificationId: notification.id,
+                            userId: idUser,
+                            friendId: notification.senderId,
+                          });
+                        }}
+                      >
+                        Xóa
+                      </button>
+                    </div>
+                  )}
                 <button
                   className="p-2 hover:bg-red-100 text-red-500 hover:text-red-600 rounded-full transition-all duration-200 absolute top-2 right-2"
                   onClick={(e) => {

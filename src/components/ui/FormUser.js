@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useUserPublicProfile } from "../../hooks/useUserPublicProfile";
 import { unfriendUser } from "../../services/userService";
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://dacs2-server-8.onrender.com";
 const FormUser = (props) => {
   const { idUser } = props;
   const navigate = useNavigate();
@@ -17,7 +17,8 @@ const FormUser = (props) => {
   const urlUserId = hasProfileId ? urlParts[2] : null;
   const userData = JSON.parse(localStorage.getItem("user"));
   const isOwnProfile = urlUserId === userData?.idUser?.toString();
-  const showUnfriendButton = !isOwner && (!isProfilePage || !hasProfileId || isOwnProfile);
+  const showUnfriendButton =
+    !isOwner && (!isProfilePage || !hasProfileId || isOwnProfile);
 
   const handleUnfriend = async () => {
     try {

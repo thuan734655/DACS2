@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FaSearch, FaCircle, FaTimes } from "react-icons/fa";
 import { getFriendsList } from "../../services/userService";
 import socket from "../../services/socket";
-const API_URL = "http://localhost:5000";
+const API_URL = "https://dacs2-server-8.onrender.com";
 const MessagesUI = ({
   onClose,
   showInRightPanel = false,
@@ -23,10 +23,9 @@ const MessagesUI = ({
           friendsList.map((friend) => ({
             id: friend.idUser,
             user: friend.fullName || "Người dùng",
-            avatar:
-              friend.avatar
-                ? `${API_URL}${friend.avatar}`
-                : `https://api.dicebear.com/6.x/avataaars/svg?seed=${friend.idUser}`,
+            avatar: friend.avatar
+              ? `${API_URL}${friend.avatar}`
+              : `https://api.dicebear.com/6.x/avataaars/svg?seed=${friend.idUser}`,
             lastMessage: "Nhấn để bắt đầu trò chuyện",
             time: "",
             unread: 0,
@@ -90,7 +89,9 @@ const MessagesUI = ({
     <div className="bg-white rounded-lg shadow-lg h-full flex flex-col">
       <div className="p-2 sm:p-3 md:p-4 lg:p-5 border-b sticky top-0 bg-white z-10">
         <div className="flex justify-between items-center mb-2 sm:mb-3 md:mb-4">
-          <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">Tin nhắn</h2>
+          <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">
+            Tin nhắn
+          </h2>
           {!showInRightPanel && onClose && (
             <button
               onClick={onClose}
