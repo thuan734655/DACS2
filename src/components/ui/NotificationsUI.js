@@ -12,7 +12,7 @@ import socket from "../../services/socket";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { useUserPublicProfile } from "../../hooks/useUserPublicProfile";
-const API_URL = "http://localhost:5000";
+const API_URL = "https://dacs2-server-8.onrender.com";
 const NotificationsUI = ({ user, data }) => {
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [notifications, setNotifications] = useState([]);

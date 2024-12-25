@@ -5,7 +5,7 @@ import {
   markAllNotificationsAsRead,
 } from "../services/notificationSocket";
 import "./NotificationComponent.css";
-const API_URL = "http://localhost:5000";
+const API_URL = "https://dacs2-server-8.onrender.com";
 const NotificationComponent = ({ notifications, unreadCount, userId }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);

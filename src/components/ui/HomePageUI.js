@@ -23,7 +23,7 @@ import {
 import socket from "../../services/socket";
 import { useUserPublicProfile } from "../../hooks/useUserPublicProfile";
 import { useNavigate } from "react-router-dom";
-const API_URL = "http://localhost:5000";
+const API_URL = "https://dacs2-server-8.onrender.com";
 const HomePageUI = () => {
   const navigate = useNavigate();
   const [formCreatePostVisible, setFormCreatePostVisible] = useState(false);
@@ -287,7 +287,7 @@ const HomePageUI = () => {
             className="flex items-center space-x-4 mb-4"
             onClick={() => navigate(`/profile/${user.idUser}`)}
           >
-             <img
+            <img
               src={
                 currentUser?.avatar
                   ? `${API_URL}${currentUser.avatar}`
@@ -462,7 +462,6 @@ const HomePageUI = () => {
         </div>
 
         <div className="hidden md:block md:col-span-3 h-full overflow-y-auto pt-10 space-y-4">
-        
           {activeTab === "messages" ? (
             <MessagesUI
               showInRightPanel={true}

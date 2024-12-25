@@ -4,7 +4,7 @@ const handleSetInfo = async (email, password) => {
   try {
     // Gửi yêu cầu POST đến API
     const response = await axios.post(
-      "http://localhost:5000/set-info",
+      "https://dacs2-server-8.onrender.com/set-info",
       {
         email,
         password,

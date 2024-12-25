@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FaSearch, FaCircle, FaTimes } from "react-icons/fa";
 import { getFriendsList } from "../../services/userService";
 import socket from "../../services/socket";
-const API_URL = "http://localhost:5000";
+const API_URL = "https://dacs2-server-8.onrender.com";
 const MessagesUI = ({
   onClose,
   showInRightPanel = false,
