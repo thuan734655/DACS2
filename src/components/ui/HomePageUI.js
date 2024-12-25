@@ -302,20 +302,6 @@ const HomePageUI = () => {
               </h2>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="font-semibold">{friendCount || 0}</div>
-              <div className="text-gray-500 text-sm">Bạn bè</div>
-            </div>
-            <div>
-              <div className="font-semibold">{user?.photos || 0}</div>
-              <div className="text-gray-500 text-sm">Ảnh</div>
-            </div>
-            <div>
-              <div className="font-semibold">{user?.likes || 0}</div>
-              <div className="text-gray-500 text-sm">Thích</div>
-            </div>
-          </div>
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
