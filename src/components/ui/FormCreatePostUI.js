@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { X, Image } from "lucide-react";
 
 import socket from "../../services/socket";
-const API_URL = "http://localhost:5000";
+import { useUserPublicProfile } from "../../hooks/useUserPublicProfile";
+const API_URL = "https://dacs2-server-8.onrender.com";
 const FromCreatePost = ({ setFormCreatePostVisible }) => {
   const [postText, setPostText] = useState("");
 
@@ -17,7 +18,8 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
   const [user, setUser] = useState(null);
 
   const [privacy, setPrivacy] = useState("public");
-
+  const { currentUser, reload, currentUserId, isOwner } =
+    useUserPublicProfile();
   const handleClose = () => {
     setFormCreatePostVisible(false);
 
@@ -160,8 +162,8 @@ const FromCreatePost = ({ setFormCreatePostVisible }) => {
         <div className="p-4 flex items-center gap-2">
           <img
             src={
-              user?.avatar
-                ? `${API_URL}${user.avatar}`
+              currentUser?.avatar
+                ? `${API_URL}${currentUser.avatar}`
                 : "https://via.placeholder.com/40"
             }
             alt=""
