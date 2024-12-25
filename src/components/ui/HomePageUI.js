@@ -287,18 +287,18 @@ const HomePageUI = () => {
             className="flex items-center space-x-4 mb-4"
             onClick={() => navigate(`/profile/${user.idUser}`)}
           >
-            <img
+             <img
               src={
-                user?.avatar
-                  ? `${API_URL}${user.avatar}`
-                  : `https://api.dicebear.com/6.x/avataaars/svg?seed=${user.fullName}`
+                currentUser?.avatar
+                  ? `${API_URL}${currentUser.avatar}`
+                  : `https://api.dicebear.com/6.x/avataaars/svg?seed=${currentUser.fullName}`
               }
               alt={user?.fullName}
               className="w-16 h-16 rounded-full"
             />
             <div>
               <h2 className="font-semibold text-lg">
-                {user?.fullName || "Đang tải..."}
+                {currentUser?.fullName || "Đang tải..."}
               </h2>
             </div>
           </div>
@@ -462,6 +462,7 @@ const HomePageUI = () => {
         </div>
 
         <div className="hidden md:block md:col-span-3 h-full overflow-y-auto pt-10 space-y-4">
+        
           {activeTab === "messages" ? (
             <MessagesUI
               showInRightPanel={true}
