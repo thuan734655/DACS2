@@ -62,11 +62,15 @@ const ProfileUI = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [listPosts, setListPosts] = useState({});
   const postsContainerRef = useRef(null);
+  const [friendId, setFriendId] = useState(null);
   const { currentUser, reload, currentUserId, isOwner } =
     useUserPublicProfile(id);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
+    if (newValue === 0) {
+      loadPosts(1);
+    }
   };
 
   useEffect(() => {
@@ -97,7 +101,12 @@ const ProfileUI = () => {
   const loadPosts = useCallback(
     (pageToLoad = 1) => {
       if (isLoadingPost || (!hasMore && pageToLoad !== 1)) return;
-
+      if (
+        friendId &&
+        currentUserId == JSON.parse(localStorage.getItem("user")).idUser
+      ) {
+        return;
+      }
       setIsLoadingPost(true);
       setError(null);
 
@@ -107,6 +116,8 @@ const ProfileUI = () => {
         setHasMore(true);
         setIsFirstLoad(true);
       }
+
+      console.log(id, "loading");
 
       socket.emit(
         "getPostOfUser",
