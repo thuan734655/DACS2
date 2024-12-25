@@ -4,7 +4,7 @@ import { X, MoreHorizontal, Globe, Users, Lock } from "lucide-react";
 import { useToast } from "../../../context/ToastContext";
 import socket from "../../../services/socket.js";
 import { useUserPublicProfile } from "../../../hooks/useUserPublicProfile.js";
-const API_URL = "http://localhost:5000";
+const API_URL = "https://dacs2-server-8.onrender.com";
 function PostContent({ post, postUser, isComment = false, onClose }) {
   const { currentUser } = useUserPublicProfile(post?.idUser);
 
@@ -195,7 +195,7 @@ function PostContent({ post, postUser, isComment = false, onClose }) {
         <div className="flex items-center mb-2">
           <img
             src={
-              `http://localhost:5000${post.sharedPostContent.originalUser?.avatar}` ||
+              `https://dacs2-server-8.onrender.com${post.sharedPostContent.originalUser?.avatar}` ||
               "/default-avatar.png"
             }
             alt={post.sharedPostContent.originalUser?.fullName || "User"}
@@ -236,7 +236,7 @@ function PostContent({ post, postUser, isComment = false, onClose }) {
           <img
             src={
               post.infoUser?.avatar
-                ? `http://localhost:5000${post.infoUser.avatar}`
+                ? `https://dacs2-server-8.onrender.com${post.infoUser.avatar}`
                 : `${API_URL}${currentUser.avatar}`
             }
             alt={postUser?.fullName || "User"}
