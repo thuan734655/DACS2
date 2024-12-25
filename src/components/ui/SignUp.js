@@ -58,14 +58,14 @@ const SignUp = () => {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       {step === 1 && (
         <div className="bg-white rounded-lg shadow-md p-6 w-full max-w-md">
-          <h3 className="text-xl font-bold text-center">Sign Up</h3>
-          <p className="text-gray-600 text-center">It's quick and easy.</p>
+          <h3 className="text-xl font-bold text-center">Đăng ký</h3>
+          <p className="text-gray-600 text-center">Nhanh chóng và dễ dàng.</p>
           <div className="mt-4">
             <div className="flex space-x-2 mb-4">
               <InputField
                 type="text"
                 name="lastname"
-                placeholder="Last Name"
+                placeholder="Họ"
                 value={formData.lastname}
                 onChange={handleChange}
                 onBlur={(event) => checkValidData(event)}
@@ -73,7 +73,7 @@ const SignUp = () => {
               <InputField
                 type="text"
                 name="firstname"
-                placeholder="First Name"
+                placeholder="Tên"
                 value={formData.firstname}
                 onChange={handleChange}
                 onBlur={(event) => checkValidData(event)}
@@ -93,7 +93,7 @@ const SignUp = () => {
               <InputField
                 type={passwordVisible ? "text" : "password"}
                 name="password"
-                placeholder="Password"
+                placeholder="Mật khẩu"
                 value={formData.password}
                 onChange={handleChange}
                 onBlur={(event) => checkValidData(event)}
@@ -106,7 +106,7 @@ const SignUp = () => {
               </span>
             </div>
 
-            <label className="block text-gray-700">Date of birth:</label>
+            <label className="block text-gray-700">Ngày sinh:</label>
             <div className="flex space-x-2 mb-4">
               <SelectField
                 name="day"
@@ -128,17 +128,17 @@ const SignUp = () => {
               />
             </div>
 
-            <label className="block text-gray-700">Gender:</label>
+            <label className="block text-gray-700">Giới tính:</label>
             <SelectField
               name="gender"
               value={formData.gender}
               onChange={handleChange}
               options={[
                 <option key="male" value="male">
-                  Male
+                  Nam
                 </option>,
                 <option key="female" value="female">
-                  Female
+                  Nữ
                 </option>,
               ]}
             />
@@ -148,13 +148,13 @@ const SignUp = () => {
               className="w-full bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600"
               type="button"
             >
-              Submit
+              Đăng ký
             </button>
           </div>
 
           <div className="text-center mt-4">
             <Link to="/login" className="text-blue-500 hover:underline">
-              Go to login
+              Đi đến đăng nhập
             </Link>
           </div>
         </div>
@@ -177,9 +177,9 @@ const SignUp = () => {
       )}
       {step === 3 && (
         <SuccessMessage
-          title="Verify email successful!"
-          desc="Your email has been successfully verified. You can now log in to your account."
-          textNav="Go to login"
+          title="Xác thực email thành công!"
+          desc="Email của bạn đã được xác minh thành công. Bây giờ bạn có thể đăng nhập vào tài khoản của mình."
+          textNav="Đi đến đăng nhập"
           nextPage="/login"
           navigate={navigate}
         />

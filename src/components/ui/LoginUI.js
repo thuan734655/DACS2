@@ -36,7 +36,7 @@ const LoginUI = () => {
               />
               <div className="text-center m-6 lg:text-left">
                 <p className="text-gray-700 text-lg sm:text-2xl">
-                  ITN helps you connect and share with the people in your life.
+                  ITN giúp bạn kết nối và chia sẻ với mọi người trong cuộc sống.
                 </p>
               </div>
             </div>
@@ -48,7 +48,7 @@ const LoginUI = () => {
                 onChange={handleChange}
                 type="email"
                 className="bg-gray-100 p-3 rounded-lg w-full shadow-md focus:ring-2 focus:ring-blue-500"
-                placeholder="Email address"
+                placeholder="Địa chỉ email"
               />
               <div className="relative">
                 <input
@@ -57,7 +57,7 @@ const LoginUI = () => {
                   onChange={handleChange}
                   type={passwordVisible ? "text" : "password"}
                   className="w-full p-3 border border-gray-300 rounded-lg shadow-md focus:ring-2 focus:ring-blue-500"
-                  placeholder="Password"
+                  placeholder="Mật khẩu"
                 />
                 <span
                   className="absolute right-3 top-3 cursor-pointer"
@@ -73,19 +73,19 @@ const LoginUI = () => {
                 }
                 className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 w-full rounded-lg shadow-md"
               >
-                Login
+                Đăng nhập
               </button>
 
               <div className="text-center">
                 <Link to="/forgotten" className="text-blue-500">
-                  Forgotten password?
+                  Quên mật khẩu?
                 </Link>
               </div>
 
               <hr className="my-6 border-gray-300" />
               <Link to="/signup" className="text-blue-500">
                 <button className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 w-full rounded-lg shadow-md">
-                  Create New Account
+                  Tạo tài khoản mới
                 </button>
               </Link>
             </div>
@@ -112,9 +112,9 @@ const LoginUI = () => {
         )}
         {step === 3 && (
           <SuccessMessage
-            title="Two-Factor Authentication Successful!"
-            desc="Your identity has been verified successfully. You can now access your account."
-            textNav="Go to home"
+            title="Xác thực hai yếu tố thành công!"
+            desc="Danh tính của bạn đã được xác minh thành công. Bây giờ bạn có thể truy cập tài khoản của mình."
+            textNav="Đi đến trang chủ"
             nextPage="/homepage"
             navigate={navigate}
           />

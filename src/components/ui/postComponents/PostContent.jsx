@@ -221,15 +221,15 @@ function PostContent({ post, postUser, isComment = false, onClose }) {
         <div className="flex items-center">
           <img
             src={
-              currentUser?.avatar
-                ? `${API_URL}${currentUser.avatar}`
-                : "/default-avatar.png"
+                post.infoUser?.avatar ?`http://localhost:5000${post.infoUser.avatar}` :  `${API_URL}${currentUser.avatar}`
             }
             alt={postUser?.fullName || "User"}
             className="w-10 h-10 rounded-full mr-3"
           />
           <div>
-            <h3 className="font-semibold">{currentUser?.fullName || "User"}</h3>
+            <h3 className="font-semibold">
+              {post.infoUser?.fullName || currentUser?.fullName}
+            </h3>
             <div className="flex items-center text-sm text-gray-500">
               {!isComment && post.isShared && (
                 <p>
