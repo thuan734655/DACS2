@@ -282,6 +282,13 @@ const HomePageUI = () => {
 
     return (
       <div>
+        <div className="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 rounded-lg shadow-lg p-4 mb-4 hidden md:block">
+          <div className="text-white text-center">
+            <h3 className="text-xl font-bold mb-2">🎉 Chào mừng bạn!</h3>
+            <p className="text-sm">Hãy chia sẻ khoảnh khắc của bạn</p>
+            <div className="mt-2">✨🌟✨</div>
+          </div>
+        </div>
         <div className="bg-white rounded-lg shadow-lg p-4 mb-4 hidden md:block">
           <div
             className="flex items-center space-x-4 mb-4"
