@@ -15,7 +15,7 @@ import {
 } from "../../services/userService";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-const API_URL = "https://dacs2-server-8.onrender.com";
+const API_URL = "http://localhost:5000";
 const FriendsUI = () => {
   const [activeTab, setActiveTab] = useState("friends"); // 'requests' or 'suggestions'
   const [friendRequests, setFriendRequests] = useState([]);

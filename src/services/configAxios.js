@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const configAxios = {
-  baseURL: "https://dacs2-server-8.onrender.com",
+  baseURL: "http://localhost:5000",
   header: {
     "Content-Type": "application/json",
   },

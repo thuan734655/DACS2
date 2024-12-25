@@ -10,7 +10,7 @@ import {
   FaUser,
 } from "react-icons/fa";
 import { useUserPublicProfile } from "../../hooks/useUserPublicProfile";
-const API_URL = "https://dacs2-server-8.onrender.com";
+const API_URL = "http://localhost:5000";
 const NotificationDetailUI = ({ notification, onBack }) => {
   const user = JSON.parse(localStorage.getItem("user"));
   const [isPost, setIsPost] = useState(

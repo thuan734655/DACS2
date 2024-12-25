@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useUserPublicProfile } from "../../hooks/useUserPublicProfile";
 import { unfriendUser } from "../../services/userService";
 
-const API_URL = "https://dacs2-server-8.onrender.com";
+const API_URL = "http://localhost:5000";
 const FormUser = (props) => {
   const { idUser } = props;
   const navigate = useNavigate();

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "https://dacs2-server-8.onrender.com";
+const BASE_URL = "http://localhost:5000";
 
 export const requestOTP = async (email) => {
   return await axios.post(`${BASE_URL}/forgotten`, { email });

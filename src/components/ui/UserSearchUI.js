@@ -7,7 +7,7 @@ import {
 } from "../../services/userService";
 import { toast } from "react-toastify";
 import { useUserPublicProfile } from "../../hooks/useUserPublicProfile";
-const API_URL = "https://dacs2-server-8.onrender.com";
+const API_URL = "http://localhost:5000";
 const UserSearchUI = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);

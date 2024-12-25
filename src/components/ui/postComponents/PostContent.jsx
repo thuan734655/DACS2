@@ -4,7 +4,7 @@ import { X, MoreHorizontal, Globe, Users, Lock } from "lucide-react";
 import { useToast } from "../../../context/ToastContext";
 import socket from "../../../services/socket.js";
 import { useUserPublicProfile } from "../../../hooks/useUserPublicProfile.js";
-const API_URL = "https://dacs2-server-8.onrender.com";
+const API_URL = "http://localhost:5000";
 function PostContent({ post, postUser, isComment = false, onClose }) {
   const { currentUser } = useUserPublicProfile(post?.idUser);
 
@@ -40,6 +40,18 @@ function PostContent({ post, postUser, isComment = false, onClose }) {
       }
     };
 
+    const handlePrivacySharedPost = ({ postId, privacy, success }) => {
+      if (post.type === "share" && post.sharedPostId === postId) {
+        setShowMenu(false);
+        if (success) {
+          showToast("Đã thay đổi quyền riêng tư bài viết được chia sẻ thành công!", "success");
+          setPrivacy(privacy);
+        } else {
+          showToast("Lỗi khi thay đổi quyền riêng tư bài viết được chia sẻ!", "error");
+        }
+      }
+    };
+
     const handleContentUpdate = ({ postId, text, success }) => {
       if (postId === post.postId) {
         if (success) {
@@ -65,12 +77,14 @@ function PostContent({ post, postUser, isComment = false, onClose }) {
 
     socket.on("responseReportPost", handleResponse);
     socket.on("responsePrivacyPost", handlePrivacyPost);
+    socket.on("responsePrivacySharedPost", handlePrivacySharedPost);
     socket.on("responseContentPost", handleContentUpdate);
     socket.on("responseDeletePost", handleDeletePost);
 
     return () => {
       socket.off("responseReportPost", handleResponse);
       socket.off("responsePrivacyPost", handlePrivacyPost);
+      socket.off("responsePrivacySharedPost", handlePrivacySharedPost);
       socket.off("responseContentPost", handleContentUpdate);
       socket.off("responseDeletePost", handleDeletePost);
     };
@@ -181,7 +195,7 @@ function PostContent({ post, postUser, isComment = false, onClose }) {
         <div className="flex items-center mb-2">
           <img
             src={
-              `https://dacs2-server-8.onrender.com${post.sharedPostContent.originalUser?.avatar}` ||
+              `http://localhost:5000${post.sharedPostContent.originalUser?.avatar}` ||
               "/default-avatar.png"
             }
             alt={post.sharedPostContent.originalUser?.fullName || "User"}
@@ -221,7 +235,9 @@ function PostContent({ post, postUser, isComment = false, onClose }) {
         <div className="flex items-center">
           <img
             src={
-                post.infoUser?.avatar ?`http://localhost:5000${post.infoUser.avatar}` :  `${API_URL}${currentUser.avatar}`
+              post.infoUser?.avatar
+                ? `http://localhost:5000${post.infoUser.avatar}`
+                : `${API_URL}${currentUser.avatar}`
             }
             alt={postUser?.fullName || "User"}
             className="w-10 h-10 rounded-full mr-3"

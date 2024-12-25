@@ -12,7 +12,7 @@ import socket from "../../../services/socket";
 import { formatTimestamp } from "../../../utils/timeFormat";
 import { useToast } from "../../../context/ToastContext";
 import { useUserPublicProfile } from "../../../hooks/useUserPublicProfile";
-const API_URL = "https://dacs2-server-8.onrender.com";
+const API_URL = "http://localhost:5000";
 
 function CommentList({
   commentsList,
@@ -252,13 +252,13 @@ function CommentList({
                         key={index}
                         controls
                         className="w-full rounded-lg mt-2"
-                        src={"https://dacs2-server-8.onrender.com" + fileUrl}
+                        src={"http://localhost:5000" + fileUrl}
                       />
                     ) : (
                       <img
                         key={index}
                         className="w-full rounded-lg mt-2"
-                        src={"https://dacs2-server-8.onrender.com" + fileUrl}
+                        src={"http://localhost:5000" + fileUrl}
                         alt="Comment media"
                       />
                     )

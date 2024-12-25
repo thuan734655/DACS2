@@ -4,7 +4,7 @@ import { LogOut, User, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { searchUsersByName } from "../../services/userService";
 import { useUserPublicProfile } from "../../hooks/useUserPublicProfile";
-const API_URL = "https://dacs2-server-8.onrender.com";
+const API_URL = "http://localhost:5000";
 const HeaderUI = (isAdmin) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
