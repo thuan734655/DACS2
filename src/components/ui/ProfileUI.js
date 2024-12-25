@@ -117,14 +117,16 @@ const ProfileUI = () => {
         setIsFirstLoad(true);
       }
 
-      console.log(id, "loading");
+      const isFriendRequest =
+        currentUserId != JSON.parse(localStorage.getItem("user")).idUser;
 
       socket.emit(
         "getPostOfUser",
         currentUserId,
         fetchedPostIds,
         postsPerPage,
-        page
+        page,
+        isFriendRequest
       );
     },
     [currentUserId, fetchedPostIds, isLoadingPost, hasMore, postsPerPage]
